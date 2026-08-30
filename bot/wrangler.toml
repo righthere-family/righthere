@@ -1,0 +1,36 @@
+name = "righthere-bot"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+routes = [
+  { pattern = "api.righthere.family", custom_domain = true },
+  { pattern = "admin.righthere.family", custom_domain = true },
+  { pattern = "righthere.family", custom_domain = true },
+]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "POSTCARD_PHOTOS"
+id = "cd19cfedfa6b4108a5aa558bdcb1bb61"
+
+[[kv_namespaces]]
+binding = "SYSTEM"
+id = "d41222b4ceb64e1191656dcee58206cc"
+
+[[send_email]]
+name = "ADMIN_MAIL"
+
+[observability]
+enabled = true
+
+[vars]
+APNS_TOPIC = "family.righthere.app"
+
+ADMIN_EMAIL = "artem.zolotuhin.ge@gmail.com"

@@ -1,0 +1,22 @@
+# Secrets — никогда в репозитории
+Config.xcconfig
+*.p8
+.env
+.dev.vars
+
+# Node / Wrangler
+node_modules/
+.wrangler/
+
+# Xcode. Сам .xcodeproj коммитим (надёжнее для соло-проекта; project.yml —
+# запасной путь через xcodegen), игнорим только пользовательский мусор и сборку.
+xcuserdata/
+DerivedData/
+.build/
+ios/build/
+
+# Supabase CLI
+supabase/.temp/
+
+# macOS
+.DS_Store

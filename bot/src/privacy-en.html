@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mom, I’m Right Here — Privacy</title>
+<meta name="description" content="Privacy policy of the “Mom, I’m Right Here” app.">
+<style>
+  body { margin: 0; background: #F5F0E7; color: #33291F;
+         font: 16px/1.65 -apple-system, "SF Pro Text", system-ui, sans-serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 48px 22px 72px; position: relative; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 600;
+       font-size: 32px; margin: 18px 0 6px; }
+  h2 { font-family: Georgia, serif; font-weight: 600; font-size: 21px; margin: 34px 0 10px; }
+  p, li { color: #4A4034; }
+  .sub { color: #7A6F62; font-size: 14px; margin-top: 0; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .mark { height: 28px; }
+  a { color: #9A6410; }
+  .card { background: #FBF8F2; border-radius: 16px; padding: 16px 20px; margin: 18px 0; }
+  .lang { position: absolute; top: 50px; right: 22px; font-size: 14px; }
+  .lang a { text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="lang"><a href="/privacy" lang="ru">RU</a></span>
+  <svg class="mark" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+    <path d="M 8 26 Q 30 -6 52 26" fill="none" stroke="#33291F" stroke-opacity=".35"
+          stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
+    <circle cx="8" cy="26" r="3.4" fill="#B8791A"/>
+    <circle cx="52" cy="26" r="3.4" fill="#33291F"/>
+  </svg>
+  <h1>Privacy Policy</h1>
+  <p class="sub">“Mom, I’m Right Here” · updated August 27, 2026</p>
+
+  <p>“Mom, I’m Right Here” is a way to know, every day, that someone you love is fine:
+  a parent answers with one button in Telegram, and the family sees the answer in the app.
+  The service is built around one simple principle: <b>we store only what the family has
+  chosen to show each other — and we don’t look at it ourselves.</b></p>
+
+  <h2>What we never do</h2>
+  <ul>
+    <li>We don’t track location — there is no geolocation in the app or the bot.</li>
+    <li>We don’t read chats — the bot only sees messages written directly to it.</li>
+    <li>We don’t sell or share data with third parties, and we show no ads.</li>
+    <li>We don’t use the family’s data to train anything.</li>
+    <li>We never ask for SMS codes, passwords, or money in a conversation.</li>
+  </ul>
+
+  <h2>What we store</h2>
+  <ul>
+    <li>The parent’s name, city and time zone, and their preferred morning time — so we write on time and by name.</li>
+    <li>The parent’s Telegram account identifier — so the bot knows whom to write to.</li>
+    <li>Button answers (“all is well” / “not great”) and their time — this is the history the family sees.</li>
+    <li>Messages, voice notes and photos the parent chose to send the bot for the family, and postcards the family sent to the parent.</li>
+    <li>Medication names and times, if the family enabled reminders.</li>
+    <li>Answers to the “question of the week” — family stories visible only to the family.</li>
+    <li>The child’s display name in the app and a technical token for phone notifications.</li>
+  </ul>
+
+  <div class="card">
+    Everything listed above is visible only to your family: the parent and the people they
+    or their children connected via the family link. There is no “public” access of any kind.
+  </div>
+
+  <h2>Where it lives</h2>
+  <p>Data is stored in a cloud database (Supabase) and processed by Cloudflare
+  infrastructure. Connections are encrypted. Postcard photos are kept only until
+  delivery and deleted right after it; if delivery never happens, the photo
+  deletes itself within a week.</p>
+
+  <h2>How to delete everything</h2>
+  <ul>
+    <li>The parent can message the bot <b>/stop</b> at any moment and choose “Stop completely” —
+    the bot goes silent and their data is deleted.</li>
+    <li>The family can ask us to delete everything — the account, the history, the weekly
+    stories — by writing to us from any connected device.</li>
+  </ul>
+
+  <h2>Questions</h2>
+  <p>For privacy matters: <a href="mailto:privacy@righthere.family">privacy@righthere.family</a>.</p>
+</div>
+</body>
+</html>

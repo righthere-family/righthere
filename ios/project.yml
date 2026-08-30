@@ -1,0 +1,101 @@
+name: MamaYaRyadom
+options:
+  bundleIdPrefix: family.righthere
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.20.0
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios-spm
+    from: 5.0.0
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: 1
+    DEVELOPMENT_TEAM: "UL9T5C3V94"
+    # iPhone-only: the App Store validator otherwise demands all four iPad
+    # orientations, and the product is designed for a phone in the hand.
+    TARGETED_DEVICE_FAMILY: 1
+
+schemes:
+  MamaYaRyadom:
+    build:
+      targets:
+        MamaYaRyadom: all
+    run:
+      config: Debug
+      storeKitConfiguration: MamaYaRyadom/Products.storekit
+
+targets:
+  MamaYaRyadom:
+    type: application
+    platform: iOS
+    sources: [MamaYaRyadom, Shared]
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - package: RevenueCat
+        product: RevenueCat
+      - target: MamaWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: family.righthere.app
+    info:
+      path: MamaYaRyadom/Info.plist
+      properties:
+        CFBundleDisplayName: "Мама, я рядом"
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        CFBundleURLTypes:
+          - CFBundleURLName: family.righthere.app.join
+            CFBundleURLSchemes: [righthere]
+        # Live-mode credentials. Empty values keep the app on mock services;
+        # fill in after the Supabase project exists. The anon key is public by
+        # design (RLS + function grants do the guarding).
+        BotHandle: "righthere_family_bot"
+        JoinBaseURL: "https://api.righthere.family"
+        SupabaseURL: "https://spfdqxgaetgfxzaltjlr.supabase.co"
+        SupabaseAnonKey: "sb_publishable_2s6i5wM9WYA9K38s9iBptw__8qFSW6G"
+        FamilyToken: ""
+        UIAppFonts:
+          - CormorantGaramond-SemiBold.ttf
+          - CormorantGaramond-SemiBoldItalic.ttf
+    entitlements:
+      path: MamaYaRyadom/App.entitlements
+      properties:
+        aps-environment: development
+        com.apple.developer.applesignin: [Default]
+        com.apple.security.application-groups: [group.family.righthere.app]
+
+  MamaWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - MamaWidget
+      - Shared
+      - path: MamaYaRyadom/Resources/Fonts
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: family.righthere.app.widget
+        INFOPLIST_KEY_CFBundleDisplayName: "Мама, я рядом"
+    entitlements:
+      path: MamaWidget/Widget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.family.righthere.app]
+    info:
+      path: MamaWidget/Info.plist
+      properties:
+        CFBundleDisplayName: "Мама, я рядом"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        UIAppFonts:
+          - CormorantGaramond-SemiBold.ttf
+          - CormorantGaramond-SemiBoldItalic.ttf

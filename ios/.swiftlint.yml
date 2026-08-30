@@ -1,0 +1,18 @@
+included:
+  - MamaYaRyadom
+  - MamaWidget
+
+line_length:
+  warning: 140
+  error: 180
+
+identifier_name:
+  min_length: 2
+
+opt_in_rules:
+  - empty_count
+  - sorted_imports
+  - vertical_whitespace_closing_braces
+
+disabled_rules:
+  - todo
