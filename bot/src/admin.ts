@@ -141,9 +141,11 @@ async function handleAuthorised(req: Request, env: Env, url: URL): Promise<Respo
     const body = await req
       .json<{ title?: string; ru?: string; en?: string; family_ids?: string[] }>()
       .catch(() => ({}) as { title?: string; ru?: string; en?: string; family_ids?: string[] });
-    const ru = body.ru?.trim();
-    if (!ru) return json({ error: 'empty' }, 400);
-    const en = body.en?.trim() || ru;
+    const ruRaw = body.ru?.trim();
+    const enRaw = body.en?.trim();
+    if (!ruRaw && !enRaw) return json({ error: 'empty' }, 400);
+    const ru = ruRaw || enRaw!;
+    const en = enRaw || ruRaw!;
     const title = body.title?.trim() || 'Мама, я рядом';
     let ids = (body.family_ids ?? []).filter((v) => /^[0-9a-f-]{36}$/.test(v));
     if (ids.length === 0) {
@@ -359,6 +361,12 @@ const PAGE = `<!doctype html>
   #waitlist td { vertical-align: middle; }
   .saveflag.ok { color: #3F7A4E; }
   .saveflag.fail { color: #8E3A4C; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border: 1px solid #E0D6C4; border-radius: 99px; padding: 5px 14px;
+          font-size: 13px; cursor: pointer; user-select: none; background: #FFFDF8;
+          color: #7A6F62; }
+  .chip:hover { border-color: #9A6410; }
+  .chip.on { background: #9A6410; border-color: #9A6410; color: #fff; }
   .tgroup { margin-bottom: 18px; }
   .tgroup h3 { font-size: 13px; margin: 0 0 2px; }
   .tgroup .vars { font-size: 12px; color: #8C7F6D; margin-bottom: 8px; }
@@ -398,6 +406,7 @@ const PAGE = `<!doctype html>
   <nav class="tabs">
     <a href="#overview">Обзор</a>
     <a href="#families">Семьи</a>
+    <a href="#broadcast">Рассылка</a>
     <a href="#texts">Тексты бота</a>
     <a href="#questions">Вопросы недели</a>
     <a href="#waitlist">Лист ожидания</a>
@@ -421,21 +430,24 @@ const PAGE = `<!doctype html>
   </section>
 
   <section id="page-families">
-    <div class="card" style="margin-bottom:18px">
+    <div class="card"><table id="families"></table></div>
+  </section>
+
+  <section id="page-broadcast">
+    <div class="card">
       <div class="tgroup"><h3>Пуш-рассылка семьям</h3>
-        <div class="vars">Каждое устройство получит текст своего языка. Пустой английский — всем уйдёт русский.
-          Ничего не выбрано в списке — уйдёт всем семьям.</div>
+        <div class="vars">Каждое устройство получит текст своего языка. Достаточно одного языка — второй подставится.</div>
         <div class="row"><input type="text" id="bcTitle" placeholder="Заголовок (по умолчанию: Мама, я рядом)"></div>
         <div class="row"><textarea id="bcRu" rows="2" placeholder="Текст по-русски…"></textarea></div>
         <div class="row"><textarea id="bcEn" rows="2" placeholder="Text in English (optional)"></textarea></div>
+        <div class="vars" style="margin-top:6px">Кому: ничего не выбрано — всем семьям; клик по семье выбирает, повторный — снимает.</div>
+        <div class="chips" id="bcFamilies" style="margin-bottom:12px"></div>
         <div class="row">
-          <select id="bcFamilies" multiple size="3" style="min-width:220px"></select>
           <button onclick="sendBroadcast(this)">Отправить</button>
           <span class="saveflag"></span>
         </div>
       </div>
     </div>
-    <div class="card"><table id="families"></table></div>
   </section>
 
   <section id="page-texts">
@@ -602,7 +614,7 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-const PAGES = ['overview', 'families', 'texts', 'questions', 'waitlist', 'journal'];
+const PAGES = ['overview', 'families', 'broadcast', 'texts', 'questions', 'waitlist', 'journal'];
 function route() {
   const page = PAGES.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   PAGES.forEach(p => {
@@ -613,10 +625,10 @@ function route() {
 }
 window.addEventListener('hashchange', route);
 
-function flag(el, ok) {
+function flag(el, ok, okText, failText) {
   const f = el.closest('.row') && el.closest('.row').querySelector('.saveflag');
   if (!f) return;
-  f.textContent = ok ? '✓ сохранено' : 'не сохранилось';
+  f.textContent = ok ? (okText || '✓ сохранено') : (failText || 'не сохранилось');
   f.className = 'saveflag ' + (ok ? 'ok' : 'fail');
   clearTimeout(f._t);
   if (ok) f._t = setTimeout(() => { f.textContent = ''; }, 1600);
@@ -725,27 +737,46 @@ function renderFamilies(families) {
   document.getElementById('families').innerHTML =
     '<tr><th>Семья</th><th>Родители</th></tr>' + rows;
   document.getElementById('bcFamilies').innerHTML = families.map(f =>
-    '<option value="' + f.id + '">' + esc(f.child || f.id.slice(0, 8)) + '</option>').join('');
+    '<span class="chip" data-id="' + f.id + '" onclick="this.classList.toggle(\\'on\\')">' +
+    esc(f.child || f.id.slice(0, 8)) + '</span>').join('');
 }
 
 async function sendBroadcast(btn) {
   const ru = document.getElementById('bcRu').value.trim();
-  if (!ru) { alert('Нужен хотя бы русский текст.'); return; }
-  const picked = [...document.getElementById('bcFamilies').selectedOptions].map(o => o.value);
+  const en = document.getElementById('bcEn').value.trim();
+  if (!ru && !en) { alert('Напиши текст — хватит любого одного языка.'); return; }
+  const picked = [...document.querySelectorAll('#bcFamilies .chip.on')].map(c => c.dataset.id);
   const who = picked.length ? picked.length + ' выбранным семьям' : 'ВСЕМ семьям';
   if (!confirm('Отправить пуш ' + who + '?')) return;
   btn.disabled = true;
   try {
     const r = await api('broadcast', { method: 'POST', body: JSON.stringify({
       title: document.getElementById('bcTitle').value,
-      ru, en: document.getElementById('bcEn').value,
-      family_ids: picked,
+      ru, en, family_ids: picked,
     })});
-    flag(btn, true);
+    flag(btn, true, '✓ отправлено');
     alert('Отправлено семьям: ' + r.sent + (r.deferred ? '; не влезло в лимит: ' + r.deferred + ' — повтори для них отдельно' : ''));
   } catch (e) {
-    flag(btn, false);
-    alert('Не получилось отправить.');
+    flag(btn, false, null, 'не отправилось');
+  }
+  btn.disabled = false;
+}
+
+async function familyPush(id, btn) {
+  const inputs = btn.closest('.row').querySelectorAll('input');
+  const title = inputs[0].value;
+  const ru = inputs[1].value.trim();
+  const en = inputs[2].value.trim();
+  if (!ru && !en) { alert('Напиши текст пуша — хватит любого одного языка.'); return; }
+  btn.disabled = true;
+  try {
+    const r = await api('broadcast', { method: 'POST', body: JSON.stringify({
+      title, ru, en, family_ids: [id],
+    })});
+    flag(btn, r.ok, '✓ отправлено', 'не отправилось');
+    inputs.forEach(i => { i.value = ''; });
+  } catch (e) {
+    flag(btn, false, null, 'не отправилось');
   }
   btn.disabled = false;
 }
@@ -800,6 +831,11 @@ function renderFamilyDetail(f) {
     '<button class="ghost" onclick="grant(\\'' + f.id + '\\', \\'family\\')">выдать Семейную</button>' +
     '<button class="danger" onclick="revoke(\\'' + f.id + '\\')">снять выданную</button>' +
     '<button class="ghost" onclick="testPush(\\'' + f.id + '\\', this)">тестовый пуш</button></div>' +
+    '<div class="row" style="flex-wrap:wrap"><input type="text" placeholder="Заголовок (Мама, я рядом)" style="max-width:220px">' +
+    '<input type="text" placeholder="Текст по-русски…" style="max-width:280px">' +
+    '<input type="text" placeholder="Text in English" style="max-width:200px">' +
+    '<button class="ghost" onclick="familyPush(\\'' + f.id + '\\', this)">отправить пуш</button>' +
+    '<span class="saveflag"></span></div>' +
     parents +
     '<div style="margin-top:10px"><span class="muted">Истории:</span><div style="margin-top:6px">' + stories + '</div></div>' +
     '</div>';
