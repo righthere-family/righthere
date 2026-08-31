@@ -2880,19 +2880,53 @@
         }
       }
     },
-    "family.noFamilyText": {
+    "family.noFamilyStep1": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create one on the Today tab — it takes about a minute. Mom will get a warm invitation in Telegram."
+            "value": "Create your family and tell us about mom"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Создайте её на вкладке «Сегодня» — это займёт минуту. Мама получит тёплое приглашение в Telegram."
+            "value": "Создайте семью и расскажите про маму"
+          }
+        }
+      }
+    },
+    "family.noFamilyStep2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "She gets a warm invitation in Telegram — nothing to install"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Она получит тёплое приглашение в Telegram — ставить ничего не нужно"
+          }
+        }
+      }
+    },
+    "family.noFamilyStep3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every morning — her “all is well”, right here and on the widget"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждое утро — её «всё хорошо» здесь и на виджете"
           }
         }
       }
@@ -3335,6 +3369,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "день без весточки"
+          }
+        }
+      }
+    },
+    "history.noFamilyText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A calendar of mom’s mornings: green days, her words on the hard ones, and trends over time. It starts with the first check-in."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Календарь маминых утр: зелёные дни, её слова в трудные и тренды со временем. Всё начнётся с первой отметки."
+          }
+        }
+      }
+    },
+    "history.noFamilyTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History will live here"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Здесь будет история"
           }
         }
       }

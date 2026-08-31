@@ -3,6 +3,7 @@ import WidgetKit
 
 struct RootView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("onboardingDone") private var onboardingDone = false
     @AppStorage("appLanguage") private var appLanguage = ""
     @AppStorage("appTheme") private var appTheme = "light"
@@ -63,6 +64,12 @@ struct RootView: View {
             guard UUID(uuidString: token) != nil, !AppConfig.hasFamily else { return }
             AppConfig.storeFamilyToken(token)
             onboardingDone = true
+            Task { await PushRegistrar.requestAndRegister() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task { await PushRegistrar.requestAndRegister() }
+            }
         }
     }
 

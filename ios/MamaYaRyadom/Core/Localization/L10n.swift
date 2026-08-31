@@ -277,8 +277,12 @@ enum L10n {
     static var themeSystem: String { String(localized: "theme.system", bundle: bundle) }
 
     static var familyNoFamilyTitle: String { String(localized: "family.noFamilyTitle", bundle: bundle) }
-    static var familyNoFamilyText: String { String(localized: "family.noFamilyText", bundle: bundle) }
+    static var familyNoFamilyStep1: String { String(localized: "family.noFamilyStep1", bundle: bundle) }
+    static var familyNoFamilyStep2: String { String(localized: "family.noFamilyStep2", bundle: bundle) }
+    static var familyNoFamilyStep3: String { String(localized: "family.noFamilyStep3", bundle: bundle) }
     static var familyNoFamilyButton: String { String(localized: "family.noFamilyButton", bundle: bundle) }
+    static var historyNoFamilyTitle: String { String(localized: "history.noFamilyTitle", bundle: bundle) }
+    static var historyNoFamilyText: String { String(localized: "history.noFamilyText", bundle: bundle) }
 
     static var settingsPrivacy: String { String(localized: "settings.privacy", bundle: bundle) }
     static var settingsDelete: String { String(localized: "settings.delete", bundle: bundle) }

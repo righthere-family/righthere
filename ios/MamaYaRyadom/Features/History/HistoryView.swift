@@ -4,6 +4,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(AppRouter.self) private var router
     @State private var model = HistoryViewModel()
     @State private var isShowingPaywall = false
     @State private var reportURL: URL?
@@ -22,17 +23,21 @@ struct HistoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                parentSwitcher
-                if isSiblingLocked {
-                    PremiumHintCard(
-                        title: L10n.siblingLocked,
-                        hint: L10n.siblingLockedHint
-                    ) {
-                        isShowingPaywall = true
-                    }
+                if !AppConfig.hasFamily {
+                    noFamilyCard
                 } else {
-                    calendarCard
-                    premiumTail
+                    parentSwitcher
+                    if isSiblingLocked {
+                        PremiumHintCard(
+                            title: L10n.siblingLocked,
+                            hint: L10n.siblingLockedHint
+                        ) {
+                            isShowingPaywall = true
+                        }
+                    } else {
+                        calendarCard
+                        premiumTail
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -55,6 +60,35 @@ struct HistoryView: View {
             DayDetailView(record: record, parent: model.parent, monthAnchor: model.monthAnchor)
                 .presentationDetents([.height(280)])
         }
+    }
+
+    private var noFamilyCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(L10n.historyNoFamilyTitle)
+                .font(Typography.display(24))
+                .foregroundStyle(Palette.ink)
+            Text(L10n.historyNoFamilyText)
+                .font(.system(size: 14))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+                .padding(.top, 8)
+            Button {
+                router.tab = .today
+            } label: {
+                Text(L10n.familyNoFamilyButton)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(Palette.accent, in: .rect(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 16)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 20)
+        .background(Palette.card, in: .rect(cornerRadius: 20))
+        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
     }
 
     private var calendarCard: some View {

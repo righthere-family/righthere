@@ -46,14 +46,19 @@ final class PurchaseModel {
         }
     }
 
+    private(set) var familyEntitlement: String?
+
     var hasSubscription: Bool {
-        !purchasedIDs.isEmpty
+        !purchasedIDs.isEmpty || familyEntitlement != nil
     }
 
     func load() async {
         products = ((try? await Product.products(for: Self.productIDs)) ?? [])
             .sorted { $0.price < $1.price }
         await refreshEntitlements()
+        if AppConfig.hasFamily {
+            familyEntitlement = try? await FamilyAPI().familyEntitlement()
+        }
     }
 
     func refreshEntitlements() async {

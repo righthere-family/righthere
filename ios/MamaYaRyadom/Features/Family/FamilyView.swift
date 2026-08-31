@@ -83,13 +83,16 @@ struct FamilyView: View {
     private var noFamilyCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.familyNoFamilyTitle)
-                .font(Typography.display(22))
+                .font(Typography.display(24))
                 .foregroundStyle(Palette.ink)
-            Text(L10n.familyNoFamilyText)
-                .font(.system(size: 14))
-                .foregroundStyle(Palette.inkSecondary)
-                .lineSpacing(3)
-                .padding(.top, 8)
+
+            step(1, L10n.familyNoFamilyStep1)
+                .padding(.top, 16)
+            step(2, L10n.familyNoFamilyStep2)
+                .padding(.top, 12)
+            step(3, L10n.familyNoFamilyStep3)
+                .padding(.top, 12)
+
             Button {
                 router.tab = .today
             } label: {
@@ -101,12 +104,27 @@ struct FamilyView: View {
                     .background(Palette.accent, in: .rect(cornerRadius: 14))
             }
             .buttonStyle(.plain)
-            .padding(.top, 14)
+            .padding(.top, 18)
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 18)
+        .padding(.vertical, 20)
         .background(Palette.card, in: .rect(cornerRadius: 20))
         .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+    }
+
+    private func step(_ number: Int, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text("\(number)")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 23, height: 23)
+                .background(Palette.accentBright, in: .circle)
+            Text(text)
+                .font(.system(size: 14.5))
+                .foregroundStyle(Palette.ink)
+                .lineSpacing(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     // MARK: - Skeleton
