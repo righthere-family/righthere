@@ -169,6 +169,7 @@ struct FamilyAPI: Sendable {
         language: String
     ) async throws {
         guard let client = SupabaseHub.client else { throw FamilyAPIError.notConfigured }
+        await ensureSession()
         struct Params: Encodable {
             let pAppToken: String
             let pToken: String
@@ -435,12 +436,24 @@ struct FamilyAPI: Sendable {
         try await call("app_stories", params: ["p_app_token": AppConfig.familyToken])
     }
 
+    // A device that joined via the family link has no auth session of its
+    // own — the app works through the family token alone. Everything keyed
+    // to auth.uid() (push token, role, leaving) must mint one first.
+    private func ensureSession() async {
+        guard let client = SupabaseHub.client else { return }
+        if client.auth.currentSession == nil {
+            try? await client.auth.signInAnonymously()
+        }
+    }
+
     func myRole() async throws -> String? {
-        try? await call("my_role", params: ["p_app_token": AppConfig.familyToken])
+        await ensureSession()
+        return try? await call("my_role", params: ["p_app_token": AppConfig.familyToken])
     }
 
     func deleteAccount() async throws -> String? {
-        try await call("app_delete_account", params: ["p_app_token": AppConfig.familyToken])
+        await ensureSession()
+        return try await call("app_delete_account", params: ["p_app_token": AppConfig.familyToken])
     }
 
     func familyEntitlement() async throws -> String? {
