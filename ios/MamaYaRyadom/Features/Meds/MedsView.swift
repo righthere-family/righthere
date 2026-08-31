@@ -10,8 +10,26 @@ struct MedsView: View {
     @State private var isConfirmingRemoval = false
     private let purchases = PurchaseModel.shared
 
+    private var isLoading: Bool {
+        model.isLoading || !purchases.isLoaded
+    }
+
     private var isAtFreeLimit: Bool {
         model.meds.count >= 1 && model.editingMed == nil && !purchases.hasSubscription
+    }
+
+    private var loadingCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(String(repeating: "\u{2007}", count: 18))
+                .font(.system(size: 16, weight: .semibold))
+            Text(String(repeating: "\u{2007}", count: 10))
+                .font(.system(size: 13))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .background(Palette.card, in: .rect(cornerRadius: 20))
+        .skeleton()
     }
 
     var body: some View {
@@ -23,29 +41,33 @@ struct MedsView: View {
     private func scrollBody(_ proxy: ScrollViewProxy) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                if model.meds.isEmpty {
-                    Text(L10n.medsEmpty)
-                        .font(.system(size: 15))
-                        .foregroundStyle(Palette.inkSecondary)
-                        .lineSpacing(3)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(20)
-                        .background(Palette.card, in: .rect(cornerRadius: 20))
+                if isLoading {
+                    loadingCard
                 } else {
-                    ForEach(model.meds) { med in
-                        medRow(med, scrollTo: proxy)
+                    if model.meds.isEmpty {
+                        Text(L10n.medsEmpty)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Palette.inkSecondary)
+                            .lineSpacing(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(20)
+                            .background(Palette.card, in: .rect(cornerRadius: 20))
+                    } else {
+                        ForEach(model.meds) { med in
+                            medRow(med, scrollTo: proxy)
+                        }
                     }
-                }
-                if isAtFreeLimit {
-                    PremiumHintCard(
-                        title: L10n.premiumMeds,
-                        hint: L10n.premiumMedsHint
-                    ) {
-                        isShowingPaywall = true
+                    if isAtFreeLimit {
+                        PremiumHintCard(
+                            title: L10n.premiumMeds,
+                            hint: L10n.premiumMedsHint
+                        ) {
+                            isShowingPaywall = true
+                        }
+                    } else {
+                        addCard
+                            .id("editor")
                     }
-                } else {
-                    addCard
-                        .id("editor")
                 }
             }
             .padding(.horizontal, 20)
@@ -55,8 +77,9 @@ struct MedsView: View {
         .navigationTitle(L10n.routeMedications)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await model.load(parentId: parentId)
-            await purchases.load()
+            async let meds: Void = model.load(parentId: parentId)
+            async let plan: Void = purchases.load()
+            _ = await (meds, plan)
         }
         .sheet(isPresented: $isShowingPaywall) { PaywallSheet() }
         .confirmDialog(

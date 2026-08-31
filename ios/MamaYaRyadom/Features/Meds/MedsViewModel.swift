@@ -12,6 +12,7 @@ final class MedsViewModel {
     }
 
     private(set) var meds: [MedInfo] = []
+    private(set) var isLoading = true
     private(set) var isSaving = false
     private(set) var editingMed: MedInfo?
     var newTitle = ""
@@ -37,6 +38,7 @@ final class MedsViewModel {
     func load(parentId: UUID?) async {
         self.parentId = parentId
         meds = (try? await FamilyAPI().meds(parentId: parentId)) ?? []
+        isLoading = false
     }
 
     func addSlot() {

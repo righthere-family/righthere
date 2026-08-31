@@ -47,6 +47,7 @@ final class PurchaseModel {
     }
 
     private(set) var familyEntitlement: String?
+    private(set) var isLoaded = false
 
     var hasSubscription: Bool {
         !purchasedIDs.isEmpty || familyEntitlement != nil
@@ -59,6 +60,7 @@ final class PurchaseModel {
         if AppConfig.hasFamily {
             familyEntitlement = try? await FamilyAPI().familyEntitlement()
         }
+        isLoaded = true
     }
 
     func refreshEntitlements() async {
