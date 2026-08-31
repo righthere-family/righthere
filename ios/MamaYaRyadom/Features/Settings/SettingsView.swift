@@ -8,6 +8,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppRouter.self) private var router
     @AppStorage("appLanguage") private var appLanguage = ""
+    @AppStorage("appTheme") private var appTheme = "light"
     @AppStorage("onboardingDone") private var onboardingDone = false
     @State private var role: String?
     @State private var isConfirmingDeletion = false
@@ -22,6 +23,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 14) {
                 subscriptionRow
                 languageRow
+                themeRow
                 privacyRow
 
                 deleteRow
@@ -92,6 +94,24 @@ struct SettingsView: View {
         }
     }
 
+    private var themeRow: some View {
+        row(L10n.settingsTheme) {
+            Menu {
+                Button(L10n.themeLight) { appTheme = "light" }
+                Button(L10n.themeDark) { appTheme = "dark" }
+                Button(L10n.themeSystem) { appTheme = "" }
+            } label: {
+                HStack(spacing: 5) {
+                    Text(themeLabel)
+                        .font(.system(size: 14))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 11))
+                }
+                .foregroundStyle(Palette.accent)
+            }
+        }
+    }
+
     private var privacyRow: some View {
         Link(destination: URL(string: "https://righthere.family/privacy")!) {
             row(L10n.settingsPrivacy) {
@@ -142,6 +162,14 @@ struct SettingsView: View {
         case "ru": "Русский"
         case "en": "English"
         default: L10n.familyLanguageSystem
+        }
+    }
+
+    private var themeLabel: String {
+        switch appTheme {
+        case "light": L10n.themeLight
+        case "dark": L10n.themeDark
+        default: L10n.themeSystem
         }
     }
 

@@ -271,6 +271,15 @@ enum L10n {
     static var messagesEmpty: String { String(localized: "messages.empty", bundle: bundle) }
     static var messagesVoice: String { String(localized: "messages.voice", bundle: bundle) }
 
+    static var settingsTheme: String { String(localized: "settings.theme", bundle: bundle) }
+    static var themeLight: String { String(localized: "theme.light", bundle: bundle) }
+    static var themeDark: String { String(localized: "theme.dark", bundle: bundle) }
+    static var themeSystem: String { String(localized: "theme.system", bundle: bundle) }
+
+    static var familyNoFamilyTitle: String { String(localized: "family.noFamilyTitle", bundle: bundle) }
+    static var familyNoFamilyText: String { String(localized: "family.noFamilyText", bundle: bundle) }
+    static var familyNoFamilyButton: String { String(localized: "family.noFamilyButton", bundle: bundle) }
+
     static var settingsPrivacy: String { String(localized: "settings.privacy", bundle: bundle) }
     static var settingsDelete: String { String(localized: "settings.delete", bundle: bundle) }
     static var settingsLeave: String { String(localized: "settings.leave", bundle: bundle) }

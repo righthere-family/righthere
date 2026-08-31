@@ -5,6 +5,7 @@ struct RootView: View {
     @Environment(AppRouter.self) private var router
     @AppStorage("onboardingDone") private var onboardingDone = false
     @AppStorage("appLanguage") private var appLanguage = ""
+    @AppStorage("appTheme") private var appTheme = "light"
     @State private var isLaunching = true
 
     var body: some View {
@@ -46,6 +47,7 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.4), value: onboardingDone)
+        .preferredColorScheme(preferredScheme)
         .onChange(of: appLanguage) { _, newValue in
             // The widget lives in another process: hand it the choice through
             // the app group and ask it to redraw in the new language.
@@ -61,6 +63,14 @@ struct RootView: View {
             guard UUID(uuidString: token) != nil, !AppConfig.hasFamily else { return }
             AppConfig.storeFamilyToken(token)
             onboardingDone = true
+        }
+    }
+
+    private var preferredScheme: ColorScheme? {
+        switch appTheme {
+        case "light": .light
+        case "dark": .dark
+        default: nil
         }
     }
 

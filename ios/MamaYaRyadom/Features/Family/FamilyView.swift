@@ -12,18 +12,22 @@ struct FamilyView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                if model.members.isEmpty {
-                    skeletonCard
+                if !AppConfig.hasFamily {
+                    noFamilyCard
                 } else {
-                    ForEach(model.members) { member in
-                        parentCard(member)
+                    if model.members.isEmpty {
+                        skeletonCard
+                    } else {
+                        ForEach(model.members) { member in
+                            parentCard(member)
+                        }
                     }
+                    addParentRow
+                    messagesRow
+                    storiesRow
+                    datesRow
+                    inviteCard
                 }
-                addParentRow
-                messagesRow
-                storiesRow
-                datesRow
-                inviteCard
             }
             .padding(.horizontal, 20)
             .padding(.top, 18)
@@ -72,6 +76,37 @@ struct FamilyView: View {
             .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - No Family
+
+    private var noFamilyCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(L10n.familyNoFamilyTitle)
+                .font(Typography.display(22))
+                .foregroundStyle(Palette.ink)
+            Text(L10n.familyNoFamilyText)
+                .font(.system(size: 14))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+                .padding(.top, 8)
+            Button {
+                router.tab = .today
+            } label: {
+                Text(L10n.familyNoFamilyButton)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(Palette.accent, in: .rect(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 14)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .background(Palette.card, in: .rect(cornerRadius: 20))
+        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Skeleton
