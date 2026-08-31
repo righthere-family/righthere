@@ -17,7 +17,7 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: 5
+    CURRENT_PROJECT_VERSION: 6
     DEVELOPMENT_TEAM: "UL9T5C3V94"
     # iPhone-only: the App Store validator otherwise demands all four iPad
     # orientations, and the product is designed for a phone in the hand.
