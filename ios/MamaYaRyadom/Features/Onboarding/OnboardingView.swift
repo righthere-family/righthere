@@ -83,6 +83,10 @@ struct OnboardingView: View {
     // MARK: - Steps
 
     private func advance() {
+        if step == 1 {
+            pressMomButton()
+            return
+        }
         guard step == 0 || step == 2 else { return }
         forceAdvance()
     }
@@ -332,7 +336,7 @@ private struct MomPhone: View {
             }
             .buttonStyle(.plain)
             .disabled(step != 1)
-            .scaleEffect(breathe ? 1.04 : 1)
+            .scaleEffect(breathe ? 1.07 : 1)
             .onAppear {
                 guard pulsing else { return }
                 withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
