@@ -77,39 +77,39 @@ struct SettingsView: View {
     // Names of the languages stay in their own tongue on purpose: the switch
     // must be findable when the app speaks a language you do not read.
     private var languageRow: some View {
-        row(L10n.familyLanguage) {
-            Menu {
-                Button(L10n.familyLanguageSystem) { appLanguage = "" }
-                Button("Русский") { appLanguage = "ru" }
-                Button("English") { appLanguage = "en" }
-            } label: {
-                HStack(spacing: 5) {
-                    Text(languageLabel)
-                        .font(.system(size: 14))
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 11))
-                }
-                .foregroundStyle(Palette.accent)
+        Menu {
+            Button(L10n.familyLanguageSystem) { appLanguage = "" }
+            Button("Русский") { appLanguage = "ru" }
+            Button("English") { appLanguage = "en" }
+        } label: {
+            row(L10n.familyLanguage) {
+                pickerValue(languageLabel)
             }
         }
+        .buttonStyle(.plain)
     }
 
     private var themeRow: some View {
-        row(L10n.settingsTheme) {
-            Menu {
-                Button(L10n.themeLight) { appTheme = "light" }
-                Button(L10n.themeDark) { appTheme = "dark" }
-                Button(L10n.themeSystem) { appTheme = "" }
-            } label: {
-                HStack(spacing: 5) {
-                    Text(themeLabel)
-                        .font(.system(size: 14))
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 11))
-                }
-                .foregroundStyle(Palette.accent)
+        Menu {
+            Button(L10n.themeLight) { appTheme = "light" }
+            Button(L10n.themeDark) { appTheme = "dark" }
+            Button(L10n.themeSystem) { appTheme = "" }
+        } label: {
+            row(L10n.settingsTheme) {
+                pickerValue(themeLabel)
             }
         }
+        .buttonStyle(.plain)
+    }
+
+    private func pickerValue(_ text: String) -> some View {
+        HStack(spacing: 5) {
+            Text(text)
+                .font(.system(size: 14))
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(Palette.accent)
     }
 
     private var privacyRow: some View {
