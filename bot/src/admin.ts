@@ -137,6 +137,37 @@ async function handleAuthorised(req: Request, env: Env, url: URL): Promise<Respo
     return json({ ok: true, devices });
   }
 
+  if (url.pathname === '/admin/api/broadcast' && req.method === 'POST') {
+    const body = await req
+      .json<{ title?: string; ru?: string; en?: string; family_ids?: string[] }>()
+      .catch(() => ({}) as { title?: string; ru?: string; en?: string; family_ids?: string[] });
+    const ru = body.ru?.trim();
+    if (!ru) return json({ error: 'empty' }, 400);
+    const en = body.en?.trim() || ru;
+    const title = body.title?.trim() || 'Мама, я рядом';
+    let ids = (body.family_ids ?? []).filter((v) => /^[0-9a-f-]{36}$/.test(v));
+    if (ids.length === 0) {
+      ids = await d.allFamilyIds();
+    }
+    let spent = 1;
+    let sent = 0;
+    let deferredFamilies = 0;
+    for (const id of ids) {
+      if (spent > 38) {
+        deferredFamilies += 1;
+        continue;
+      }
+      spent += await pushToFamily(
+        env,
+        id,
+        { title, body: { ru, en }, level: 'active', category: 'SERVICE' },
+        40 - spent,
+      );
+      sent += 1;
+    }
+    return json({ ok: true, sent, deferred: deferredFamilies });
+  }
+
   const grantMatch = url.pathname.match(/^\/admin\/api\/family\/([0-9a-f-]{36})\/premium$/);
   if (grantMatch && req.method === 'POST') {
     const body = await req.json<{ entitlement?: 'premium' | 'family' }>();
@@ -390,6 +421,20 @@ const PAGE = `<!doctype html>
   </section>
 
   <section id="page-families">
+    <div class="card" style="margin-bottom:18px">
+      <div class="tgroup"><h3>Пуш-рассылка семьям</h3>
+        <div class="vars">Каждое устройство получит текст своего языка. Пустой английский — всем уйдёт русский.
+          Ничего не выбрано в списке — уйдёт всем семьям.</div>
+        <div class="row"><input type="text" id="bcTitle" placeholder="Заголовок (по умолчанию: Мама, я рядом)"></div>
+        <div class="row"><textarea id="bcRu" rows="2" placeholder="Текст по-русски…"></textarea></div>
+        <div class="row"><textarea id="bcEn" rows="2" placeholder="Text in English (optional)"></textarea></div>
+        <div class="row">
+          <select id="bcFamilies" multiple size="3" style="min-width:220px"></select>
+          <button onclick="sendBroadcast(this)">Отправить</button>
+          <span class="saveflag"></span>
+        </div>
+      </div>
+    </div>
     <div class="card"><table id="families"></table></div>
   </section>
 
@@ -679,6 +724,30 @@ function renderFamilies(families) {
   }).join('');
   document.getElementById('families').innerHTML =
     '<tr><th>Семья</th><th>Родители</th></tr>' + rows;
+  document.getElementById('bcFamilies').innerHTML = families.map(f =>
+    '<option value="' + f.id + '">' + esc(f.child || f.id.slice(0, 8)) + '</option>').join('');
+}
+
+async function sendBroadcast(btn) {
+  const ru = document.getElementById('bcRu').value.trim();
+  if (!ru) { alert('Нужен хотя бы русский текст.'); return; }
+  const picked = [...document.getElementById('bcFamilies').selectedOptions].map(o => o.value);
+  const who = picked.length ? picked.length + ' выбранным семьям' : 'ВСЕМ семьям';
+  if (!confirm('Отправить пуш ' + who + '?')) return;
+  btn.disabled = true;
+  try {
+    const r = await api('broadcast', { method: 'POST', body: JSON.stringify({
+      title: document.getElementById('bcTitle').value,
+      ru, en: document.getElementById('bcEn').value,
+      family_ids: picked,
+    })});
+    flag(btn, true);
+    alert('Отправлено семьям: ' + r.sent + (r.deferred ? '; не влезло в лимит: ' + r.deferred + ' — повтори для них отдельно' : ''));
+  } catch (e) {
+    flag(btn, false);
+    alert('Не получилось отправить.');
+  }
+  btn.disabled = false;
 }
 
 async function toggleFamily(id) {

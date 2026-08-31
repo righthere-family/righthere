@@ -835,6 +835,11 @@ export function db(env: Env) {
       await sb.from('waitlist').delete().eq('telegram_user_id', telegramUserId);
     },
 
+    async allFamilyIds(): Promise<string[]> {
+      const { data } = await sb.from('families').select('id');
+      return (data ?? []).map((row) => row.id as string);
+    },
+
     async setCheckinTime(telegramUserId: number, value: string): Promise<boolean> {
       const { data } = await sb.rpc('set_checkin_time', {
         p_telegram_user_id: telegramUserId,
