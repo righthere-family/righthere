@@ -202,6 +202,7 @@ struct TodayStatusCardView: View {
                     .foregroundStyle(Palette.accent.opacity(0.7))
             }
             .font(.system(size: 14))
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
     }
