@@ -3,9 +3,6 @@ import SwiftUI
 
 // MARK: - Parent Messages
 
-// Everything the parents wrote, spoke or photographed for the family outside
-// the morning button. The bot promises "the family will see this" — this
-// screen is where that promise is kept.
 struct MessagesView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var model = MessagesViewModel()
@@ -78,18 +75,31 @@ struct MessagesView: View {
         .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
     }
 
+    // MARK: - Voice
+
     private func voiceRow(_ message: ParentMessage) -> some View {
         Button {
             Task { await model.togglePlayback(message) }
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: model.playingId == message.id ? "stop.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 30))
+                Image(systemName: model.playingId == message.id ? "pause.circle.fill" : "play.circle.fill")
+                    .font(.system(size: 32))
                     .foregroundStyle(Palette.accent)
-                Text(L10n.messagesVoice)
-                    .font(.system(size: 14))
-                    .foregroundStyle(Palette.inkSecondary)
-                Spacer()
+                if let track = model.tracks[message.id] {
+                    WaveformBars(
+                        samples: track.samples,
+                        progress: model.playingId == message.id ? model.progress : 0
+                    )
+                    .frame(height: 26)
+                    Text(model.timeLabel(for: message))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(Palette.inkSecondary)
+                } else {
+                    Text(L10n.messagesVoice)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Palette.inkSecondary)
+                    Spacer()
+                }
             }
         }
         .buttonStyle(.plain)
@@ -131,19 +141,53 @@ struct MessagesView: View {
     }
 }
 
+// MARK: - Waveform
+
+private struct WaveformBars: View {
+    let samples: [Float]
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            let count = max(samples.count, 1)
+            let step = geo.size.width / CGFloat(count)
+            let barWidth = max(2, step * 0.62)
+            let played = Int((progress * Double(count)).rounded())
+            HStack(alignment: .center, spacing: step - barWidth) {
+                ForEach(0..<count, id: \.self) { index in
+                    Capsule()
+                        .fill(index < played ? Palette.accent : Palette.inkSecondary.opacity(0.35))
+                        .frame(
+                            width: barWidth,
+                            height: max(4, geo.size.height * CGFloat(samples[index]))
+                        )
+                }
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+        }
+    }
+}
+
 // MARK: - View Model
 
 @Observable
 @MainActor
 final class MessagesViewModel {
+    struct VoiceTrack {
+        let data: Data
+        let duration: TimeInterval
+        let samples: [Float]
+    }
+
     private(set) var messages: [ParentMessage] = []
     private(set) var photoURLs: [UUID: URL] = [:]
+    private(set) var tracks: [UUID: VoiceTrack] = [:]
     private(set) var isLoading = true
     private(set) var playingId: UUID?
+    private(set) var progress: Double = 0
     private var parentNames: [UUID: String] = [:]
-    private var player: AVPlayer?
-    private var endObserver: NSObjectProtocol?
-    private var failureObserver: NSObjectProtocol?
+    private var player: AVAudioPlayer?
+    private var ticker: Timer?
 
     func load(using service: any CheckinService) async {
         async let feed = (try? FamilyAPI().parentMessages()) ?? []
@@ -156,63 +200,151 @@ final class MessagesViewModel {
         }
         messages = loaded
         isLoading = false
-        // Photo links are signed and short-lived, fetched together so cards
-        // fill in one pass instead of popping one by one.
-        await withTaskGroup(of: (UUID, URL)?.self) { group in
+
+        // Photos resolve to short-lived signed links; voice notes are small,
+        // so they download whole — the waveform and duration need the bytes,
+        // and AVPlayer streaming needs range support the worker does not have.
+        await withTaskGroup(of: Payload?.self) { group in
             for message in loaded {
-                guard let fileId = message.photoFileId else { continue }
-                group.addTask {
-                    guard let url = try? await FamilyAPI().voicePlaybackURL(fileId: fileId) else {
-                        return nil
+                if let fileId = message.photoFileId {
+                    group.addTask {
+                        guard let url = try? await FamilyAPI().voicePlaybackURL(fileId: fileId) else {
+                            return nil
+                        }
+                        return .photo(message.id, url)
                     }
-                    return (message.id, url)
+                }
+                if let fileId = message.voiceFileId {
+                    group.addTask {
+                        guard let track = await Self.downloadTrack(fileId: fileId) else { return nil }
+                        return .voice(message.id, track)
+                    }
                 }
             }
-            for await pair in group {
-                if let (id, url) = pair { photoURLs[id] = url }
+            for await payload in group {
+                switch payload {
+                case .photo(let id, let url): photoURLs[id] = url
+                case .voice(let id, let track): tracks[id] = track
+                case nil: break
+                }
             }
         }
+    }
+
+    private enum Payload {
+        case photo(UUID, URL)
+        case voice(UUID, VoiceTrack)
     }
 
     func parentName(for id: UUID) -> String {
         parentNames[id] ?? L10n.familyParentKindMom
     }
 
+    func timeLabel(for message: ParentMessage) -> String {
+        guard let track = tracks[message.id] else { return "" }
+        let seconds = playingId == message.id
+            ? track.duration * (1 - progress)
+            : track.duration
+        let total = Int(seconds.rounded())
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
+    // MARK: - Playback
+
     func togglePlayback(_ message: ParentMessage) async {
         if playingId == message.id {
             stopPlayback()
             return
         }
-        guard let fileId = message.voiceFileId else { return }
-        guard let url = try? await FamilyAPI().voicePlaybackURL(fileId: fileId) else { return }
-        let item = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: item)
-        endObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: item,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.stopPlayback() }
+        stopPlayback()
+        var track = tracks[message.id]
+        if track == nil, let fileId = message.voiceFileId {
+            track = await Self.downloadTrack(fileId: fileId)
+            if let track { tracks[message.id] = track }
         }
-        failureObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemFailedToPlayToEndTime,
-            object: item,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.stopPlayback() }
+        guard let track else { return }
+
+        // Route to the speakers even with the silent switch on: a voice note
+        // is something the user explicitly asked to hear.
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
+        try? AVAudioSession.sharedInstance().setActive(true)
+        guard let audio = try? AVAudioPlayer(data: track.data, fileTypeHint: AVFileType.caf.rawValue) else {
+            return
         }
-        player?.play()
+        player = audio
+        audio.play()
         playingId = message.id
+        progress = 0
+        ticker = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.tick() }
+        }
+    }
+
+    private func tick() {
+        guard let player else { return }
+        if player.isPlaying {
+            progress = player.duration > 0 ? player.currentTime / player.duration : 0
+        } else {
+            stopPlayback()
+        }
     }
 
     func stopPlayback() {
-        player?.pause()
+        ticker?.invalidate()
+        ticker = nil
+        player?.stop()
         player = nil
         playingId = nil
-        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
-        if let failureObserver { NotificationCenter.default.removeObserver(failureObserver) }
-        endObserver = nil
-        failureObserver = nil
+        progress = 0
+    }
+
+    // MARK: - Voice Download
+
+    private nonisolated static func downloadTrack(fileId: String) async -> VoiceTrack? {
+        guard let url = try? await FamilyAPI().voicePlaybackURL(fileId: fileId),
+              let (data, response) = try? await URLSession.shared.data(from: url),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              !data.isEmpty
+        else { return nil }
+        let analyzed = analyze(data)
+        return VoiceTrack(
+            data: data,
+            duration: analyzed?.duration ?? 0,
+            samples: analyzed?.samples ?? Array(repeating: 0.35, count: 36)
+        )
+    }
+
+    private nonisolated static func analyze(_ data: Data) -> (duration: TimeInterval, samples: [Float])? {
+        let temp = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".caf")
+        defer { try? FileManager.default.removeItem(at: temp) }
+        guard (try? data.write(to: temp)) != nil,
+              let file = try? AVAudioFile(forReading: temp)
+        else { return nil }
+        let format = file.processingFormat
+        let frameCount = AVAudioFrameCount(file.length)
+        guard frameCount > 0,
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount),
+              (try? file.read(into: buffer)) != nil,
+              let channel = buffer.floatChannelData?.pointee
+        else { return nil }
+        let length = Int(buffer.frameLength)
+        guard length > 0 else { return nil }
+        let duration = Double(length) / format.sampleRate
+
+        let buckets = 36
+        let per = max(1, length / buckets)
+        var samples = [Float](repeating: 0, count: buckets)
+        for bucket in 0..<buckets {
+            let start = bucket * per
+            let end = min(length, start + per)
+            guard start < end else { break }
+            var sum: Float = 0
+            for i in start..<end { sum += abs(channel[i]) }
+            samples[bucket] = sum / Float(end - start)
+        }
+        let peak = max(samples.max() ?? 0, 0.0001)
+        return (duration, samples.map { max(0.12, min(1, $0 / peak)) })
     }
 }
 
