@@ -67,6 +67,32 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     });
   };
 
+  const MESSAGE_PUSH_GAP_MS = 3 * 60_000;
+
+  const pushMessage = async (
+    forwarded: { familyId: string; name: string; kind: 'text' | 'voice' | 'photo' } | null,
+  ) => {
+    if (!forwarded) return;
+    const stamp = `msg-push/${forwarded.familyId}`;
+    try {
+      if (await env.SYSTEM.get(stamp)) return;
+      await env.SYSTEM.put(stamp, '1', { expirationTtl: MESSAGE_PUSH_GAP_MS / 1000 });
+    } catch {
+      return;
+    }
+    const body = {
+      text: { ru: 'Пара слов для вас', en: 'A few words for you' },
+      voice: { ru: 'Голосовое сообщение', en: 'A voice message' },
+      photo: { ru: 'Фотография', en: 'A photo' },
+    }[forwarded.kind];
+    await pushToFamily(env, forwarded.familyId, {
+      title: forwarded.name,
+      body,
+      level: 'active',
+      category: 'MESSAGE',
+    });
+  };
+
   const checkinKeyboard = (lang: Lang) =>
     new Keyboard()
       .text(T(lang).keyboard.ok).row()
@@ -438,12 +464,13 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
     const storyFamily = await d.storyCapture(ctx.from!.id, ctx.message.text, null);
 
-    await d.forwardToFamily(ctx.from!.id, { text: ctx.message.text });
+    const forwardedText = await d.forwardToFamily(ctx.from!.id, { text: ctx.message.text });
     const name = await d.addressForm(ctx.from!.id);
     const child = await d.childName(ctx.from!.id);
     if (storyFamily) {
       await ctx.reply(S.story.captured);
       await d.broadcastToApp(storyFamily, 'story');
+      await pushMessage(forwardedText);
       return;
     }
     const hasCheckin = await d.hasCheckinToday(ctx.from!.id);
@@ -451,6 +478,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       S.freeInput.text(name, child) + (hasCheckin ? '' : `\n\n${S.freeInput.keyboardHint}`),
       { reply_markup: hasCheckin ? hideKeyboard : checkinKeyboard(lang) },
     );
+    await pushMessage(forwardedText);
   });
 
   const markupForChat = async (telegramId: number, lang: Lang) =>
@@ -460,7 +488,8 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     const lang = await langFor(ctx);
     const S = T(lang);
     const storyFamily = await d.storyCapture(ctx.from!.id, null, ctx.message.voice.file_id);
-    await d.forwardToFamily(ctx.from!.id, { voiceFileId: ctx.message.voice.file_id });
+    const forwardedVoice = await d.forwardToFamily(ctx.from!.id, { voiceFileId: ctx.message.voice.file_id });
+    await pushMessage(forwardedVoice);
     if (storyFamily) {
       await ctx.reply(S.story.captured);
       await d.broadcastToApp(storyFamily, 'story');
@@ -473,7 +502,8 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.on('message:photo', async (ctx) => {
     const lang = await langFor(ctx);
-    await d.forwardToFamily(ctx.from!.id, { photoFileId: ctx.message.photo.at(-1)!.file_id });
+    const forwardedPhoto = await d.forwardToFamily(ctx.from!.id, { photoFileId: ctx.message.photo.at(-1)!.file_id });
+    await pushMessage(forwardedPhoto);
     await ctx.reply(T(lang).freeInput.photo(await d.childName(ctx.from!.id)), {
       reply_markup: await markupForChat(ctx.from!.id, lang),
     });

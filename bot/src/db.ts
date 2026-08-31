@@ -896,9 +896,9 @@ export function db(env: Env) {
     async forwardToFamily(
       telegramUserId: number,
       payload: { text?: string; voiceFileId?: string; photoFileId?: string },
-    ) {
+    ): Promise<{ familyId: string; name: string; kind: 'text' | 'voice' | 'photo' } | null> {
       const parent = await this.parentByTelegramId(telegramUserId);
-      if (!parent) return;
+      if (!parent) return null;
 
       const kind = payload.text ? 'text' : payload.voiceFileId ? 'voice' : 'photo';
       await best(
@@ -926,6 +926,11 @@ export function db(env: Env) {
         );
       }
       await this.broadcastToApp(parent.family_id, 'detail');
+      return {
+        familyId: parent.family_id,
+        name: parent.address_form ?? parent.display_name,
+        kind,
+      };
     },
 
     async stopAndErase(telegramUserId: number) {

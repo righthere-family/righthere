@@ -5,7 +5,7 @@ export interface Push {
   title: string;
   body: string | { ru: string; en: string };
   level: 'passive' | 'active' | 'time-sensitive';
-  category?: 'CHECKIN_OK' | 'NOT_OK' | 'ESCALATION' | 'SERVICE';
+  category?: 'CHECKIN_OK' | 'NOT_OK' | 'ESCALATION' | 'SERVICE' | 'MESSAGE';
 }
 
 let jwtCache: { token: string; at: number } | null = null;
