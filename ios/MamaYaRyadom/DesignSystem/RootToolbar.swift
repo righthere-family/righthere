@@ -54,7 +54,7 @@ private struct RootToolbar: ViewModifier {
 
     private var mark: some View {
         BrandMark()
-            .frame(width: 30, height: 19)
+            .frame(width: 30, height: 27)
     }
 }
 

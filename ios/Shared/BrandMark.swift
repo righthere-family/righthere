@@ -17,9 +17,24 @@ struct BrandMark: View {
             arc.addArc(center: center, radius: radius, startAngle: start, endAngle: end, clockwise: false)
             context.stroke(
                 arc,
-                with: .color(ink.opacity(0.35)),
-                style: StrokeStyle(lineWidth: 1.4, lineCap: .round)
+                with: .color(ink.opacity(0.4)),
+                style: StrokeStyle(lineWidth: 2.1, lineCap: .round, dash: [0.1, 4.8])
             )
+
+            let sun = CGPoint(x: size.width / 2, y: center.y - radius - size.height * 0.28)
+            context.fill(
+                Path(ellipseIn: CGRect(x: sun.x - 2.1, y: sun.y - 2.1, width: 4.2, height: 4.2)),
+                with: .color(honey)
+            )
+            for i in 0..<8 {
+                let angle = Double(i) * .pi / 4
+                let inner = CGPoint(x: sun.x + 3.4 * cos(angle), y: sun.y + 3.4 * sin(angle))
+                let outer = CGPoint(x: sun.x + 4.9 * cos(angle), y: sun.y + 4.9 * sin(angle))
+                var ray = Path()
+                ray.move(to: inner)
+                ray.addLine(to: outer)
+                context.stroke(ray, with: .color(honey), style: StrokeStyle(lineWidth: 1.1, lineCap: .round))
+            }
 
             let momPoint = CGPoint(
                 x: center.x + radius * cos(start.radians),
