@@ -43,7 +43,7 @@ struct StoriesView: View {
 
             if let answer = story.answerText {
                 Text("«\(answer)»")
-                    .font(Typography.displayItalic(20))
+                    .font(Typography.display(20))
                     .foregroundStyle(Palette.ink)
                     .lineSpacing(4)
             }
