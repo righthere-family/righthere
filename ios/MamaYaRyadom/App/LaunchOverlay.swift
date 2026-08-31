@@ -12,11 +12,12 @@ struct LaunchOverlay: View {
     @State private var sparkT: CGFloat = 0
     @State private var isLifting = false
 
-    // LaunchScene geometry, in the image's own 220x105pt space.
-    private static let arcCenter = CGPoint(x: 110, y: 57)
-    private static let arcRadius: CGFloat = 48
-    private static let arcStart = Angle.degrees(205)
-    private static let arcEnd = Angle.degrees(335)
+    // LaunchScene geometry, in the image's own 220x105pt space: the same
+    // quadratic curve the dotted arc is drawn along, so the spark rides the
+    // dots instead of floating above them.
+    private static let arcFrom = CGPoint(x: 66.33, y: 44)
+    private static let arcTo = CGPoint(x: 153.33, y: 44)
+    private static let arcControl = CGPoint(x: 109.83, y: -4.67)
 
     var body: some View {
         ZStack {
@@ -30,10 +31,9 @@ struct LaunchOverlay: View {
                     .shadow(color: Palette.accentBright.opacity(0.85), radius: 5)
                     .modifier(SparkOnArc(
                         t: sparkT,
-                        center: Self.arcCenter,
-                        radius: Self.arcRadius,
-                        from: Self.arcStart,
-                        to: Self.arcEnd
+                        from: Self.arcFrom,
+                        to: Self.arcTo,
+                        control: Self.arcControl
                     ))
             }
             .frame(width: 220, height: 105)
@@ -74,10 +74,9 @@ struct LaunchOverlay: View {
 // Animatable re-evaluates every frame, so the spark truly rides the arc.
 private struct SparkOnArc: ViewModifier, @preconcurrency Animatable {
     var t: CGFloat
-    let center: CGPoint
-    let radius: CGFloat
-    let from: Angle
-    let to: Angle
+    let from: CGPoint
+    let to: CGPoint
+    let control: CGPoint
 
     var animatableData: CGFloat {
         get { t }
@@ -85,13 +84,13 @@ private struct SparkOnArc: ViewModifier, @preconcurrency Animatable {
     }
 
     func body(content: Content) -> some View {
-        let angle = from.radians + (to.radians - from.radians) * Double(t)
+        let mt = 1 - t
         let fade = min(1.0, Double(1 - t) * 12)
         content
             .opacity(t <= 0 ? 0 : fade)
             .position(
-                x: center.x + radius * cos(angle),
-                y: center.y + radius * sin(angle)
+                x: mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x,
+                y: mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y
             )
     }
 }
