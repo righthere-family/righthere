@@ -48,6 +48,7 @@ final class PurchaseModel {
 
     private(set) var familyEntitlement: String?
     private(set) var isLoaded = false
+    private(set) var trialEligibleIDs: Set<String> = []
 
     var hasSubscription: Bool {
         !purchasedIDs.isEmpty || familyEntitlement != nil
@@ -60,7 +61,45 @@ final class PurchaseModel {
         if AppConfig.hasFamily {
             familyEntitlement = try? await FamilyAPI().familyEntitlement()
         }
+        await refreshTrialEligibility()
         isLoaded = true
+    }
+
+    private func refreshTrialEligibility() async {
+        var eligible: Set<String> = []
+        for product in products {
+            guard let subscription = product.subscription,
+                  subscription.introductoryOffer?.paymentMode == .freeTrial,
+                  await subscription.isEligibleForIntroOffer
+            else { continue }
+            eligible.insert(product.id)
+        }
+        trialEligibleIDs = eligible
+    }
+
+    func trialLabel(for productID: String) -> String? {
+        guard trialEligibleIDs.contains(productID),
+              let offer = products.first(where: { $0.id == productID })?
+                  .subscription?.introductoryOffer
+        else { return nil }
+
+        var components = DateComponents()
+        switch offer.period.unit {
+        case .day: components.day = offer.period.value
+        case .week: components.weekOfMonth = offer.period.value
+        case .month: components.month = offer.period.value
+        case .year: components.year = offer.period.value
+        @unknown default: components.day = offer.period.value
+        }
+
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .full
+        formatter.allowedUnits = [.day, .weekOfMonth, .month, .year]
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = L10n.locale
+        formatter.calendar = calendar
+        guard let period = formatter.string(from: components) else { return nil }
+        return L10n.trialFree(period)
     }
 
     func refreshEntitlements() async {

@@ -160,6 +160,7 @@ struct PaywallView: View {
         let id: String
         let name: String
         let price: String
+        let trial: String?
         let isPurchased: Bool
     }
 
@@ -170,6 +171,7 @@ struct PaywallView: View {
                 id: fallback.id,
                 name: planName(fallback.id, product: product),
                 price: product?.displayPrice ?? fallback.price,
+                trial: model.trialLabel(for: fallback.id),
                 isPurchased: model.purchasedIDs.contains(fallback.id)
             )
         }
@@ -199,6 +201,10 @@ struct PaywallView: View {
                         Text(L10n.paywallCurrent)
                             .font(.system(size: 12))
                             .foregroundStyle(Palette.okStrong)
+                    } else if let trial = plan.trial {
+                        Text(trial)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Palette.accent)
                     }
                 }
                 Spacer()

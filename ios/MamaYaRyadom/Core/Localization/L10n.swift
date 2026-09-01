@@ -271,6 +271,10 @@ enum L10n {
     static var messagesEmpty: String { String(localized: "messages.empty", bundle: bundle) }
     static var messagesVoice: String { String(localized: "messages.voice", bundle: bundle) }
 
+    static func trialFree(_ period: String) -> String {
+        String(format: String(localized: "trial.free", bundle: bundle), period)
+    }
+
     static var settingsTheme: String { String(localized: "settings.theme", bundle: bundle) }
     static var themeLight: String { String(localized: "theme.light", bundle: bundle) }
     static var themeDark: String { String(localized: "theme.dark", bundle: bundle) }

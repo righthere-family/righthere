@@ -6195,6 +6195,23 @@
         }
       }
     },
+    "trial.free": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ free"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ бесплатно"
+          }
+        }
+      }
+    },
     "waiting.hint": {
       "extractionState": "manual",
       "localizations": {
