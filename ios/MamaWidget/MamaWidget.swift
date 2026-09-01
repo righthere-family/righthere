@@ -21,27 +21,28 @@ private func localized(_ key: String.LocalizationValue) -> String {
 
 // MARK: - Palette
 
-private enum WidgetPalette {
-    static let ink = dynamic(light: 0x33291F, dark: 0xEDE6D8)
-    static let inkSecondary = dynamic(light: 0x7A6F62, dark: 0xA99C8B)
-    static let background = dynamic(light: 0xF5F0E7, dark: 0x1E1913)
-    static let card = dynamic(light: 0xFFFFFF, dark: 0x2A241C)
-    static let leaf = dynamic(light: 0x3F7A4E, dark: 0x6FA97E)
-    static let honey = dynamic(light: 0x9A6410, dark: 0xC99B3F)
-    static let honeyBright = dynamic(light: 0xB8791A, dark: 0xD9B268)
-    static let cherry = dynamic(light: 0x8E3A4C, dark: 0xC4818E)
+private struct WidgetPalette {
+    let dark: Bool
 
-    private static func dynamic(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { trait in
-            let hex = trait.userInterfaceStyle == .dark ? dark : light
-            return UIColor(
-                red: CGFloat((hex >> 16) & 0xFF) / 255,
-                green: CGFloat((hex >> 8) & 0xFF) / 255,
-                blue: CGFloat(hex & 0xFF) / 255,
-                alpha: 1
-            )
-        })
+    private func pick(_ light: UInt32, _ night: UInt32) -> Color {
+        let hex = dark ? night : light
+        return Color(
+            red: Double((hex >> 16) & 0xFF) / 255,
+            green: Double((hex >> 8) & 0xFF) / 255,
+            blue: Double(hex & 0xFF) / 255
+        )
     }
+
+    var ink: Color { pick(0x33291F, 0xEDE6D8) }
+    var inkSecondary: Color { pick(0x7A6F62, 0xA99C8B) }
+    var background: Color { pick(0xF5F0E7, 0x1E1913) }
+    var backgroundLift: Color { pick(0xFFFCF5, 0x272119) }
+    var card: Color { pick(0xFFFFFF, 0x2A241C) }
+    var leaf: Color { pick(0x3F7A4E, 0x6FA97E) }
+    var honey: Color { pick(0x9A6410, 0xC99B3F) }
+    var honeyBright: Color { pick(0xB8791A, 0xD9B268) }
+    var cherry: Color { pick(0x8E3A4C, 0xC4818E) }
+    var hairline: Color { pick(0xE2D9C7, 0x3A3128) }
 }
 
 // MARK: - Entry
@@ -112,7 +113,11 @@ struct Provider: TimelineProvider {
 
 struct MamaWidgetView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var scheme
     var entry: MamaEntry
+
+    private var palette: WidgetPalette { WidgetPalette(dark: scheme == .dark) }
+    private var compact: Bool { family == .systemSmall }
 
     var body: some View {
         Group {
@@ -122,66 +127,165 @@ struct MamaWidgetView: View {
                 empty
             }
         }
-        .containerBackground(for: .widget) { WidgetPalette.background }
+        .containerBackground(for: .widget) {
+            LinearGradient(
+                colors: [palette.backgroundLift, palette.background],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
     }
 
-    private func content(_ snapshot: WidgetSnapshot) -> some View {
-        ZStack(alignment: .topLeading) {
-            SignalScene(
-                timeCapsule: snapshot.status.state == "ok" ? timeText(snapshot) : nil,
-                compact: family == .systemSmall
-            )
+    // MARK: - Content
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(who(snapshot).uppercased())
-                    .font(.system(size: 10, weight: .semibold))
-                    .tracking(0.5)
-                    .foregroundStyle(WidgetPalette.inkSecondary)
-                Text(statusWord(snapshot.status.state))
-                    .font(.custom("CormorantGaramond-SemiBold", size: family == .systemSmall ? 21 : 27))
-                    .foregroundStyle(statusColor(snapshot.status.state))
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(family == .systemSmall ? 2 : 1)
-                if family != .systemSmall, let quote = snapshot.status.quote, !quote.isEmpty {
-                    Text("«\(quote)»")
-                        .font(.custom("CormorantGaramond-SemiBoldItalic", size: 15))
-                        .foregroundStyle(WidgetPalette.cherry)
-                        .lineLimit(1)
-                } else if family != .systemSmall, snapshot.status.state == "ok", snapshot.streak >= 2 {
-                    Text(String(format: localized("status.streak"), snapshot.streak))
-                        .font(.system(size: 12))
-                        .foregroundStyle(WidgetPalette.inkSecondary)
-                } else if snapshot.status.state != "ok" {
-                    Text(detailLine(snapshot))
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(WidgetPalette.inkSecondary)
-                }
-                if family == .systemSmall, snapshot.status.state == "ok" {
-                    Text(timeText(snapshot))
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(WidgetPalette.inkSecondary)
-                }
+    private func content(_ snapshot: WidgetSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header(snapshot)
+
+            Text(statusWord(snapshot.status.state))
+                .font(.custom("CormorantGaramond-SemiBold", size: compact ? 26 : 32))
+                .foregroundStyle(statusColor(snapshot.status.state))
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .padding(.top, compact ? 3 : 4)
+
+            secondLine(snapshot)
+
+            Spacer(minLength: 6)
+
+            if let week = snapshot.week, !week.isEmpty {
+                weekStrip(week)
+            } else {
+                SignalScene(palette: palette, compact: compact)
+                    .frame(height: compact ? 26 : 32)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private var empty: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(localized("widget.displayName"))
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(WidgetPalette.ink)
-            Text(localized("widget.openApp"))
-                .font(.system(size: 10))
-                .foregroundStyle(WidgetPalette.inkSecondary)
+    private func header(_ snapshot: WidgetSnapshot) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(who(snapshot).uppercased())
+                .font(.system(size: compact ? 9.5 : 10, weight: .semibold))
+                .tracking(0.6)
+                .foregroundStyle(palette.inkSecondary)
+                .lineLimit(1)
+            Spacer(minLength: 0)
+            BrandGlyph(palette: palette)
+                .frame(width: 22, height: 15)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    private func who(_ snapshot: WidgetSnapshot) -> String {
-        if family == .systemSmall {
-            return snapshot.parent.displayName
+    @ViewBuilder
+    private func secondLine(_ snapshot: WidgetSnapshot) -> some View {
+        HStack(spacing: 7) {
+            if snapshot.status.state == "ok" {
+                Text(timeText(snapshot))
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(palette.inkSecondary)
+                if snapshot.streak >= 2 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "sparkle").font(.system(size: 8.5))
+                        Text("\(snapshot.streak)").font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(palette.honey)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2.5)
+                    .background(palette.honeyBright.opacity(0.15), in: .capsule)
+                }
+            } else if let quote = snapshot.status.quote, !quote.isEmpty, !compact {
+                Text("«\(quote)»")
+                    .font(.custom("CormorantGaramond-SemiBold", size: 15))
+                    .foregroundStyle(palette.cherry)
+                    .lineLimit(1)
+            } else {
+                Text(detailLine(snapshot))
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(palette.inkSecondary)
+                    .lineLimit(1)
+            }
         }
+        .padding(.top, 3)
+    }
+
+    // MARK: - Week
+
+    private func weekStrip(_ week: [WidgetSnapshot.WeekDay]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(week.enumerated()), id: \.offset) { index, day in
+                VStack(spacing: compact ? 4 : 5) {
+                    Text(weekdayLetter(day.date))
+                        .font(.system(size: compact ? 8.5 : 9.5, weight: .medium))
+                        .foregroundStyle(palette.inkSecondary.opacity(index == week.count - 1 ? 1 : 0.7))
+                    Circle()
+                        .fill(markColor(day.mark))
+                        .frame(width: compact ? 7 : 8, height: compact ? 7 : 8)
+                        .overlay {
+                            if day.mark == "pending" {
+                                Circle().strokeBorder(palette.honeyBright.opacity(0.7), lineWidth: 1.2)
+                            }
+                        }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 5)
+                .background {
+                    if index == week.count - 1 {
+                        RoundedRectangle(cornerRadius: 9)
+                            .fill(palette.honeyBright.opacity(0.13))
+                    }
+                }
+            }
+        }
+        .padding(.top, 2)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(palette.hairline)
+                .frame(height: 1)
+                .padding(.horizontal, 2)
+                .offset(y: -6)
+        }
+    }
+
+    private func weekdayLetter(_ iso: String) -> String {
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd"
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        guard let date = parser.date(from: iso) else { return "" }
+        let out = DateFormatter()
+        out.locale = widgetLocale
+        out.setLocalizedDateFormatFromTemplate("EEEEE")
+        return out.string(from: date).lowercased()
+    }
+
+    private func markColor(_ mark: String) -> Color {
+        switch mark {
+        case "ok": palette.leaf
+        case "alert": palette.cherry
+        case "pending": palette.honeyBright.opacity(0.001)
+        default: palette.inkSecondary.opacity(0.28)
+        }
+    }
+
+    // MARK: - Empty
+
+    private var empty: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            BrandGlyph(palette: palette)
+                .frame(width: 26, height: 18)
+            Text(localized("widget.displayName"))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(palette.ink)
+            Text(localized("widget.openApp"))
+                .font(.system(size: 10.5))
+                .foregroundStyle(palette.inkSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    // MARK: - Text
+
+    private func who(_ snapshot: WidgetSnapshot) -> String {
+        if compact { return snapshot.parent.displayName }
         let city = snapshot.parent.city.map { " · \($0)" } ?? ""
         return snapshot.parent.displayName + city
     }
@@ -200,69 +304,101 @@ struct MamaWidgetView: View {
 
     private func statusColor(_ state: String) -> Color {
         switch state {
-        case "ok": WidgetPalette.leaf
-        case "not_ok": WidgetPalette.cherry
-        case "reminded": WidgetPalette.honey
-        default: WidgetPalette.ink
+        case "ok": palette.leaf
+        case "not_ok", "quiet": palette.cherry
+        case "reminded": palette.honey
+        default: palette.ink
         }
     }
 
     private func detailLine(_ snapshot: WidgetSnapshot) -> String {
-        Date.now.formatted(.dateTime.day().month())
+        Date.now.formatted(.dateTime.day().month().locale(widgetLocale))
     }
 
     private func timeText(_ snapshot: WidgetSnapshot) -> String {
         guard let at = snapshot.status.at else { return "" }
-        var style = Date.FormatStyle(date: .omitted, time: .shortened)
+        var style = Date.FormatStyle(date: .omitted, time: .shortened).locale(widgetLocale)
         if let zone = TimeZone(identifier: snapshot.parent.timezone) {
             style.timeZone = zone
         }
         return at.formatted(style)
+    }
+
+    private var widgetLocale: Locale {
+        let lang = SharedStore.appLanguage
+        return lang.isEmpty ? .autoupdatingCurrent : Locale(identifier: lang)
+    }
+}
+
+// MARK: - Brand Glyph
+
+private struct BrandGlyph: View {
+    let palette: WidgetPalette
+
+    var body: some View {
+        Canvas { context, size in
+            let radius = size.width * 0.42
+            let center = CGPoint(x: size.width / 2, y: size.height * 0.96)
+            let start = Angle.degrees(202)
+            let end = Angle.degrees(-22)
+
+            var arc = Path()
+            arc.addArc(center: center, radius: radius, startAngle: start, endAngle: end, clockwise: false)
+            context.stroke(
+                arc,
+                with: .color(palette.honeyBright.opacity(0.55)),
+                style: StrokeStyle(lineWidth: 1.6, lineCap: .round, dash: [0.1, 3.4])
+            )
+
+            let sun = CGPoint(x: center.x, y: center.y - radius - size.height * 0.24)
+            context.fill(
+                Path(ellipseIn: CGRect(x: sun.x - 1.7, y: sun.y - 1.7, width: 3.4, height: 3.4)),
+                with: .color(palette.honeyBright)
+            )
+
+            let mom = CGPoint(x: center.x + radius * cos(start.radians), y: center.y + radius * sin(start.radians))
+            let child = CGPoint(x: center.x + radius * cos(end.radians), y: center.y + radius * sin(end.radians))
+            context.fill(
+                Path(ellipseIn: CGRect(x: mom.x - 2.6, y: mom.y - 2.6, width: 5.2, height: 5.2)),
+                with: .color(palette.honeyBright)
+            )
+            context.fill(
+                Path(ellipseIn: CGRect(x: child.x - 2.2, y: child.y - 2.2, width: 4.4, height: 4.4)),
+                with: .color(palette.ink.opacity(0.75))
+            )
+        }
     }
 }
 
 // MARK: - Signal Scene
 
 private struct SignalScene: View {
-    let timeCapsule: String?
+    let palette: WidgetPalette
     let compact: Bool
 
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
-            let baseY = geo.size.height - 8
-            let momX: CGFloat = 6
-            let childX = width - 6
+            let baseY = geo.size.height - 6
 
             ZStack {
                 WidgetArc()
                     .stroke(
-                        WidgetPalette.honeyBright.opacity(0.55),
+                        palette.honeyBright.opacity(0.55),
                         style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [0.1, 4.6])
                     )
-                    .frame(width: width - 12, height: compact ? 26 : 34)
-                    .position(x: width / 2, y: baseY - (compact ? 13 : 17))
+                    .frame(width: width - 12, height: compact ? 20 : 26)
+                    .position(x: width / 2, y: baseY - (compact ? 10 : 13))
 
                 Circle()
-                    .fill(WidgetPalette.honeyBright)
+                    .fill(palette.honeyBright)
                     .frame(width: 8, height: 8)
-                    .position(x: momX, y: baseY)
+                    .position(x: 6, y: baseY)
 
                 Circle()
-                    .fill(WidgetPalette.ink)
+                    .fill(palette.ink)
                     .frame(width: 8, height: 8)
-                    .position(x: childX, y: baseY)
-
-                if let time = timeCapsule, !time.isEmpty, !compact {
-                    Text(time)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundStyle(WidgetPalette.ink)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(WidgetPalette.card, in: .capsule)
-                        .shadow(color: WidgetPalette.ink.opacity(0.12), radius: 4, y: 2)
-                        .position(x: childX - 26, y: baseY - 22)
-                }
+                    .position(x: width - 6, y: baseY)
             }
         }
     }
