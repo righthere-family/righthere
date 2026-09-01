@@ -5,6 +5,7 @@ export interface Push {
   title: string;
   body: string | { ru: string; en: string };
   level: 'passive' | 'active' | 'time-sensitive';
+  silent?: boolean;
   category?: 'CHECKIN_OK' | 'NOT_OK' | 'ESCALATION' | 'SERVICE' | 'MESSAGE';
 }
 
@@ -101,7 +102,7 @@ export async function pushToFamily(
                   ? push.body.en
                   : push.body.ru,
           },
-          sound: push.level === 'passive' ? undefined : 'default',
+          sound: push.level === 'passive' || push.silent ? undefined : 'default',
           'interruption-level': push.level,
           category: push.category,
         },

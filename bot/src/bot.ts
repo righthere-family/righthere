@@ -55,14 +55,28 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
   };
 
   const pushRelief = async (res: CheckinResult, telegramUserId: number) => {
-    if (!res.family_id || res.result === 'duplicate' || !res.was_escalated) return;
+    if (!res.family_id || res.result === 'duplicate') return;
+    const title = await d.addressForm(telegramUserId);
+    if (res.was_escalated) {
+      await pushToFamily(env, res.family_id, {
+        title,
+        body: {
+          ru: 'На связи: всё хорошо ✅',
+          en: 'In touch: all is well ✅',
+        },
+        level: 'active',
+        category: 'CHECKIN_OK',
+      });
+      return;
+    }
     await pushToFamily(env, res.family_id, {
-      title: await d.addressForm(telegramUserId),
+      title,
       body: {
-        ru: 'На связи: всё хорошо ✅',
-        en: 'In touch: all is well ✅',
+        ru: 'Всё хорошо ☀️',
+        en: 'All is well ☀️',
       },
       level: 'active',
+      silent: true,
       category: 'CHECKIN_OK',
     });
   };
