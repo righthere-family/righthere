@@ -6,6 +6,12 @@ struct WidgetSnapshot: Decodable, Sendable {
     let parent: ParentInfo
     let status: StatusInfo
     let streak: Int
+    let week: [WeekDay]?
+
+    struct WeekDay: Decodable, Sendable {
+        let date: String
+        let mark: String
+    }
 
     struct ParentInfo: Decodable, Sendable {
         let displayName: String
