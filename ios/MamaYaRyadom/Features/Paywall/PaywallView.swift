@@ -63,6 +63,16 @@ struct PaywallView: View {
                 }
                 .padding(.top, 20)
 
+                if pricesUnavailable {
+                    Text(L10n.paywallPricesUnavailable)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Palette.inkSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 10)
+                }
+
                 if model.hasSubscription {
                     Button {
                         isManaging = true
@@ -109,8 +119,8 @@ struct PaywallView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
-            .padding(.bottom, 96)
         }
+        .contentMargins(.bottom, 24, for: .scrollContent)
         .background(Palette.background)
         .navigationTitle(L10n.routePaywall)
         .navigationBarTitleDisplayMode(.inline)
@@ -138,7 +148,17 @@ struct PaywallView: View {
     }
 
     private var canBuySelected: Bool {
-        !isSelectedPurchased && !model.products.isEmpty
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "paywallDemo") { return true }
+        #endif
+        return !isSelectedPurchased && !model.products.isEmpty
+    }
+
+    private var pricesUnavailable: Bool {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "paywallDemo") { return false }
+        #endif
+        return model.isLoaded && model.products.isEmpty && !model.hasSubscription
     }
 
     private func feature(_ icon: String, _ text: String) -> some View {

@@ -4308,6 +4308,23 @@
         }
       }
     },
+    "paywall.pricesUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The App Store isn’t returning prices right now. Check your connection and open this screen again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Store сейчас не отдаёт цены. Проверьте соединение и откройте этот экран заново."
+          }
+        }
+      }
+    },
     "paywall.restore": {
       "extractionState": "manual",
       "localizations": {

@@ -271,6 +271,8 @@ enum L10n {
     static var messagesEmpty: String { String(localized: "messages.empty", bundle: bundle) }
     static var messagesVoice: String { String(localized: "messages.voice", bundle: bundle) }
 
+    static var paywallPricesUnavailable: String { String(localized: "paywall.pricesUnavailable", bundle: bundle) }
+
     static func paywallSaving(_ percent: Int) -> String {
         String(format: String(localized: "paywall.saving", bundle: bundle), percent)
     }
