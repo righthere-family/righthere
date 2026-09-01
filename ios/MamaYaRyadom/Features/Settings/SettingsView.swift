@@ -176,8 +176,8 @@ struct SettingsView: View {
     private var subscriptionStatus: String {
         guard let id = purchases.purchasedIDs.first else { return L10n.subscriptionFreePlan }
         let name = switch id {
-        case "ryadom.premium.monthly": L10n.paywallMonthly
-        case "ryadom.premium.yearly": L10n.paywallYearly
+        case "righthere.premium.monthly": L10n.paywallMonthly
+        case "righthere.premium.yearly": L10n.paywallYearly
         default: L10n.paywallFamily
         }
         return L10n.subscriptionYourPlan(name)

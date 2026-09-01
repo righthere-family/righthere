@@ -18,9 +18,9 @@ final class PurchaseModel {
     static let shared = PurchaseModel()
 
     static let productIDs = [
-        "ryadom.premium.monthly",
-        "ryadom.premium.yearly",
-        "ryadom.family.yearly",
+        "righthere.premium.monthly",
+        "righthere.premium.yearly",
+        "righthere.family.yearly",
     ]
 
     private(set) var products: [Product] = []
@@ -75,6 +75,20 @@ final class PurchaseModel {
             eligible.insert(product.id)
         }
         trialEligibleIDs = eligible
+    }
+
+    func yearlySavings(for productID: String) -> (was: String, percent: Int)? {
+        guard let yearly = products.first(where: { $0.id == productID }),
+              yearly.subscription?.subscriptionPeriod.unit == .year,
+              let monthly = products.first(where: { $0.subscription?.subscriptionPeriod.unit == .month })
+        else { return nil }
+
+        let twelveMonths = monthly.price * 12
+        guard twelveMonths > yearly.price else { return nil }
+        let saved = (twelveMonths - yearly.price) / twelveMonths
+        let percent = Int((NSDecimalNumber(decimal: saved).doubleValue * 100).rounded())
+        guard percent >= 5 else { return nil }
+        return (twelveMonths.formatted(monthly.priceFormatStyle), percent)
     }
 
     func trialLabel(for productID: String) -> String? {

@@ -5,13 +5,13 @@ import StoreKit
 
 struct PaywallView: View {
     private let model = PurchaseModel.shared
-    @State private var selectedID = "ryadom.premium.yearly"
+    @State private var selectedID = "righthere.premium.yearly"
     @State private var isManaging = false
 
     private static let fallbackPlans: [(id: String, name: String, price: String)] = [
-        ("ryadom.premium.monthly", "", "3,99 €"),
-        ("ryadom.premium.yearly", "", "29,99 €"),
-        ("ryadom.family.yearly", "", "44,99 €"),
+        ("righthere.premium.monthly", "", ""),
+        ("righthere.premium.yearly", "", ""),
+        ("righthere.family.yearly", "", ""),
     ]
 
     var body: some View {
@@ -109,7 +109,7 @@ struct PaywallView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
-            .padding(.bottom, 24)
+            .padding(.bottom, 96)
         }
         .background(Palette.background)
         .navigationTitle(L10n.routePaywall)
@@ -160,17 +160,34 @@ struct PaywallView: View {
         let id: String
         let name: String
         let price: String
+        let was: String?
+        let savings: Int?
         let trial: String?
         let isPurchased: Bool
     }
 
     private var plans: [Plan] {
-        Self.fallbackPlans.map { fallback in
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "paywallDemo") {
+            return [
+                Plan(id: "righthere.premium.monthly", name: L10n.paywallMonthly, price: "3,99 €",
+                     was: nil, savings: nil, trial: L10n.trialFree("14 дней"), isPurchased: false),
+                Plan(id: "righthere.premium.yearly", name: L10n.paywallYearly, price: "29,99 €",
+                     was: "47,88 €", savings: 37, trial: L10n.trialFree("14 дней"), isPurchased: false),
+                Plan(id: "righthere.family.yearly", name: L10n.paywallFamily, price: "44,99 €",
+                     was: nil, savings: nil, trial: L10n.trialFree("14 дней"), isPurchased: false),
+            ]
+        }
+        #endif
+        return Self.fallbackPlans.map { fallback in
             let product = model.products.first { $0.id == fallback.id }
+            let savings = model.yearlySavings(for: fallback.id)
             return Plan(
                 id: fallback.id,
                 name: planName(fallback.id, product: product),
                 price: product?.displayPrice ?? fallback.price,
+                was: savings?.was,
+                savings: savings?.percent,
                 trial: model.trialLabel(for: fallback.id),
                 isPurchased: model.purchasedIDs.contains(fallback.id)
             )
@@ -182,8 +199,8 @@ struct PaywallView: View {
             return product.displayName
         }
         switch id {
-        case "ryadom.premium.monthly": return L10n.paywallMonthly
-        case "ryadom.premium.yearly": return L10n.paywallYearly
+        case "righthere.premium.monthly": return L10n.paywallMonthly
+        case "righthere.premium.yearly": return L10n.paywallYearly
         default: return L10n.paywallFamily
         }
     }
@@ -192,25 +209,49 @@ struct PaywallView: View {
         Button {
             selectedID = plan.id
         } label: {
-            HStack {
+            HStack(alignment: .center, spacing: 10) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(plan.name)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Palette.ink)
+                    HStack(spacing: 7) {
+                        Text(plan.name)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Palette.ink)
+                        if let percent = plan.savings {
+                            Text(L10n.paywallSaving(percent))
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .background(Palette.okStrong, in: .capsule)
+                        }
+                    }
                     if plan.isPurchased {
                         Text(L10n.paywallCurrent)
                             .font(.system(size: 12))
                             .foregroundStyle(Palette.okStrong)
                     } else if let trial = plan.trial {
                         Text(trial)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 12.5, weight: .semibold))
                             .foregroundStyle(Palette.accent)
                     }
                 }
-                Spacer()
-                Text(plan.price)
-                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Palette.ink)
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 1) {
+                    if let was = plan.was {
+                        Text(was)
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(Palette.inkSecondary)
+                            .strikethrough(true, color: Palette.inkSecondary)
+                    }
+                    if plan.price.isEmpty {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Palette.ink.opacity(0.09))
+                            .frame(width: 58, height: 15)
+                    } else {
+                        Text(plan.price)
+                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Palette.ink)
+                    }
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)

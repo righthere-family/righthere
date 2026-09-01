@@ -4325,6 +4325,23 @@
         }
       }
     },
+    "paywall.saving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "save %lld%%"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "выгода %lld%%"
+          }
+        }
+      }
+    },
     "paywall.subscribe": {
       "extractionState": "manual",
       "localizations": {
