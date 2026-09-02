@@ -51,6 +51,7 @@ enum L10n {
     static var statusNotOkMood: String { String(localized: "status.notOk.mood", bundle: bundle) }
     static var statusNotOkJustDay: String { String(localized: "status.notOk.justDay", bundle: bundle) }
     static var statusNotOkCallMe: String { String(localized: "status.notOk.callMe", bundle: bundle) }
+    static var statusQuietFamilyKnows: String { String(localized: "status.quietFamilyKnows", bundle: bundle) }
     static var statusPaused: String { String(localized: "status.paused", bundle: bundle) }
 
     static func statusTodayAt(_ time: String, _ city: String) -> String {

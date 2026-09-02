@@ -31,11 +31,11 @@ struct TodayView: View {
                             router.push(.medications(member.id))
                         }
                         Spacer().frame(height: 14)
-                        postcardButton(for: member)
                         if showsCall(for: card.status) {
-                            Spacer().frame(height: 16)
                             callButton(for: member)
+                            Spacer().frame(height: 12)
                         }
+                        postcardButton(for: member)
                         if member.id != model.parents.last?.id {
                             Spacer().frame(height: 26)
                         }

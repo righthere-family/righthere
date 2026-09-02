@@ -66,6 +66,14 @@ struct TodayStatusCardView: View {
             case .quiet:
                 statusTitle(L10n.statusQuiet, color: Palette.ink)
                 hint(L10n.statusQuietHint)
+                Text(L10n.statusQuietFamilyKnows)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Palette.ink)
+                    .lineSpacing(3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(Palette.okTint, in: .rect(cornerRadius: 14))
+                    .padding(.top, 4)
             case .notOk(let kind, let quote):
                 if let quote, !quote.isEmpty {
                     Text(L10n.statusHerWords)

@@ -5566,6 +5566,23 @@
         }
       }
     },
+    "status.quietFamilyKnows": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The family already knows — we told everyone. Most likely all is well: the phone in another room, guests, errands."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Семья уже знает — мы написали всем. Скорее всего, всё в порядке: телефон в другой комнате, гости, дела."
+          }
+        }
+      }
+    },
     "status.quietHint": {
       "extractionState": "manual",
       "localizations": {
