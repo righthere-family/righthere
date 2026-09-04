@@ -259,18 +259,36 @@
   .pricing{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px 44px; align-items:start; max-width:960px;}
   .pricing__plan b{font-family:var(--serif); font-size:34px; display:block; font-weight:700;}
   .pricing__plan span{color:var(--sub); font-size:14px;}
-  .beta-form{margin-top:26px; max-width:560px;}
-  .beta-form__lead{margin:0 0 12px; color:var(--sub); font-size:14.5px;}
-  .beta-form__row{display:flex; gap:10px; flex-wrap:wrap;}
-  .beta-form__input{flex:1 1 240px; font:15px/1.4 var(--sans); color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px;}
+  .beta-modal{border:0; padding:0; background:transparent; width:min(92vw, 520px); color:var(--ink);}
+  .beta-modal::backdrop{background:rgba(42,33,25,.5); backdrop-filter:blur(3px);}
+  .beta-modal__card{position:relative; background:var(--card); border-radius:26px; padding:32px 30px 28px; box-shadow:0 30px 80px rgba(64,52,32,.28);}
+  .beta-modal__close{position:absolute; top:16px; right:16px; width:34px; height:34px; border:0; border-radius:50%; background:var(--bg2); color:var(--sub); font-size:19px; line-height:1; cursor:pointer;}
+  .beta-modal__close:hover{color:var(--ink);}
+  .beta-modal__title{font-family:var(--serif); font-size:30px; font-weight:600; margin:0 0 8px; padding-right:44px;}
+  .beta-modal__lead{margin:0 0 22px; color:var(--sub); font-size:15px; line-height:1.5;}
+  .beta-modal__tg{display:block; text-align:center; width:100%; box-sizing:border-box;}
+  .beta-modal__or{display:flex; align-items:center; gap:12px; margin:20px 0 16px; color:var(--sub); font-size:13px;}
+  .beta-modal__or::before, .beta-modal__or::after{content:""; flex:1; height:1px; background:var(--line);}
+  .beta-form__row{display:flex; gap:9px;}
+  .beta-form__input{flex:1 1 auto; min-width:0; font:15px/1.4 var(--sans); color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:13px 16px;}
   .beta-form__input:focus{outline:none; border-color:var(--honey);}
-  .beta-form__ask{border:0; margin:16px 0 0; padding:0;}
-  .beta-form__ask legend{padding:0; margin-bottom:9px; font-size:14px; color:var(--sub);}
-  .beta-form__ask label{display:inline-flex; align-items:center; gap:7px; margin:0 16px 8px 0; font-size:14.5px; cursor:pointer;}
-  .beta-form__ask input{accent-color:var(--honey);}
+  .beta-form__row .btn{flex:0 0 auto; padding:13px 22px;}
+  .beta-chips{border:0; margin:20px 0 0; padding:0;}
+  .beta-chips legend{padding:0; margin-bottom:10px; font-size:14px; color:var(--sub);}
+  .beta-chips__row{display:flex; flex-wrap:wrap; gap:8px;}
+  .beta-chip{position:relative; display:inline-flex; align-items:center; font-size:14px; padding:9px 15px; border:1px solid var(--line); border-radius:99px; cursor:pointer; transition:background .15s, border-color .15s, color .15s;}
+  .beta-chip:hover{border-color:var(--honey);}
+  .beta-chip input{position:absolute; opacity:0; width:0; height:0;}
+  .beta-chip:has(input:checked){background:var(--honey); border-color:var(--honey); color:#fff;}
+  .beta-chip:has(input:focus-visible){outline:2px solid var(--honey-deep); outline-offset:2px;}
   .beta-form__hp{position:absolute; left:-9999px; width:1px; height:1px; opacity:0;}
-  .beta-form__msg{margin:12px 0 0; font-size:14.5px; color:var(--sub); min-height:1.4em;}
+  .beta-form__msg{margin:14px 0 0; font-size:14.5px; color:var(--sub); min-height:1.4em;}
   .beta-form__msg--done{color:var(--honey-deep);}
+  @media (max-width:520px){
+    .beta-modal__card{padding:26px 20px 22px;}
+    .beta-form__row{flex-wrap:wrap;}
+    .beta-form__row .btn{width:100%;}
+  }
   .pricing__note{margin-top:20px; font-size:16px; color:var(--honey-deep); font-weight:700;}
   .pricing__label{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--honey-deep); margin-bottom:7px;}
   .pricing__plan--current{background:var(--card); border:1.5px solid var(--honey); border-radius:18px; padding:18px 20px;}
@@ -575,24 +593,8 @@
     <p style="color:var(--sub); font-size:14px; margin:10px 0 0">Отписка в один тап — без писем «нам жаль, что вы уходите».</p>
     <div style="margin-top:28px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
       <a class="btn" href="https://t.me/righthere_family_bot?start=beta">Попасть в бету</a>
-      <span class="hero__note" style="margin:0">Откроется Telegram. Напишем один раз — когда можно будет подключить маму.</span>
+      <span class="hero__note" style="margin:0">Telegram или почта — как удобнее. Напишем один раз, когда можно будет подключить маму.</span>
     </div>
-    <form class="beta-form" id="betaForm" data-lang="ru" novalidate>
-      <p class="beta-form__lead">Нет Telegram? Оставьте почту — напишем на неё.</p>
-      <div class="beta-form__row">
-        <input class="beta-form__input" id="betaEmail" type="email" name="email" required autocomplete="email" placeholder="ваша почта">
-        <button class="btn" type="submit" id="betaSubmit">Записаться</button>
-      </div>
-      <fieldset class="beta-form__ask">
-        <legend>Чем пользуется ваша мама?</legend>
-        <label><input type="radio" name="mom" value="telegram"> Telegram</label>
-        <label><input type="radio" name="mom" value="whatsapp"> WhatsApp</label>
-        <label><input type="radio" name="mom" value="sms"> Только звонки и СМС</label>
-        <label><input type="radio" name="mom" value="unknown"> Не знаю</label>
-      </fieldset>
-      <input class="beta-form__hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <p class="beta-form__msg" id="betaMsg" role="status"></p>
-    </form>
   </div>
 </section>
 
@@ -770,19 +772,68 @@
   scene.addEventListener('click', playDemo);
 })();
 </script>
+<dialog class="beta-modal" id="betaDialog" aria-labelledby="betaTitle">
+  <div class="beta-modal__card">
+    <button class="beta-modal__close" type="button" id="betaClose" aria-label="Закрыть">×</button>
+    <div class="beta-modal__title" id="betaTitle">Попасть в бету</div>
+    <p class="beta-modal__lead">Бета бесплатная. Напишем один раз — когда можно будет подключить маму.</p>
+    <a class="btn beta-modal__tg" href="https://t.me/righthere_family_bot?start=beta">Открыть Telegram</a>
+    <div class="beta-modal__or">или оставьте почту</div>
+    <form id="betaForm" data-lang="ru" novalidate>
+      <div class="beta-form__row">
+        <input class="beta-form__input" type="email" name="email" required autocomplete="email" placeholder="ваша почта">
+        <button class="btn" type="submit" id="betaSubmit">Записаться</button>
+      </div>
+      <fieldset class="beta-chips">
+        <legend>Чем пользуется ваша мама?</legend>
+        <div class="beta-chips__row">
+          <label class="beta-chip"><input type="radio" name="mom" value="telegram"><span>Telegram</span></label>
+          <label class="beta-chip"><input type="radio" name="mom" value="whatsapp"><span>WhatsApp</span></label>
+          <label class="beta-chip"><input type="radio" name="mom" value="sms"><span>Только звонки и СМС</span></label>
+          <label class="beta-chip"><input type="radio" name="mom" value="unknown"><span>Не знаю</span></label>
+        </div>
+      </fieldset>
+      <input class="beta-form__hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="beta-form__msg" id="betaMsg" role="status"></p>
+    </form>
+  </div>
+</dialog>
 <script>
 (function () {
+  var dialog = document.getElementById('betaDialog');
   var form = document.getElementById('betaForm');
-  if (!form) return;
+  if (!dialog || !form) return;
   var msg = document.getElementById('betaMsg');
   var button = document.getElementById('betaSubmit');
-  var texts = form.getAttribute('data-lang') === 'en'
+  var isEn = form.getAttribute('data-lang') === 'en';
+  var texts = isEn
     ? { bad: 'That email looks off — mind checking it?',
         done: 'Done — you are on the list. I will write when we open.',
         fail: 'Could not send it. Please try again in a minute.' }
     : { bad: 'Проверьте почту — кажется, там опечатка.',
         done: 'Готово — записал. Напишу, когда откроем.',
         fail: 'Не получилось отправить. Попробуйте ещё раз через минуту.' };
+
+  var links = document.querySelectorAll('a[href*="start=beta"], a[href="#beta"]');
+  for (var i = 0; i < links.length; i++) {
+    if (links[i].closest('#betaDialog')) continue;
+    links[i].addEventListener('click', function (event) {
+      event.preventDefault();
+      msg.textContent = '';
+      msg.className = 'beta-form__msg';
+      button.disabled = false;
+      dialog.showModal();
+    });
+  }
+
+  document.getElementById('betaClose').addEventListener('click', function () {
+    dialog.close();
+  });
+
+  dialog.addEventListener('click', function (event) {
+    if (event.target === dialog) dialog.close();
+  });
+
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     var email = form.email.value.trim();
@@ -802,7 +853,7 @@
         email: email,
         mom: picked ? picked.value : null,
         company: form.company.value,
-        lang: form.getAttribute('data-lang') === 'en' ? 'en' : 'ru'
+        lang: isEn ? 'en' : 'ru'
       })
     }).then(function (res) {
       if (!res.ok) throw new Error(String(res.status));
