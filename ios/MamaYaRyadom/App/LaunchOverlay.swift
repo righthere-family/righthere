@@ -10,6 +10,7 @@ import SwiftUI
 struct LaunchOverlay: View {
     @Binding var isPresented: Bool
     @State private var sparkT: CGFloat = 0
+    @State private var isLit = false
     @State private var isLifting = false
 
     // LaunchScene geometry, in the image's own 220x105pt space: the same
@@ -18,6 +19,7 @@ struct LaunchOverlay: View {
     private static let arcFrom = CGPoint(x: 66.33, y: 44)
     private static let arcTo = CGPoint(x: 153.33, y: 44)
     private static let arcControl = CGPoint(x: 109.83, y: -4.67)
+    private static let sunCenter = CGPoint(x: 109.5, y: 7)
 
     var body: some View {
         ZStack {
@@ -25,6 +27,8 @@ struct LaunchOverlay: View {
 
             ZStack {
                 Image("LaunchScene")
+                SunMark(isLit: isLit)
+                    .position(Self.sunCenter)
                 Circle()
                     .fill(Palette.accentBright)
                     .frame(width: 7, height: 7)
@@ -60,7 +64,10 @@ struct LaunchOverlay: View {
         withAnimation(.easeInOut(duration: 0.7).delay(0.25)) {
             sparkT = 1
         }
-        withAnimation(.easeIn(duration: 0.45).delay(1.1)) {
+        withAnimation(.spring(duration: 0.45, bounce: 0.35).delay(0.92)) {
+            isLit = true
+        }
+        withAnimation(.easeIn(duration: 0.45).delay(1.45)) {
             isLifting = true
         } completion: {
             isPresented = false
@@ -92,5 +99,39 @@ private struct SparkOnArc: ViewModifier, @preconcurrency Animatable {
                 x: mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x,
                 y: mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y
             )
+    }
+}
+
+
+// MARK: - Sun
+
+struct SunMark: View {
+    var isLit: Bool
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .frame(width: 5.1, height: 5.1)
+            SunRays()
+                .stroke(style: StrokeStyle(lineWidth: 1.3, lineCap: .round))
+        }
+        .frame(width: 13, height: 13)
+        .foregroundStyle(isLit ? Palette.accentBright : Palette.ink.opacity(0.16))
+        .shadow(color: isLit ? Palette.accentBright.opacity(0.55) : .clear, radius: 5)
+        .scaleEffect(isLit ? 1 : 0.82)
+    }
+}
+
+private struct SunRays: Shape {
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        var path = Path()
+        for index in 0..<8 {
+            let angle = .pi / 8 + Double(index) * .pi / 4
+            let dx = cos(angle), dy = sin(angle)
+            path.move(to: CGPoint(x: center.x + dx * 3.9, y: center.y + dy * 3.9))
+            path.addLine(to: CGPoint(x: center.x + dx * 5.6, y: center.y + dy * 5.6))
+        }
+        return path
     }
 }
