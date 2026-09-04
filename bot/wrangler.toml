@@ -34,3 +34,4 @@ enabled = true
 APNS_TOPIC = "family.righthere.app"
 
 ADMIN_EMAIL = "artem.zolotuhin.ge@gmail.com"
+ADMIN_TELEGRAM_ID = "190532362"

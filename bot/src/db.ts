@@ -159,6 +159,13 @@ export const MOM_CHANNELS = ['telegram', 'whatsapp', 'sms', 'unknown'] as const;
 
 export type MomChannel = (typeof MOM_CHANNELS)[number];
 
+const MOM_CHANNEL_TITLES: Record<MomChannel, string> = {
+  telegram: 'Telegram',
+  whatsapp: 'WhatsApp',
+  sms: 'только звонки и СМС',
+  unknown: 'не знает',
+};
+
 interface ChannelRoute {
   telegram_user_id: number | null;
   channel: string | null;
@@ -308,7 +315,11 @@ export function db(env: Env) {
         p_code: code,
         p_telegram_user_id: telegramUserId,
       });
-      return (data as BoundInvite | null) ?? null;
+      const invite = (data as BoundInvite | null) ?? null;
+      if (invite) {
+        await this.notifyAdmin(`Родитель подключился к боту — семья ${invite.child_name}`);
+      }
+      return invite;
     },
 
     async recordCheckin(
@@ -325,7 +336,14 @@ export function db(env: Env) {
         await logEvent('error', 'record_checkin', `${telegramUserId}: ${error.message}`);
         return { result: 'failed' };
       }
-      return data as CheckinResult;
+      const outcome = data as CheckinResult;
+      if (outcome.result === 'ok' && outcome.streak === 1) {
+        const parent = await this.parentByTelegramId(telegramUserId);
+        await this.notifyAdmin(
+          `Первое «${status === 'ok' ? 'всё хорошо' : 'не очень'}»: ${parent?.display_name ?? telegramUserId}`,
+        );
+      }
+      return outcome;
     },
 
     async setNotOkDetail(telegramUserId: number, kind: NotOkKind, freeText?: string) {
@@ -805,7 +823,15 @@ export function db(env: Env) {
         await logEvent('error', 'waitlist', error.message);
         return 'already';
       }
-      return (data?.length ?? 0) > 0 ? 'added' : 'already';
+      const added = (data?.length ?? 0) > 0;
+      if (added) {
+        const who = [firstName, username ? `@${username}` : null].filter(Boolean).join(' ');
+        await this.notifyAdmin(
+          `Записался в бету: ${who || telegramUserId}`,
+          [[{ text: 'Пригласить', data: `wl_invite:${telegramUserId}` }]],
+        );
+      }
+      return added ? 'added' : 'already';
     },
 
     async pushTargets(
@@ -849,6 +875,16 @@ export function db(env: Env) {
       return 'ok';
     },
 
+    async notifyAdmin(text: string, buttons?: { text: string; data: string }[][]): Promise<void> {
+      const adminId = Number(env.ADMIN_TELEGRAM_ID ?? '');
+      if (!Number.isFinite(adminId) || adminId <= 0) return;
+      try {
+        await channelFor(env, 'telegram').send(String(adminId), { text, buttons });
+      } catch {
+
+      }
+    },
+
     async addWebLead(
       email: string,
       momChannel: MomChannel | null,
@@ -859,7 +895,11 @@ export function db(env: Env) {
         mom_channel: momChannel,
         lang,
       });
-      if (error === null) return 'added';
+      if (error === null) {
+        const answer = momChannel ? MOM_CHANNEL_TITLES[momChannel] : 'не ответил';
+        await this.notifyAdmin(`Заявка с сайта: ${email}\nМама: ${answer}`);
+        return 'added';
+      }
       if (error.message.includes('web_leads_email')) return 'already';
       await logEvent('error', 'web-lead', error.message);
       return 'failed';
@@ -874,7 +914,11 @@ export function db(env: Env) {
       return (data?.mom_channel as string | null) ?? null;
     },
 
-    async setWaitlistMomChannel(telegramUserId: number, channel: MomChannel): Promise<void> {
+    async setWaitlistMomChannel(
+      telegramUserId: number,
+      channel: MomChannel,
+      who?: string,
+    ): Promise<void> {
       await best(
         'waitlist-mom-channel',
         sb
@@ -882,6 +926,9 @@ export function db(env: Env) {
           .update({ mom_channel: channel, mom_channel_at: new Date().toISOString() })
           .eq('telegram_user_id', telegramUserId),
         null,
+      );
+      await this.notifyAdmin(
+        `${who || telegramUserId} про маму: ${MOM_CHANNEL_TITLES[channel]}`,
       );
     },
 

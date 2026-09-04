@@ -204,9 +204,28 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     }
   });
 
+  bot.callbackQuery(/^wl_invite:(\d{1,15})$/, async (ctx) => {
+    if (!env.ADMIN_TELEGRAM_ID || String(ctx.from.id) !== env.ADMIN_TELEGRAM_ID) {
+      await ctx.answerCallbackQuery();
+      return;
+    }
+    const result = await d.adminWaitlistInvite(Number(ctx.match[1]));
+    await ctx.answerCallbackQuery({ text: result === 'ok' ? 'Приглашение отправлено' : result });
+    if (result === 'ok') {
+      try {
+        await ctx.editMessageReplyMarkup();
+      } catch {
+
+      }
+    }
+  });
+
   bot.callbackQuery(/^mom:(telegram|whatsapp|sms|unknown)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
-    await d.setWaitlistMomChannel(ctx.from.id, ctx.match[1] as MomChannel);
+    const who = [ctx.from.first_name, ctx.from.username ? `@${ctx.from.username}` : null]
+      .filter(Boolean)
+      .join(' ');
+    await d.setWaitlistMomChannel(ctx.from.id, ctx.match[1] as MomChannel, who);
     try {
       await ctx.editMessageReplyMarkup();
     } catch {

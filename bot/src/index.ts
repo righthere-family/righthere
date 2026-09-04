@@ -139,6 +139,7 @@ export interface Env {
   SUPABASE_SERVICE_ROLE_KEY: string;
   RC_WEBHOOK_AUTH: string;
   ADMIN_EMAIL?: string;
+  ADMIN_TELEGRAM_ID?: string;
   PREVIEW_KEY?: string;
   APNS_TOPIC?: string;
   APNS_TEAM_ID?: string;
