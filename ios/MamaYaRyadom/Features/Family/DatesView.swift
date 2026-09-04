@@ -97,7 +97,7 @@ struct DatesView: View {
 
             HStack(spacing: 18) {
                 Picker("", selection: Bindable(model).newDay) {
-                    ForEach(1...31, id: \.self) { Text("\($0)").tag($0) }
+                    ForEach(1...model.daysInNewMonth, id: \.self) { Text("\($0)").tag($0) }
                 }
                 Picker("", selection: Bindable(model).newMonth) {
                     ForEach(1...12, id: \.self) { month in
@@ -135,7 +135,17 @@ final class DatesViewModel {
     private(set) var isAdding = false
     var newTitle = ""
     var newDay = 1
-    var newMonth = 1
+    var newMonth = 1 {
+        didSet { newDay = min(newDay, daysInNewMonth) }
+    }
+
+    var daysInNewMonth: Int {
+        switch newMonth {
+        case 2: 29
+        case 4, 6, 9, 11: 30
+        default: 31
+        }
+    }
 
     var canAdd: Bool {
         !newTitle.trimmingCharacters(in: .whitespaces).isEmpty && !isAdding
