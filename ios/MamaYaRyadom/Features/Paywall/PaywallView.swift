@@ -25,7 +25,7 @@ struct PaywallView: View {
                     .background(Palette.okTint, in: .capsule)
 
                 Text(L10n.paywallTitle)
-                    .font(Typography.display(30))
+                    .font(Typography.display(25))
                     .foregroundStyle(Palette.ink)
                     .padding(.top, 12)
 

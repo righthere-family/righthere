@@ -83,7 +83,7 @@ struct FamilyView: View {
     private var noFamilyCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.familyNoFamilyTitle)
-                .font(Typography.display(24))
+                .font(Typography.display(20))
                 .foregroundStyle(Palette.ink)
 
             step(1, L10n.familyNoFamilyStep1)
@@ -279,7 +279,7 @@ struct FamilyView: View {
     private var inviteCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.familyInviteTitle)
-                .font(Typography.display(22))
+                .font(Typography.display(19))
                 .foregroundStyle(Palette.ink)
             Text(L10n.familyInviteText)
                 .font(.system(size: 14))

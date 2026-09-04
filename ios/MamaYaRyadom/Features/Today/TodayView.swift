@@ -97,7 +97,7 @@ struct TodayView: View {
     private var setupCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.setupTitle)
-                .font(Typography.display(30))
+                .font(Typography.display(25))
                 .foregroundStyle(Palette.ink)
 
             fieldLabel(L10n.setupYourName)
@@ -253,7 +253,7 @@ struct TodayView: View {
                 .foregroundStyle(Palette.inkSecondary)
 
             Text(L10n.waitingTitle)
-                .font(Typography.display(36))
+                .font(Typography.display(30))
                 .foregroundStyle(Palette.ink)
                 .padding(.top, 12)
 

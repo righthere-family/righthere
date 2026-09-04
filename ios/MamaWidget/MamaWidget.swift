@@ -143,7 +143,7 @@ struct MamaWidgetView: View {
             header(snapshot)
 
             Text(statusWord(snapshot.status.state))
-                .font(.custom("CormorantGaramond-SemiBold", size: compact ? 26 : 32))
+                .font(.system(size: compact ? 22 : 26, weight: .semibold, design: .serif))
                 .foregroundStyle(statusColor(snapshot.status.state))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
@@ -195,7 +195,7 @@ struct MamaWidgetView: View {
                 }
             } else if let quote = snapshot.status.quote, !quote.isEmpty, !compact {
                 Text("«\(quote)»")
-                    .font(.custom("CormorantGaramond-SemiBold", size: 15))
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
                     .foregroundStyle(palette.cherry)
                     .lineLimit(1)
             } else {

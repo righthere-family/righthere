@@ -12,7 +12,7 @@ struct TrendsCard: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.trendsTitle)
-                    .font(Typography.display(22))
+                    .font(Typography.display(19))
                     .foregroundStyle(Palette.ink)
                 Text(L10n.trendsPeriod)
                     .font(.system(size: 12))

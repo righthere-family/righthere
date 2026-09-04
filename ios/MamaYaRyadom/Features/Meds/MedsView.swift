@@ -161,7 +161,7 @@ struct MedsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(model.editingMed == nil ? L10n.medsNewTitle : L10n.medsEditTitle)
-                    .font(Typography.display(22))
+                    .font(Typography.display(19))
                     .foregroundStyle(Palette.ink)
                 Spacer()
                 if model.editingMed != nil {

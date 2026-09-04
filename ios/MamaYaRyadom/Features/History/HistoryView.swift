@@ -65,7 +65,7 @@ struct HistoryView: View {
     private var noFamilyCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.historyNoFamilyTitle)
-                .font(Typography.display(24))
+                .font(Typography.display(20))
                 .foregroundStyle(Palette.ink)
             Text(L10n.historyNoFamilyText)
                 .font(.system(size: 14))
@@ -206,7 +206,7 @@ struct HistoryView: View {
             }
             Spacer()
             Text(model.monthTitle)
-                .font(Typography.display(26))
+                .font(Typography.display(22))
                 .foregroundStyle(Palette.ink)
             Spacer()
             Button {
@@ -262,7 +262,7 @@ struct HistoryView: View {
 
     private func summaryLine(_ text: String) -> some View {
         Text(text)
-            .font(Typography.display(20))
+            .font(Typography.display(17))
             .foregroundStyle(Palette.okStrong)
             .frame(maxWidth: .infinity, alignment: .leading)
     }

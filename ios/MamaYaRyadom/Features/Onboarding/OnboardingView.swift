@@ -131,7 +131,7 @@ struct OnboardingView: View {
         ZStack {
             VStack(spacing: 12) {
                 Text(captionTitle)
-                    .font(Typography.display(28))
+                    .font(Typography.display(23))
                     .foregroundStyle(Palette.ink)
                     .multilineTextAlignment(.center)
                 if step == 3 {
@@ -402,7 +402,7 @@ private struct ChildPhone: View {
                     .fill(Palette.okStrong)
                     .frame(width: 7.5, height: 7.5)
                 Text(L10n.statusAllGood)
-                    .font(Typography.display(17))
+                    .font(Typography.display(15))
                     .foregroundStyle(Palette.okStrong)
             }
 

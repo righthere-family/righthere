@@ -29,28 +29,28 @@ struct DayDetailView: View {
         switch record.mark {
         case .allGood(let time):
             Text(L10n.statusAllGood)
-                .font(.system(size: 28, weight: .semibold, design: .serif))
+                .font(Typography.display(28))
                 .foregroundStyle(Palette.okStrong)
             Text("\(time) · \(timezoneLabel)")
                 .font(Typography.timestamp)
                 .foregroundStyle(Palette.inkSecondary)
         case .notOk(let quote):
             Text(L10n.parentQuote(parent.displayName, quote ?? ""))
-                .font(.system(size: 24, weight: .semibold, design: .serif))
+                .font(Typography.display(24))
                 .foregroundStyle(Palette.alert)
             Text(L10n.historyDayHerWords)
                 .font(.footnote)
                 .foregroundStyle(Palette.inkSecondary)
         case .missed:
             Text(L10n.historyDayNoWord)
-                .font(.system(size: 24, weight: .semibold, design: .serif))
+                .font(Typography.display(24))
                 .foregroundStyle(Palette.ink)
             Text(L10n.historyDayNoWordNote)
                 .font(.footnote)
                 .foregroundStyle(Palette.inkSecondary)
         case .paused:
             Text(L10n.statusPaused)
-                .font(.system(size: 24, weight: .semibold, design: .serif))
+                .font(Typography.display(24))
                 .foregroundStyle(Palette.inkSecondary)
             Text(L10n.historyDayPausedNote)
                 .font(.footnote)

@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Underline Field
 
 // The form language of the app: an entry is a line in a warm document, not a
-// box in a questionnaire. The written value is serif italic; the underline is
+// box in a questionnaire. The written value is serif; the underline is
 // quiet until the field is focused, then turns honey.
 struct FormUnderlineField: View {
     let label: String
@@ -21,7 +21,7 @@ struct FormUnderlineField: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .keyboardType(keyboard)
-                .font(Typography.display(22))
+                .font(Typography.display(19))
                 .foregroundStyle(Palette.ink)
                 .focused($isFocused)
                 .padding(.bottom, 8)
@@ -52,7 +52,7 @@ struct FormUnderlineValue<Menu: View>: View {
             } label: {
                 HStack(spacing: 7) {
                     Text(value)
-                        .font(monospaced ? .system(size: 19, design: .monospaced) : Typography.display(22))
+                        .font(monospaced ? .system(size: 19, design: .monospaced) : Typography.display(19))
                         .foregroundStyle(Palette.ink)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 11, weight: .semibold))

@@ -179,11 +179,11 @@ private enum ProbeAccent: String {
 
 private enum ProbeFont {
     static func display(_ size: CGFloat) -> Font {
-        .custom("CormorantGaramond-SemiBold", size: size)
+        .system(size: size, weight: .semibold, design: .serif)
     }
 
     static func displayItalic(_ size: CGFloat) -> Font {
-        .custom("CormorantGaramond-SemiBoldItalic", size: size)
+        .system(size: size, weight: .semibold, design: .serif).italic()
     }
 }
 

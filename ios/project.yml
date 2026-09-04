@@ -50,6 +50,8 @@ targets:
       path: MamaYaRyadom/Info.plist
       properties:
         CFBundleDisplayName: "Мама, я рядом"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         ITSAppUsesNonExemptEncryption: false
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
@@ -64,9 +66,6 @@ targets:
         SupabaseURL: "https://spfdqxgaetgfxzaltjlr.supabase.co"
         SupabaseAnonKey: "sb_publishable_2s6i5wM9WYA9K38s9iBptw__8qFSW6G"
         FamilyToken: ""
-        UIAppFonts:
-          - CormorantGaramond-SemiBold.ttf
-          - CormorantGaramond-SemiBoldItalic.ttf
     entitlements:
       path: MamaYaRyadom/App.entitlements
       properties:
@@ -77,11 +76,7 @@ targets:
   MamaWidget:
     type: app-extension
     platform: iOS
-    sources:
-      - MamaWidget
-      - Shared
-      - path: MamaYaRyadom/Resources/Fonts
-        buildPhase: resources
+    sources: [MamaWidget, Shared]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: family.righthere.app.widget
@@ -94,8 +89,7 @@ targets:
       path: MamaWidget/Info.plist
       properties:
         CFBundleDisplayName: "Мама, я рядом"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
-        UIAppFonts:
-          - CormorantGaramond-SemiBold.ttf
-          - CormorantGaramond-SemiBoldItalic.ttf
