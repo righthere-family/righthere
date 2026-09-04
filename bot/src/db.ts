@@ -1,7 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from './index';
 import { T, langFromTelegram, resolveLang, type Lang } from './texts';
-import { tgCall, tgUpload, type TgOutcome } from './telegram';
+import {
+  asChannel,
+  channelFor,
+  describeDelivery,
+  type Delivery,
+  type Outgoing,
+  type Recipient,
+} from './channels';
 import { isKvPhotoId, putPhoto, takePhoto, withinPhotoQuota } from './photos';
 
 export type CheckinStatus = 'ok' | 'not_ok' | 'accidental_ok';
@@ -148,19 +155,14 @@ export interface ParentRow {
 
 type PgResult<T> = { data: T | null; error: { message: string } | null };
 
-function describeOutcome(outcome: TgOutcome): string {
-  switch (outcome.kind) {
-    case 'ok':
-      return 'ok';
-    case 'retry':
-      return `retry after ${outcome.afterSec}s: ${outcome.description}`;
-    case 'gone':
-      return `gone: ${outcome.description}`;
-    case 'migrate':
-      return `migrated to ${outcome.chatId}`;
-    case 'failed':
-      return `${outcome.status} ${outcome.description}`;
-  }
+export const MOM_CHANNELS = ['telegram', 'whatsapp', 'sms', 'unknown'] as const;
+
+export type MomChannel = (typeof MOM_CHANNELS)[number];
+
+interface ChannelRoute {
+  telegram_user_id: number | null;
+  channel: string | null;
+  channel_address: string | null;
 }
 
 export type BotTextGroups = Record<Lang, Record<string, string[]>>;
@@ -172,8 +174,32 @@ export function db(env: Env) {
     auth: { persistSession: false },
   });
 
-  const telegram = (method: string, body: unknown) =>
-    tgCall(env.TELEGRAM_BOT_TOKEN, method, body);
+  let routes: Map<number, Recipient> | null = null;
+
+  const routeFor = async (telegramUserId: number): Promise<Recipient> => {
+    if (routes === null) {
+      const map = new Map<number, Recipient>();
+      try {
+        const { data } = await sb
+          .from('parents')
+          .select('telegram_user_id, channel, channel_address')
+          .neq('channel', 'telegram')
+          .not('telegram_user_id', 'is', null);
+        for (const row of (data ?? []) as ChannelRoute[]) {
+          if (row.telegram_user_id !== null && row.channel_address) {
+            map.set(row.telegram_user_id, {
+              kind: asChannel(row.channel),
+              address: row.channel_address,
+            });
+          }
+        }
+      } catch {
+
+      }
+      routes = map;
+    }
+    return routes.get(telegramUserId) ?? { kind: 'telegram', address: String(telegramUserId) };
+  };
 
   const logEvent = async (level: 'error' | 'warn', kind: string, detail: string) => {
     try {
@@ -217,31 +243,22 @@ export function db(env: Env) {
       }
     },
 
-    async sendTelegram(
-      chatId: number,
-      text: string,
-      opts?: { checkinKeyboard?: Lang; replyMarkup?: unknown },
-    ): Promise<TgOutcome> {
-
-      const kb = opts?.checkinKeyboard ? T(opts.checkinKeyboard).keyboard : null;
-      const reply_markup = kb
-        ? {
-            keyboard: [[{ text: kb.ok }], [{ text: kb.notOk }]],
-            resize_keyboard: true,
-            one_time_keyboard: true,
-          }
-        : opts?.replyMarkup;
-      const outcome = await telegram('sendMessage', { chat_id: chatId, text, reply_markup });
-      if (outcome.kind === 'gone') {
-        await sb.from('parents').update({ bot_state: 'blocked' }).eq('telegram_user_id', chatId);
+    async send(telegramUserId: number, message: Outgoing): Promise<Delivery> {
+      const recipient = await routeFor(telegramUserId);
+      const delivery = await channelFor(env, recipient.kind).send(recipient.address, message);
+      if (delivery.kind === 'gone') {
+        await sb
+          .from('parents')
+          .update({ bot_state: 'blocked' })
+          .eq('telegram_user_id', telegramUserId);
         forgetParents();
-        await logEvent('warn', 'tg-blocked', `chat ${chatId}: ${outcome.description}`);
-        return outcome;
+        await logEvent('warn', 'chat-blocked', `${recipient.kind} ${recipient.address}: ${delivery.detail}`);
+        return delivery;
       }
-      if (outcome.kind === 'failed') {
-        await logEvent('error', 'tg-send', `chat ${chatId}: ${outcome.status} ${outcome.description}`);
+      if (delivery.kind === 'failed') {
+        await logEvent('error', 'chat-send', `${recipient.kind} ${recipient.address}: ${delivery.detail}`);
       }
-      return outcome;
+      return delivery;
     },
 
     async setBotBlocked(telegramUserId: number, blocked: boolean): Promise<void> {
@@ -499,16 +516,17 @@ export function db(env: Env) {
       return bytes.buffer;
     },
 
-    async sendPhoto(chatId: number, bytes: ArrayBuffer, caption: string): Promise<TgOutcome> {
-      const form = new FormData();
-      form.set('chat_id', String(chatId));
-      form.set('photo', new Blob([bytes], { type: 'image/jpeg' }), 'postcard.jpg');
-      if (caption) form.set('caption', caption);
-      const outcome = await tgUpload(env.TELEGRAM_BOT_TOKEN, 'sendPhoto', form);
-      if (outcome.kind === 'failed' || outcome.kind === 'gone') {
-        await logEvent('error', 'tg-photo', `chat ${chatId}: ${describeOutcome(outcome)}`);
+    async sendPhoto(telegramUserId: number, bytes: ArrayBuffer, caption: string): Promise<Delivery> {
+      const recipient = await routeFor(telegramUserId);
+      const delivery = await channelFor(env, recipient.kind).sendPhoto(recipient.address, bytes, caption);
+      if (delivery.kind === 'failed' || delivery.kind === 'gone') {
+        await logEvent(
+          'error',
+          'chat-photo',
+          `${recipient.kind} ${recipient.address}: ${describeDelivery(delivery)}`,
+        );
       }
-      return outcome;
+      return delivery;
     },
 
     async parentsDueForEvening(): Promise<DueEvening[]> {
@@ -822,13 +840,49 @@ export function db(env: Env) {
 
       if (template.includes('{')) return 'template-incomplete';
 
-      const outcome = await this.sendTelegram(telegramUserId, template);
-      if (outcome.kind !== 'ok') return `send-failed: ${describeOutcome(outcome)}`;
+      const delivery = await this.send(telegramUserId, { text: template });
+      if (delivery.kind !== 'ok') return `send-failed: ${describeDelivery(delivery)}`;
       await sb
         .from('waitlist')
         .update({ invited_at: new Date().toISOString() })
         .eq('telegram_user_id', telegramUserId);
       return 'ok';
+    },
+
+    async addWebLead(
+      email: string,
+      momChannel: MomChannel | null,
+      lang: Lang,
+    ): Promise<'added' | 'already' | 'failed'> {
+      const { error } = await sb.from('web_leads').insert({
+        email,
+        mom_channel: momChannel,
+        lang,
+      });
+      if (error === null) return 'added';
+      if (error.message.includes('web_leads_email')) return 'already';
+      await logEvent('error', 'web-lead', error.message);
+      return 'failed';
+    },
+
+    async waitlistMomChannel(telegramUserId: number): Promise<string | null> {
+      const { data } = await sb
+        .from('waitlist')
+        .select('mom_channel')
+        .eq('telegram_user_id', telegramUserId)
+        .maybeSingle();
+      return (data?.mom_channel as string | null) ?? null;
+    },
+
+    async setWaitlistMomChannel(telegramUserId: number, channel: MomChannel): Promise<void> {
+      await best(
+        'waitlist-mom-channel',
+        sb
+          .from('waitlist')
+          .update({ mom_channel: channel, mom_channel_at: new Date().toISOString() })
+          .eq('telegram_user_id', telegramUserId),
+        null,
+      );
     },
 
     async adminWaitlistDelete(telegramUserId: number): Promise<void> {

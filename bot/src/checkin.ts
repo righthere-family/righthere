@@ -1,7 +1,7 @@
 import type { Env } from './index';
 import { pushToFamily } from './apns';
 import { db } from './db';
-import type { TgOutcome } from './telegram';
+import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
 
 export const NIGHT_START_HOUR = 23;
@@ -87,11 +87,11 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
     );
   }
 
-  const delivered = async (outcome: TgOutcome): Promise<boolean> => {
+  const delivered = async (outcome: Delivery): Promise<boolean> => {
     if (outcome.kind === 'retry') {
       flooded = true;
       await holdOff(env, outcome.afterSec);
-      await d.logEvent('warn', 'tg-flood', `pausing ${outcome.afterSec}s: ${outcome.description}`);
+      await d.logEvent('warn', 'tg-flood', `pausing ${outcome.afterSec}s: ${outcome.detail}`);
       return false;
     }
 
@@ -147,7 +147,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         ? render(texts[lang].missed[0]!, templateVars({ name, child }))
         : S.missed.afterDeadline(name, parent.child_display_name);
       try {
-        await delivered(await d.sendTelegram(parent.telegram_user_id, text, { checkinKeyboard: lang }));
+        await delivered(await d.send(parent.telegram_user_id, { text, checkinKeyboard: lang }));
         used += 1;
       } catch {
 
@@ -168,9 +168,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
       const name = parent.address_form ?? parent.display_name;
       const lang = resolveLang(parent.lang);
       const text = pickMorning(name, parent.parent_id, parent.local_date, lang, texts[lang].morning);
-      const outcome = await d.sendTelegram(parent.telegram_user_id, text, {
-        checkinKeyboard: lang,
-      });
+      const outcome = await d.send(parent.telegram_user_id, { text, checkinKeyboard: lang });
       const sent = await delivered(outcome);
 
       if (flooded) break;
@@ -195,7 +193,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         ? render(pool[seed % pool.length]!, templateVars({ name }))
         : fallback[seed % fallback.length]!(name);
 
-      await delivered(await d.sendTelegram(parent.telegram_user_id, text, { checkinKeyboard: lang }));
+      await delivered(await d.send(parent.telegram_user_id, { text, checkinKeyboard: lang }));
       if (flooded) break;
       await d.markRePingSent(parent.parent_id);
       await d.broadcastToApp(parent.family_id, 'reping');
@@ -219,13 +217,12 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         ? render(texts[lang].meds[0]!, templateVars({ name, medication: med.med_title }))
         : S.meds.reminder(name, med.med_title);
       await delivered(
-        await d.sendTelegram(med.telegram_user_id, reminderText, {
-          replyMarkup: {
-            inline_keyboard: [[
-              { text: S.meds.buttons[0], callback_data: `med:${med.med_id}:${med.slot.slice(0, 5)}:t:${med.local_date}` },
-              { text: S.meds.buttons[1], callback_data: `med:${med.med_id}:${med.slot.slice(0, 5)}:p:${med.local_date}` },
-            ]],
-          },
+        await d.send(med.telegram_user_id, {
+          text: reminderText,
+          buttons: [[
+            { text: S.meds.buttons[0], data: `med:${med.med_id}:${med.slot.slice(0, 5)}:t:${med.local_date}` },
+            { text: S.meds.buttons[1], data: `med:${med.med_id}:${med.slot.slice(0, 5)}:p:${med.local_date}` },
+          ]],
         }),
       );
       if (flooded) break;
@@ -249,7 +246,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
           continue;
         }
       }
-      await delivered(await d.sendTelegram(card.telegram_user_id, caption));
+      await delivered(await d.send(card.telegram_user_id, { text: caption }));
       if (flooded) break;
     }
   }
@@ -269,13 +266,12 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         ? render(texts[lang].evening[0]!, templateVars({ name }))
         : S.evening.ask(name);
       await delivered(
-        await d.sendTelegram(parent.telegram_user_id, eveningText, {
-          replyMarkup: {
-            inline_keyboard: [[
-              { text: S.evening.buttons[0], callback_data: 'evening:ok' },
-              { text: S.evening.buttons[1], callback_data: 'evening:not_ok' },
-            ]],
-          },
+        await d.send(parent.telegram_user_id, {
+          text: eveningText,
+          buttons: [[
+            { text: S.evening.buttons[0], data: 'evening:ok' },
+            { text: S.evening.buttons[1], data: 'evening:not_ok' },
+          ]],
         }),
       );
       if (flooded) break;
@@ -302,7 +298,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         const askText = texts[lang].story_ask?.[0]
           ? render(texts[lang].story_ask[0]!, templateVars({ name, question }))
           : S.story.ask(name, question);
-        await delivered(await d.sendTelegram(parent.telegram_user_id, askText));
+        await delivered(await d.send(parent.telegram_user_id, { text: askText }));
         if (flooded) break;
       }
     }
@@ -333,7 +329,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
           : parent.ok_days >= Math.ceil(parent.covered_days / 2)
             ? (P.digest_most?.[0] ? render(P.digest_most[0]!, vars) : S.digest.most(name, child, parent.ok_days, parent.covered_days))
             : (P.digest_few?.[0] ? render(P.digest_few[0]!, vars) : S.digest.few(name));
-      await delivered(await d.sendTelegram(parent.telegram_user_id, text));
+      await delivered(await d.send(parent.telegram_user_id, { text }));
       if (flooded) break;
     }
   }
