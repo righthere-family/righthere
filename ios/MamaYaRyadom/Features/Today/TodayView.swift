@@ -8,6 +8,7 @@ struct TodayView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var model = TodayViewModel()
     @State private var postcardTo: Parent?
+    @State private var expanded: Set<UUID> = []
 
     var body: some View {
         ScrollView {
@@ -27,17 +28,26 @@ struct TodayView: View {
                         Spacer().frame(height: 14)
                     }
                     ForEach(Array(zip(model.cards, model.parents)), id: \.0.id) { card, member in
-                        TodayStatusCardView(state: card) {
-                            router.push(.medications(member.id))
-                        }
-                        Spacer().frame(height: 14)
-                        if showsCall(for: card.status) {
-                            callButton(for: member)
-                            Spacer().frame(height: 12)
-                        }
-                        postcardButton(for: member)
-                        if member.id != model.parents.last?.id {
-                            Spacer().frame(height: 26)
+                        if isCollapsed(card) {
+                            TodayCompactCardView(state: card) {
+                                expanded.insert(card.id)
+                            }
+                            if member.id != model.parents.last?.id {
+                                Spacer().frame(height: 12)
+                            }
+                        } else {
+                            TodayStatusCardView(state: card, emphasisesName: hasSeveral) {
+                                router.push(.medications(member.id))
+                            }
+                            Spacer().frame(height: 14)
+                            if showsCall(for: card.status) {
+                                callButton(for: member)
+                                Spacer().frame(height: 12)
+                            }
+                            postcardButton(for: member)
+                            if member.id != model.parents.last?.id {
+                                Spacer().frame(height: 26)
+                            }
                         }
                     }
                 }
@@ -343,7 +353,7 @@ struct TodayView: View {
             HStack(spacing: 7) {
                 Image(systemName: "square.and.pencil")
                     .font(.system(size: 13))
-                Text(L10n.postcardButton)
+                Text(hasSeveral ? L10n.postcardButtonFor(member.displayName) : L10n.postcardButton)
                     .font(.system(size: 14, weight: .medium))
             }
             .foregroundStyle(Palette.accent)
@@ -352,6 +362,18 @@ struct TodayView: View {
             .background(Palette.accentBright.opacity(0.10), in: .capsule)
         }
         .buttonStyle(.plain)
+    }
+
+    private var hasSeveral: Bool {
+        model.parents.count > 1
+    }
+
+    private func isCollapsed(_ card: TodayCardState) -> Bool {
+        guard hasSeveral, !expanded.contains(card.id) else { return false }
+        switch card.status {
+        case .ok, .paused: return true
+        default: return false
+        }
     }
 
     private func showsCall(for status: DayStatus) -> Bool {

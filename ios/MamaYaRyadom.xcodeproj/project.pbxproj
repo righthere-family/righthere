@@ -26,6 +26,7 @@
 		4D88CF1682E3E5C2D520C294 /* MamaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA356F53BE74C9BED1621A69 /* MamaApp.swift */; };
 		512ABDC1E4D559F803A8C5B1 /* FamilyLiveUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 303F522E1BBB73F4FA9E1FE8 /* FamilyLiveUpdates.swift */; };
 		51FF7DFDAD7D08C30130487B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C12330497C10D85CD546082 /* HistoryView.swift */; };
+		52565C6F064A571D2956B574 /* TodayCompactCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B7D3C8D72B6553E992730A /* TodayCompactCardView.swift */; };
 		5269A28626A0DBD638A987FC /* HistoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C114B641F312A9A59EC73ABE /* HistoryService.swift */; };
 		55C92AE10D4F4F4DD92DA9CC /* TodayProbes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676A153D4949CD342ACFAC03 /* TodayProbes.swift */; };
 		59875EEC4567184FC6639DD7 /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7103D5D3582F868E1F9E54 /* HistoryViewModel.swift */; };
@@ -158,6 +159,7 @@
 		BBC5E9F6DD4DFA8F2E433F6F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BF88224AA4C6C8646985D85C /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		C114B641F312A9A59EC73ABE /* HistoryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryService.swift; sourceTree = "<group>"; };
+		C7B7D3C8D72B6553E992730A /* TodayCompactCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayCompactCardView.swift; sourceTree = "<group>"; };
 		D2D66D3F28A2316CAEF6100C /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D721CA2E6502D01022447EE9 /* ConfirmDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmDialog.swift; sourceTree = "<group>"; };
 		D80E3766483DF3C73821DFDD /* StreakBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakBadge.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 		361059930E9E796CE38E09EB /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				C7B7D3C8D72B6553E992730A /* TodayCompactCardView.swift */,
 				676A153D4949CD342ACFAC03 /* TodayProbes.swift */,
 				B1768F0AA02C3B2CC43E3C97 /* TodayStatusCardView.swift */,
 				DB16E9B8301CA1226B40F65A /* TodayView.swift */,
@@ -625,6 +628,7 @@
 				8E898DF7F002002C16AEC0A5 /* StreakBadge.swift in Sources */,
 				CF258857D90DD60649DFA8C8 /* SupabaseHub.swift in Sources */,
 				CEB934F0E336ADD5FE0394AE /* TodayCardState.swift in Sources */,
+				52565C6F064A571D2956B574 /* TodayCompactCardView.swift in Sources */,
 				55C92AE10D4F4F4DD92DA9CC /* TodayProbes.swift in Sources */,
 				3C7466334E74E4A14FD4D585 /* TodaySnapshot.swift in Sources */,
 				8D6DF5B8049D00A8AB268518 /* TodayStatusCardView.swift in Sources */,

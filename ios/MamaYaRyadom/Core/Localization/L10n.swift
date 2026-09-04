@@ -214,6 +214,10 @@ enum L10n {
     // MARK: Postcard
 
     static var postcardButton: String { String(localized: "postcard.button", bundle: bundle) }
+
+    static func postcardButtonFor(_ name: String) -> String {
+        String(format: String(localized: "postcard.buttonFor", bundle: bundle), name)
+    }
     static var postcardPlaceholder: String { String(localized: "postcard.placeholder", bundle: bundle) }
     static var postcardSend: String { String(localized: "postcard.send", bundle: bundle) }
     static var postcardCancel: String { String(localized: "postcard.cancel", bundle: bundle) }

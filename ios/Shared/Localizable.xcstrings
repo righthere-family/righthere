@@ -4495,6 +4495,23 @@
         }
       }
     },
+    "postcard.buttonFor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send a few words · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Передать пару слов · %@"
+          }
+        }
+      }
+    },
     "postcard.cancel": {
       "extractionState": "manual",
       "localizations": {

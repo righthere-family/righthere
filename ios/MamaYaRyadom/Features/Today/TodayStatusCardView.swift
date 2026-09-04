@@ -3,14 +3,15 @@ import SwiftUI
 struct TodayStatusCardView: View {
     
     let state: TodayCardState
+    var emphasisesName = false
     let onMedicationsTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("\(state.name) · \(state.city)")
-                .font(Typography.cardTitle)
-                .tracking(0.3)
-                .foregroundStyle(Palette.inkSecondary)
+            (Text(state.name).foregroundStyle(emphasisesName ? Palette.ink : Palette.inkSecondary)
+                + Text(" · \(state.city)").foregroundStyle(Palette.inkSecondary))
+                .font(emphasisesName ? .system(size: 15, weight: .semibold) : Typography.cardTitle)
+                .tracking(emphasisesName ? 0 : 0.3)
             
             statusContent
 
