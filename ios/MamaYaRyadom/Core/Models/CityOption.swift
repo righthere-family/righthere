@@ -10,7 +10,11 @@ struct City: Identifiable, Hashable, Sendable {
     var id: String { ru }
 
     var displayName: String {
-        Locale.current.language.languageCode?.identifier == "ru" ? ru : en
+        L10n.effectiveLanguage == "ru" ? ru : en
+    }
+
+    func matches(_ name: String) -> Bool {
+        ru == name || en == name
     }
 
     static func search(_ query: String, limit: Int = 5) -> [City] {

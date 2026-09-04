@@ -243,6 +243,7 @@ enum L10n {
         dynamic("form.city.\(kind.rawValue)")
     }
 
+    static var formCityPickHint: String { String(localized: "form.cityPickHint", bundle: bundle) }
     static var formMorning: String { String(localized: "form.morning", bundle: bundle) }
     static var formBotLanguage: String { String(localized: "form.botLanguage", bundle: bundle) }
 

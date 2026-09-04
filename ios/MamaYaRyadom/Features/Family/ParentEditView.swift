@@ -58,6 +58,13 @@ struct ParentEditView: View {
                     .padding(.top, 4)
                 }
 
+                if !model.isCityResolved {
+                    Text(L10n.formCityPickHint)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Palette.inkSecondary)
+                        .padding(.top, 8)
+                }
+
                 FormUnderlineValue(label: L10n.formMorning, value: model.checkinTime, monospaced: true) {
                     ForEach(TodayViewModel.timeOptions, id: \.self) { time in
                         Button(time) { model.checkinTime = time }
@@ -197,7 +204,11 @@ final class ParentEditViewModel {
     }
 
     var canSave: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && !isSaving
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && isCityResolved && !isSaving
+    }
+
+    var isCityResolved: Bool {
+        selectedCity != nil || cityQuery == loadedCity
     }
 
     func choose(_ match: CitySearch.Match) {
@@ -211,11 +222,21 @@ final class ParentEditViewModel {
     }
 
     func cityQueryEdited() {
-        if let selected = selectedCity, cityQuery != selected.displayName {
+        if let selected = selectedCity {
+            guard !selected.matches(cityQuery) else {
+                citySearch.clear()
+                return
+            }
             selectedCity = nil
+        }
+        guard cityQuery != loadedCity else {
+            citySearch.clear()
+            return
         }
         citySearch.update(query: cityQuery)
     }
+
+    private var loadedCity = ""
 
     private(set) var parentId: UUID?
     private(set) var canRemove = false
@@ -237,13 +258,12 @@ final class ParentEditViewModel {
         windowMinutes = member.parent.windowMinutes
         name = member.parent.displayName
         phone = member.parent.phone ?? ""
+        loadedCity = member.parent.cityName
         cityQuery = member.parent.cityName
         timezone = member.parent.timezone
         checkinTime = member.parent.checkinTime
         botLang = member.parent.botLanguage
-        selectedCity = City.all.first {
-            $0.ru == member.parent.cityName || $0.en == member.parent.cityName
-        }
+        selectedCity = City.all.first { $0.matches(member.parent.cityName) }
     }
 
     func pickWindow(_ minutes: Int, premium: Bool) {
@@ -281,8 +301,9 @@ final class ParentEditViewModel {
         isSaving = true
         saveFailed = false
         defer { isSaving = false }
-        let city = selectedCity?.displayName ?? cityQuery
-        let tz = selectedCity?.timezone ?? timezone
+        let isCityChanged = cityQuery != loadedCity
+        let city = isCityChanged ? (selectedCity?.displayName ?? cityQuery) : loadedCity
+        let tz = isCityChanged ? (selectedCity?.timezone ?? timezone) : timezone
         do {
             try await FamilyAPI().updateParent(
                 name: name,

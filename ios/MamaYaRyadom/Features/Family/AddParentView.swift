@@ -193,7 +193,7 @@ final class AddParentViewModel {
     var name = ""
     var cityQuery = "" {
         didSet {
-            guard cityQuery != selectedCity?.displayName else { return }
+            guard selectedCity?.matches(cityQuery) != true else { return }
             selectedCity = nil
             citySearch.update(query: cityQuery)
         }

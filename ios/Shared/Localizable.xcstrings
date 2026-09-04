@@ -3203,6 +3203,23 @@
         }
       }
     },
+    "form.cityPickHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick the city from the list — the time zone comes with it"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбери город из списка — от него зависит часовой пояс"
+          }
+        }
+      }
+    },
     "form.morning": {
       "extractionState": "manual",
       "localizations": {
