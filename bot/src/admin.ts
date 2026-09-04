@@ -477,6 +477,7 @@ const PAGE = `<!doctype html>
 
   <section id="page-waitlist">
     <div class="card"><table id="waitlist"></table></div>
+    <div class="card"><table id="webleads"></table></div>
   </section>
 
   <section id="page-journal">
@@ -643,6 +644,7 @@ async function boot() {
     renderChart(data.daily);
     renderFamilies(data.families);
     renderWaitlist(data.waitlist);
+    renderWebLeads(data.web_leads);
     renderEvents(data.events);
     loadWebhook();
     route();
@@ -664,6 +666,7 @@ function renderStats(s) {
     [s.stories, 'историй'],
     [s.postcards, 'открыток доставлено'],
     [s.waitlist, 'в листе ожидания'],
+    [s.web_leads, 'заявок с сайта'],
     [s.errors_24h, 'ошибок за 24 часа', s.errors_24h > 0 ? 'alert' : '', 'journal'],
   ];
   document.getElementById('stats').innerHTML = items.map(([n, label, cls, link]) =>
@@ -889,6 +892,13 @@ async function testPush(id, btn) {
   btn.disabled = false;
 }
 
+const MOM_CHANNEL_LABELS = {
+  telegram: 'Telegram',
+  whatsapp: 'WhatsApp',
+  sms: 'звонки и СМС',
+  unknown: 'не знает',
+};
+
 function renderWaitlist(list) {
   const rows = (list || []).map(w => {
     const nick = w.username
@@ -900,13 +910,30 @@ function renderWaitlist(list) {
     return '<tr id="wl-' + w.telegram_user_id + '"><td>' + esc(w.first_name || '—') +
       ' <span class="pill lang">' + esc((w.lang || 'ru').toUpperCase()) + '</span></td>' +
       '<td>' + nick + '</td>' +
+      '<td>' + (w.mom_channel
+        ? '<span class="pill">' + esc(MOM_CHANNEL_LABELS[w.mom_channel] || w.mom_channel) + '</span>'
+        : '<span class="muted">—</span>') + '</td>' +
       '<td class="muted">' + esc(w.created_at) + '</td>' +
       '<td class="wl-actions">' + status +
       '<button class="danger" onclick="removeWaitlist(' + w.telegram_user_id + ')">удалить</button></td></tr>';
   }).join('');
   document.getElementById('waitlist').innerHTML =
-    '<tr><th>Имя</th><th>Ник</th><th>Записался</th><th></th></tr>' +
-    (rows || '<tr><td class="muted" colspan="4">пусто</td></tr>');
+    '<tr><th>Имя</th><th>Ник</th><th>Мама</th><th>Записался</th><th></th></tr>' +
+    (rows || '<tr><td class="muted" colspan="5">пусто</td></tr>');
+}
+
+function renderWebLeads(list) {
+  const rows = (list || []).map(l => {
+    return '<tr><td>' + esc(l.email) +
+      ' <span class="pill lang">' + esc((l.lang || 'ru').toUpperCase()) + '</span></td>' +
+      '<td>' + (l.mom_channel
+        ? '<span class="pill">' + esc(MOM_CHANNEL_LABELS[l.mom_channel] || l.mom_channel) + '</span>'
+        : '<span class="muted">—</span>') + '</td>' +
+      '<td class="muted">' + esc(l.created_at) + '</td></tr>';
+  }).join('');
+  document.getElementById('webleads').innerHTML =
+    '<tr><th>Почта с сайта</th><th>Мама</th><th>Оставил</th></tr>' +
+    (rows || '<tr><td class="muted" colspan="3">пусто</td></tr>');
 }
 
 const inviteErrors = {

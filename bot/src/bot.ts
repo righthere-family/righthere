@@ -2,7 +2,7 @@ import { Bot, Context, InlineKeyboard, Keyboard } from 'grammy';
 import type { UserFromGetMe } from 'grammy/types';
 import type { Env } from './index';
 import { pushToFamily } from './apns';
-import { db, CheckinResult } from './db';
+import { db, CheckinResult, type MomChannel } from './db';
 import {
   T,
   faqAnswers,
@@ -188,6 +188,31 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
     }
     await ctx.reply(result === 'added' ? guest.beta.joined : guest.beta.already);
+
+    if ((await d.waitlistMomChannel(ctx.from.id)) === null) {
+      const labels = guest.beta.channelButtons;
+      await ctx.reply(guest.beta.channelAsk, {
+        reply_markup: new InlineKeyboard()
+          .text(labels[0]!, 'mom:telegram')
+          .row()
+          .text(labels[1]!, 'mom:whatsapp')
+          .row()
+          .text(labels[2]!, 'mom:sms')
+          .row()
+          .text(labels[3]!, 'mom:unknown'),
+      });
+    }
+  });
+
+  bot.callbackQuery(/^mom:(telegram|whatsapp|sms|unknown)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await d.setWaitlistMomChannel(ctx.from.id, ctx.match[1] as MomChannel);
+    try {
+      await ctx.editMessageReplyMarkup();
+    } catch {
+
+    }
+    await ctx.reply(T(langFromTelegram(ctx.from.language_code)).beta.channelThanks);
   });
 
   bot.callbackQuery(/^id_yes:(.+)$/, async (ctx) => {

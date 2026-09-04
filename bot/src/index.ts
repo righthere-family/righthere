@@ -6,13 +6,44 @@ import { tgCall } from './telegram';
 import { makeBot } from './bot';
 import { runCronTick } from './checkin';
 import { oggOpusToCaf } from './remux';
-import { db } from './db';
+import { db, MOM_CHANNELS, type MomChannel } from './db';
 import landingPage from './landing.html';
 import landingPageEn from './landing-en.html';
 import privacyPage from './privacy.html';
 import privacyPageEn from './privacy-en.html';
 
 let botInfo: UserFromGetMe | undefined;
+
+const BETA_ORIGINS = [
+  'https://righthere.family',
+  'https://www.righthere.family',
+  'https://api.righthere.family',
+];
+
+const BETA_LIMIT = 5;
+const BETA_WINDOW_SEC = 3600;
+
+interface BetaSignup {
+  email?: string;
+  mom?: string;
+  lang?: string;
+  company?: string;
+}
+
+async function betaFlooded(env: Env, ip: string): Promise<boolean> {
+  const key = `beta/${ip}`;
+  let seen = 0;
+  try {
+    seen = Number((await env.SYSTEM.get(key)) ?? '0') || 0;
+  } catch {
+
+  }
+  if (seen >= BETA_LIMIT) return true;
+  await env.SYSTEM.put(key, String(seen + 1), { expirationTtl: BETA_WINDOW_SEC }).catch(
+    () => undefined,
+  );
+  return false;
+}
 
 const STOREFRONT_STAMP = 'storefront/checked-at';
 const STOREFRONT_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -284,6 +315,20 @@ async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
   }
 
   if (url.pathname === '/preview') {
+    const linkKey = url.searchParams.get('key');
+    if (req.method === 'GET' && env.PREVIEW_KEY && linkKey) {
+      if (timingSafeEqual(linkKey, env.PREVIEW_KEY)) {
+        return new Response(null, {
+          status: 303,
+          headers: {
+            Location: '/',
+            'Set-Cookie':
+              `${PREVIEW_COOKIE}=${linkKey}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`,
+          },
+        });
+      }
+      return html(previewLoginPage(true), 403);
+    }
     if (req.method === 'POST' && env.PREVIEW_KEY) {
       const form = await req.formData();
       const key = String(form.get('key') ?? '');
@@ -368,6 +413,43 @@ export default {
         })(),
       );
       return new Response('ok');
+    }
+
+    if (url.pathname === '/beta') {
+      const origin = req.headers.get('Origin') ?? '';
+      const allowed = BETA_ORIGINS.includes(origin) ? origin : BETA_ORIGINS[0]!;
+      const cors = {
+        'access-control-allow-origin': allowed,
+        'access-control-allow-headers': 'content-type',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-max-age': '86400',
+      };
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (req.method !== 'POST') return new Response('method not allowed', { status: 405, headers: cors });
+
+      const ip = req.headers.get('CF-Connecting-IP') ?? 'unknown';
+      if (await betaFlooded(env, ip)) {
+        return new Response(JSON.stringify({ error: 'too many' }), { status: 429, headers: { ...cors, 'content-type': 'application/json' } });
+      }
+
+      const payload = (await req.json().catch(() => null)) as BetaSignup | null;
+      const email = (payload?.email ?? '').trim().slice(0, 200);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        return new Response(JSON.stringify({ error: 'bad email' }), { status: 400, headers: { ...cors, 'content-type': 'application/json' } });
+      }
+      if ((payload?.company ?? '') !== '') {
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, 'content-type': 'application/json' } });
+      }
+
+      const mom = MOM_CHANNELS.includes(payload?.mom as MomChannel) ? (payload!.mom as MomChannel) : null;
+      const lang = payload?.lang === 'en' ? 'en' : 'ru';
+      const result = await db(env).addWebLead(email, mom, lang);
+      if (result === 'failed') {
+        return new Response(JSON.stringify({ error: 'failed' }), { status: 500, headers: { ...cors, 'content-type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({ ok: true, state: result }), {
+        headers: { ...cors, 'content-type': 'application/json' },
+      });
     }
 
     if (req.method === 'POST' && url.pathname === '/postcard-photo') {

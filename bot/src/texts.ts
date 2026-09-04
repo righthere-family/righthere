@@ -212,12 +212,17 @@ const ru = {
   beta: {
     joined:
       'Готово — вы в списке ✅\n\n' +
-      'Когда откроем бету, я напишу вам сюда: пришлю ссылку на приложение для вас ' +
-      'и объясню, как позвать маму. Это будет осенью.\n\n' +
-      'Пока можно ничего не делать. Спасибо, что дождались этой кнопки.',
+      'Я напишу вам сюда, как только откроем доступ: пришлю ссылку на приложение ' +
+      'и объясню, как позвать маму. Обычно это день-два.\n\n' +
+      'Пока делать ничего не нужно. Спасибо, что дождались этой кнопки.',
     already:
       'Вы уже в списке ✅ Напишу, как только откроем бету — не пропустите.',
     waitButton: 'Записаться в бету',
+    channelAsk:
+      'И один вопрос — от него зависит, каким мы сделаем продукт.\n\n' +
+      'Чем из этого пользуется ваша мама?',
+    channelButtons: ['Telegram', 'WhatsApp', 'Только звонки и СМС', 'Не знаю'] as readonly string[],
+    channelThanks: 'Спасибо — это правда влияет на то, что будет дальше.',
 
     invite:
       'Здравствуйте! Это «Мама, я рядом» — вы записывались в бету, и ваша очередь подошла ✅\n\n' +
@@ -486,12 +491,17 @@ const en: BotStrings = {
   beta: {
     joined:
       'Done — you’re on the list ✅\n\n' +
-      'When the beta opens, I’ll write to you here: I’ll send the app link for you ' +
-      'and explain how to invite your mom. That will be this fall.\n\n' +
+      'I’ll write to you here as soon as access opens: I’ll send the app link ' +
+      'and explain how to invite your mom. Usually a day or two.\n\n' +
       'Nothing to do for now. Thank you for waiting for this button.',
     already:
       'You’re already on the list ✅ I’ll write as soon as the beta opens — you won’t miss it.',
     waitButton: 'Join the beta list',
+    channelAsk:
+      'One question — it decides what we build next.\n\n' +
+      'Which of these does your mom use?',
+    channelButtons: ['Telegram', 'WhatsApp', 'Calls and texts only', 'Not sure'] as readonly string[],
+    channelThanks: 'Thank you — this really does shape what comes next.',
     invite:
       'Hello! This is “Mom, I’m Right Here” — you signed up for the beta, and your turn has come ✅\n\n' +
       'What to do:\n' +
