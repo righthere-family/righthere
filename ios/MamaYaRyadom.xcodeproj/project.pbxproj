@@ -664,7 +664,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = family.righthere.app;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -681,7 +681,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = family.righthere.app;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -758,7 +758,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = family.righthere.app.widget;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -842,7 +842,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = family.righthere.app.widget;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

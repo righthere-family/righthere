@@ -46,6 +46,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: family.righthere.app
+        TARGETED_DEVICE_FAMILY: 1
     info:
       path: MamaYaRyadom/Info.plist
       properties:
@@ -81,6 +82,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: family.righthere.app.widget
         INFOPLIST_KEY_CFBundleDisplayName: "Мама, я рядом"
+        TARGETED_DEVICE_FAMILY: 1
     entitlements:
       path: MamaWidget/Widget.entitlements
       properties:
