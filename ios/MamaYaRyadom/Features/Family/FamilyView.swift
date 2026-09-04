@@ -245,7 +245,7 @@ struct FamilyView: View {
     // exactly what is waiting behind the door.
     private var storiesTitle: String {
         if purchases.hasSubscription || model.storyCount == 0 {
-            return L10n.storiesTitle
+            return L10n.storiesTitle(kinds: model.parentKinds)
         }
         return L10n.storiesPremium(model.storyCount)
     }
@@ -316,6 +316,7 @@ struct FamilyView: View {
 final class FamilyViewModel {
     struct Member: Identifiable {
         let id: UUID
+        let kind: Parent.Kind
         let line: String
         let statusLine: String
         let isConnected: Bool
@@ -324,6 +325,10 @@ final class FamilyViewModel {
     private(set) var parent: Parent = .sample
     private(set) var members: [Member] = []
     private(set) var storyCount = 0
+
+    var parentKinds: Set<Parent.Kind> {
+        Set(members.map(\.kind))
+    }
 
     var joinURL: URL? {
         guard AppConfig.hasFamily else { return nil }
@@ -337,6 +342,7 @@ final class FamilyViewModel {
         members = snapshot.everyone.map { member in
             Member(
                 id: member.parent.id,
+                kind: member.parent.kind,
                 line: "\(member.parent.displayName) · \(member.parent.cityName)",
                 statusLine: member.isWaitingParent ? L10n.familyMomWaiting : L10n.familyMomConnected,
                 isConnected: !member.isWaitingParent

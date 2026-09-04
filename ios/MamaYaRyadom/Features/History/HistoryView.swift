@@ -36,7 +36,9 @@ struct HistoryView: View {
                         }
                     } else {
                         calendarCard
-                        premiumTail
+                        if !model.isParentWaiting {
+                            premiumTail
+                        }
                     }
                 }
             }
@@ -94,18 +96,22 @@ struct HistoryView: View {
     private var calendarCard: some View {
         Group {
                 VStack(spacing: 16) {
-                    monthSwitcher
-                    weekdayHeader
-                    if model.isLoading {
-                        loadingGrid
+                    if model.isParentWaiting {
+                        notConnectedNote
                     } else {
-                        monthGrid
-                    }
-                    if let summary = model.summary {
-                        Rectangle()
-                            .fill(Palette.accentBright.opacity(0.18))
-                            .frame(height: 1)
-                        summaryLine(summary)
+                        monthSwitcher
+                        weekdayHeader
+                        if model.isLoading {
+                            loadingGrid
+                        } else {
+                            monthGrid
+                        }
+                        if let summary = model.summary {
+                            Rectangle()
+                                .fill(Palette.accentBright.opacity(0.18))
+                                .frame(height: 1)
+                            summaryLine(summary)
+                        }
                     }
                 }
                 .padding(.horizontal, 18)
@@ -115,10 +121,26 @@ struct HistoryView: View {
                 .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
                 .animation(.easeOut(duration: 0.25), value: model.isLoading)
 
-                Spacer().frame(height: 14)
-                legend
-                    .padding(.horizontal, 6)
+                if !model.isParentWaiting {
+                    Spacer().frame(height: 14)
+                    legend
+                        .padding(.horizontal, 6)
+                }
         }
+    }
+
+    private var notConnectedNote: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.familyMomWaiting)
+                .font(Typography.display(20))
+                .foregroundStyle(Palette.ink)
+            Text(L10n.historyNotConnected(kind: model.parent.kind))
+                .font(.system(size: 14.5))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder

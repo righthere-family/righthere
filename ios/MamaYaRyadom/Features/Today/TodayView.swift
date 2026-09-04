@@ -21,14 +21,19 @@ struct TodayView: View {
                 case .setup:
                     setupCard
                 case .waiting(let code):
-                    waitingCard(code: code)
+                    waitingCard(parent: model.parent, code: code, showsRefresh: true)
                 case .ready:
                     if let upcoming = model.upcomingDate {
                         upcomingDateCard(upcoming)
                         Spacer().frame(height: 14)
                     }
                     ForEach(Array(zip(model.cards, model.parents)), id: \.0.id) { card, member in
-                        if isCollapsed(card) {
+                        if card.isWaiting {
+                            waitingCard(parent: member, code: card.inviteCode, showsRefresh: false)
+                            if member.id != model.parents.last?.id {
+                                Spacer().frame(height: 26)
+                            }
+                        } else if isCollapsed(card) {
                             TodayCompactCardView(state: card) {
                                 expanded.insert(card.id)
                             }
@@ -255,19 +260,19 @@ struct TodayView: View {
 
     // MARK: - Waiting Card
 
-    private func waitingCard(code: String?) -> some View {
+    private func waitingCard(parent: Parent, code: String?, showsRefresh: Bool) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("\(model.parent.displayName) · \(model.parent.cityName)")
+            Text("\(parent.displayName) · \(parent.cityName)")
                 .font(Typography.cardTitle)
                 .tracking(0.3)
                 .foregroundStyle(Palette.inkSecondary)
 
-            Text(L10n.waitingTitle)
+            Text(L10n.waitingTitle(kind: parent.kind))
                 .font(Typography.display(30))
                 .foregroundStyle(Palette.ink)
                 .padding(.top, 12)
 
-            Text(L10n.waitingText)
+            Text(L10n.waitingText(kind: parent.kind))
                 .font(.system(size: 15))
                 .foregroundStyle(Palette.inkSecondary)
                 .lineSpacing(3)
@@ -275,7 +280,7 @@ struct TodayView: View {
 
             if let url = model.inviteURL(code: code) {
                 ShareLink(item: url) {
-                    Label(L10n.waitingShare, systemImage: "paperplane.fill")
+                    Label(L10n.waitingShare(kind: parent.kind), systemImage: "paperplane.fill")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
@@ -283,7 +288,7 @@ struct TodayView: View {
                         .background(Palette.accent, in: .rect(cornerRadius: 15))
                 }
                 .padding(.top, 20)
-            } else {
+            } else if showsRefresh {
                 Button {
                     Task { await model.refreshInvite() }
                 } label: {
@@ -304,7 +309,7 @@ struct TodayView: View {
                 .padding(.top, 20)
             }
 
-            Text(L10n.waitingHint)
+            Text(L10n.waitingHint(kind: parent.kind))
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.inkSecondary.opacity(0.75))
                 .padding(.top, 12)

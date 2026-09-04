@@ -133,7 +133,7 @@ struct AddParentView: View {
                 .lineSpacing(3)
 
             ShareLink(item: L10n.familyInviteMessage(invite.absoluteString)) {
-                Label(L10n.waitingShare, systemImage: "square.and.arrow.up")
+                Label(L10n.waitingShare(kind: model.kind.parentKind), systemImage: "square.and.arrow.up")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)

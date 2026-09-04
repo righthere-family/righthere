@@ -62,15 +62,18 @@ final class TodayViewModel {
     }
 
     var cards: [TodayCardState] {
-        [cardState] + others.map {
-            cardState(
-                for: $0.parent,
-                status: $0.status,
-                streak: $0.streak,
-                medsTaken: $0.medsTaken,
-                medsTotal: $0.medsTotal,
-                evening: $0.evening
+        [cardState] + others.map { member in
+            var card = cardState(
+                for: member.parent,
+                status: member.status,
+                streak: member.streak,
+                medsTaken: member.medsTaken,
+                medsTotal: member.medsTotal,
+                evening: member.evening
             )
+            card.isWaiting = member.isWaitingParent
+            card.inviteCode = member.inviteCode
+            return card
         }
     }
 

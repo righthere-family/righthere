@@ -135,10 +135,27 @@ enum L10n {
     static var setupTime: String { String(localized: "setup.time", bundle: bundle) }
     static var setupCreate: String { String(localized: "setup.create", bundle: bundle) }
     static var setupError: String { String(localized: "setup.error", bundle: bundle) }
-    static var waitingTitle: String { String(localized: "waiting.title", bundle: bundle) }
-    static var waitingText: String { String(localized: "waiting.text", bundle: bundle) }
-    static var waitingShare: String { String(localized: "waiting.share", bundle: bundle) }
-    static var waitingHint: String { String(localized: "waiting.hint", bundle: bundle) }
+    static func waitingTitle(kind: Parent.Kind) -> String {
+        dynamic("waiting.title.\(kind.rawValue)")
+    }
+
+    static func waitingText(kind: Parent.Kind) -> String {
+        dynamic("waiting.text.\(kind.rawValue)")
+    }
+
+    static func waitingHint(kind: Parent.Kind) -> String {
+        dynamic("waiting.hint.\(kind.rawValue)")
+    }
+
+    static func waitingShare(kind: Parent.Kind) -> String {
+        dynamic("waiting.share.\(kind.rawValue)")
+    }
+
+    static func historyNotConnected(kind: Parent.Kind) -> String {
+        dynamic("history.notConnected.\(kind.rawValue)")
+    }
+
+    static var historySummaryNone: String { String(localized: "history.summaryNone", bundle: bundle) }
     static var waitingNewLink: String { String(localized: "waiting.newLink", bundle: bundle) }
 
     // MARK: Meds
@@ -405,7 +422,11 @@ enum L10n {
     static var datesAdd: String { String(localized: "dates.add", bundle: bundle) }
     static var datesPremium: String { String(localized: "dates.premium", bundle: bundle) }
     static var datesPremiumHint: String { String(localized: "dates.premiumHint", bundle: bundle) }
-    static var storiesTitle: String { String(localized: "stories.title", bundle: bundle) }
+    static func storiesTitle(kinds: Set<Parent.Kind>) -> String {
+        if kinds == [.mom] { return dynamic("stories.title.mom") }
+        if kinds == [.dad] { return dynamic("stories.title.dad") }
+        return dynamic("stories.title.family")
+    }
     static var storiesRowHint: String { String(localized: "stories.rowHint", bundle: bundle) }
     static var storiesEmpty: String { String(localized: "stories.empty", bundle: bundle) }
     static var storiesVoice: String { String(localized: "stories.voice", bundle: bundle) }

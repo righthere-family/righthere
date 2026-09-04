@@ -4,6 +4,7 @@ import SwiftUI
 // MARK: - Family Stories
 
 struct StoriesView: View {
+    @Environment(\.dependencies) private var dependencies
     @State private var model = StoriesViewModel()
 
     var body: some View {
@@ -28,9 +29,9 @@ struct StoriesView: View {
             .padding(.bottom, 28)
         }
         .background(Palette.background)
-        .navigationTitle(L10n.storiesTitle)
+        .navigationTitle(L10n.storiesTitle(kinds: model.parentKinds))
         .navigationBarTitleDisplayMode(.inline)
-        .task { await model.load() }
+        .task { await model.load(using: dependencies.checkinService) }
         .onDisappear { model.stopPlayback() }
     }
 
@@ -83,13 +84,17 @@ struct StoriesView: View {
 @MainActor
 final class StoriesViewModel {
     private(set) var stories: [FamilyStory] = []
+    private(set) var parentKinds: Set<Parent.Kind> = []
     private(set) var playingId: UUID?
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
     private var failureObserver: NSObjectProtocol?
 
-    func load() async {
+    func load(using service: any CheckinService) async {
         stories = (try? await FamilyAPI().stories()) ?? []
+        if let snapshot = try? await service.todaySnapshot() {
+            parentKinds = Set(snapshot.everyone.map(\.parent.kind))
+        }
     }
 
     func togglePlayback(_ story: FamilyStory) async {

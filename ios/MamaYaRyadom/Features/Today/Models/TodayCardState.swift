@@ -25,6 +25,8 @@ struct TodayCardState: Identifiable {
     let weekdays: [WeekDay]
     let medicationsInfo: MedicationsInfo
     let eveningIsOk: Bool?
+    var isWaiting = false
+    var inviteCode: String?
 }
 
 // MARK: - Skeleton Sample

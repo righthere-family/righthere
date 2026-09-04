@@ -13,6 +13,7 @@ final class HistoryViewModel {
     private(set) var records: [DayRecord] = []
     private(set) var isLoading = true
     private(set) var trends: TrendsPayload?
+    private(set) var waitingParentIds: Set<UUID> = []
     private(set) var isSibling = false
     private(set) var familyHasPlan = false
     var selectedRecord: DayRecord?
@@ -33,7 +34,9 @@ final class HistoryViewModel {
 
     func loadFamily(using service: any CheckinService) async {
         guard let snapshot = try? await service.todaySnapshot() else { return }
-        parents = snapshot.everyone.map(\.parent)
+        let members = snapshot.everyone
+        parents = members.map(\.parent)
+        waitingParentIds = Set(members.filter(\.isWaitingParent).map(\.parent.id))
         if selectedParentId == nil {
             selectedParentId = parents.first?.id
         }
@@ -111,7 +114,13 @@ final class HistoryViewModel {
         return (weekday - calendar.firstWeekday + 7) % 7
     }
 
+    var isParentWaiting: Bool {
+        guard let selectedParentId else { return false }
+        return waitingParentIds.contains(selectedParentId)
+    }
+
     var summary: String? {
+        guard !isParentWaiting else { return nil }
         let tracked = records.filter { record in
             switch record.mark {
             case .upcoming: false
@@ -123,6 +132,7 @@ final class HistoryViewModel {
             if case .allGood = record.mark { return true }
             return false
         }
+        if good.isEmpty { return L10n.historySummaryNone }
         return L10n.historySummary(good.count, tracked.count)
     }
 
