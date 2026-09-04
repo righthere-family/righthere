@@ -208,6 +208,20 @@ struct FamilyAPI: Sendable {
         return payload.inviteCode
     }
 
+    func parentInviteCode(parentId: UUID) async throws -> String {
+        struct InvitePayload: Decodable {
+            let inviteCode: String
+        }
+        let payload: InvitePayload = try await call(
+            "app_parent_invite",
+            params: [
+                "p_app_token": AppConfig.familyToken,
+                "p_parent_id": parentId.uuidString.lowercased(),
+            ]
+        )
+        return payload.inviteCode
+    }
+
     func createFamily(
         momName: String,
         momCity: String,

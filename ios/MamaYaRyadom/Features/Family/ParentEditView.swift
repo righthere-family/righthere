@@ -16,6 +16,11 @@ struct ParentEditView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                if model.isWaiting {
+                    inviteBlock
+                        .padding(.bottom, 24)
+                }
+
                 FormUnderlineField(
                     label: L10n.formName(kind: model.kind),
                     placeholder: L10n.setupMomNamePlaceholder,
@@ -152,6 +157,56 @@ struct ParentEditView: View {
         }
     }
 
+    // MARK: - Invite
+
+    private var inviteBlock: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.familyMomWaiting)
+                .font(Typography.display(20))
+                .foregroundStyle(Palette.ink)
+
+            Text(L10n.waitingText(kind: model.kind))
+                .font(.system(size: 14))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+
+            if let url = model.inviteURL {
+                ShareLink(item: url) {
+                    inviteButtonLabel(Text(L10n.waitingShare(kind: model.kind)))
+                }
+            } else {
+                Button {
+                    Task { await model.refreshInvite() }
+                } label: {
+                    inviteButtonLabel(
+                        model.isRefreshingInvite ? nil : Text(L10n.waitingNewLink)
+                    )
+                }
+                .disabled(model.isRefreshingInvite)
+            }
+
+            Text(L10n.waitingHint(kind: model.kind))
+                .font(.system(size: 12.5))
+                .foregroundStyle(Palette.inkSecondary.opacity(0.75))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func inviteButtonLabel(_ title: Text?) -> some View {
+        Group {
+            if let title {
+                Label { title } icon: { Image(systemName: "paperplane.fill") }
+            } else {
+                ProgressView().tint(.white)
+            }
+        }
+        .font(.system(size: 15, weight: .semibold))
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 13)
+        .background(Palette.accent, in: .rect(cornerRadius: 14))
+    }
+
     // MARK: - Remove
 
     @ViewBuilder
@@ -192,6 +247,9 @@ final class ParentEditViewModel {
     var selectedCity: City?
     var checkinTime = "09:00"
     var botLang = "ru"
+    private(set) var isWaiting = false
+    private(set) var inviteCode: String?
+    private(set) var isRefreshingInvite = false
     private(set) var isSaving = false
     private(set) var saveFailed = false
     private var timezone = "Europe/Moscow"
@@ -253,6 +311,8 @@ final class ParentEditViewModel {
         let member = snapshot.everyone.first { $0.parent.id == parentId } ?? snapshot
         // The last parent cannot be removed, so the button never appears for them.
         canRemove = snapshot.everyone.count > 1
+        isWaiting = member.isWaitingParent
+        inviteCode = member.inviteCode
         kind = member.parent.kind
         eveningTime = member.parent.eveningTime
         windowMinutes = member.parent.windowMinutes
@@ -264,6 +324,18 @@ final class ParentEditViewModel {
         checkinTime = member.parent.checkinTime
         botLang = member.parent.botLanguage
         selectedCity = City.all.first { $0.matches(member.parent.cityName) }
+    }
+
+    var inviteURL: URL? {
+        guard let inviteCode else { return nil }
+        return URL(string: "https://t.me/\(AppConfig.botHandle)?start=inv_\(inviteCode)")
+    }
+
+    func refreshInvite() async {
+        guard let parentId, !isRefreshingInvite else { return }
+        isRefreshingInvite = true
+        defer { isRefreshingInvite = false }
+        inviteCode = try? await FamilyAPI().parentInviteCode(parentId: parentId)
     }
 
     func pickWindow(_ minutes: Int, premium: Bool) {
