@@ -11,7 +11,7 @@ struct HistoryView: View {
     private let purchases = PurchaseModel.shared
 
     private var hasPremium: Bool {
-        purchases.hasSubscription || model.familyHasPlan
+        purchases.gatesOpen || model.familyHasPlan
     }
 
     private var isSiblingLocked: Bool {
@@ -98,6 +98,8 @@ struct HistoryView: View {
                 VStack(spacing: 16) {
                     if model.isParentWaiting {
                         notConnectedNote
+                    } else if model.loadFailed && model.records.isEmpty {
+                        loadFailedNote
                     } else {
                         monthSwitcher
                         weekdayHeader
@@ -127,6 +129,30 @@ struct HistoryView: View {
                         .padding(.horizontal, 6)
                 }
         }
+    }
+
+    private var loadFailedNote: some View {
+        VStack(spacing: 14) {
+            Text(L10n.todayLoadFailed)
+                .font(.system(size: 15))
+                .foregroundStyle(Palette.inkSecondary)
+                .multilineTextAlignment(.center)
+            Button {
+                Task {
+                    if !model.isFamilyLoaded {
+                        await model.loadFamily(using: dependencies.checkinService)
+                    }
+                    await model.load(using: dependencies.historyService)
+                }
+            } label: {
+                Text(L10n.todayRetry)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Palette.accent)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
     }
 
     private var notConnectedNote: some View {
@@ -214,7 +240,7 @@ struct HistoryView: View {
     private var monthSwitcher: some View {
         HStack {
             Button {
-                if purchases.hasSubscription {
+                if purchases.gatesOpen {
                     Task { await model.showPreviousMonth(using: dependencies.historyService) }
                 } else {
                     isShowingPaywall = true

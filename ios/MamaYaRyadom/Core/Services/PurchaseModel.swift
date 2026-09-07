@@ -47,6 +47,7 @@ final class PurchaseModel {
     }
 
     private(set) var familyEntitlement: String?
+    private(set) var entitlementsKnown = false
     private(set) var isLoaded = false
     private(set) var trialEligibleIDs: Set<String> = []
 
@@ -54,13 +55,20 @@ final class PurchaseModel {
         !purchasedIDs.isEmpty || familyEntitlement != nil
     }
 
+    // MARK: - Gates
+
+    var gatesOpen: Bool {
+        hasSubscription || !entitlementsKnown
+    }
+
     func load() async {
-        products = ((try? await Product.products(for: Self.productIDs)) ?? [])
-            .sorted { $0.price < $1.price }
         await refreshEntitlements()
         if AppConfig.hasFamily {
             familyEntitlement = try? await FamilyAPI().familyEntitlement()
         }
+        entitlementsKnown = true
+        products = ((try? await Product.products(for: Self.productIDs)) ?? [])
+            .sorted { $0.price < $1.price }
         await refreshTrialEligibility()
         isLoaded = true
     }

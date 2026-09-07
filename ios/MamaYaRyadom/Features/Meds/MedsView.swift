@@ -15,7 +15,7 @@ struct MedsView: View {
     }
 
     private var isAtFreeLimit: Bool {
-        model.meds.count >= 1 && model.editingMed == nil && !purchases.hasSubscription
+        model.meds.count >= 1 && model.editingMed == nil && !purchases.gatesOpen
     }
 
     private var loadingCard: some View {

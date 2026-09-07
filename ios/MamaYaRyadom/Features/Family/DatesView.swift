@@ -21,7 +21,7 @@ struct DatesView: View {
                     dateRow(date)
                 }
 
-                if purchases.hasSubscription {
+                if purchases.gatesOpen {
                     addCard
                 } else {
                     PremiumHintCard(

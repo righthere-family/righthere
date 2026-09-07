@@ -31,7 +31,7 @@ struct DayDetailView: View {
             Text(L10n.statusAllGood)
                 .font(Typography.display(28))
                 .foregroundStyle(Palette.okStrong)
-            Text("\(time) · \(timezoneLabel)")
+            Text(timeLine(time))
                 .font(Typography.timestamp)
                 .foregroundStyle(Palette.inkSecondary)
         case .notOk(let quote):
@@ -69,7 +69,8 @@ struct DayDetailView: View {
         return date.formatted(Date.FormatStyle(date: .long, time: .omitted, locale: L10n.locale))
     }
 
-    private var timezoneLabel: String {
-        String(format: String(localized: "status.cityTime"), parent.cityName)
+    private func timeLine(_ time: String) -> String {
+        guard !parent.cityName.isEmpty else { return time }
+        return "\(time) · " + String(format: String(localized: "status.cityTime"), parent.cityName)
     }
 }

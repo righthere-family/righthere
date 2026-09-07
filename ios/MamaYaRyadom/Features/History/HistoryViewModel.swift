@@ -6,12 +6,14 @@ import Observation
 @Observable
 @MainActor
 final class HistoryViewModel {
-    private(set) var parent: Parent = .sample
+    private(set) var parent: Parent = .placeholder
     private(set) var parents: [Parent] = []
     private(set) var selectedParentId: UUID?
     private(set) var monthAnchor: Date = .now
     private(set) var records: [DayRecord] = []
     private(set) var isLoading = true
+    private(set) var loadFailed = false
+    private(set) var isFamilyLoaded = false
     private(set) var trends: TrendsPayload?
     private(set) var waitingParentIds: Set<UUID> = []
     private(set) var isSibling = false
@@ -28,12 +30,19 @@ final class HistoryViewModel {
     // MARK: Loading
 
     func load(using service: any HistoryService) async {
-        records = (try? await service.monthRecords(month: monthAnchor, parentId: selectedParentId)) ?? []
+        do {
+            records = try await service.monthRecords(month: monthAnchor, parentId: selectedParentId)
+            loadFailed = false
+        } catch {
+            records = []
+            loadFailed = true
+        }
         isLoading = false
     }
 
     func loadFamily(using service: any CheckinService) async {
         guard let snapshot = try? await service.todaySnapshot() else { return }
+        isFamilyLoaded = true
         let members = snapshot.everyone
         parents = members.map(\.parent)
         waitingParentIds = Set(members.filter(\.isWaitingParent).map(\.parent.id))

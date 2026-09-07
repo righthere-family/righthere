@@ -84,7 +84,7 @@ struct ParentEditView: View {
                 ) {
                     ForEach([120, 180, 240], id: \.self) { minutes in
                         Button(L10n.windowHours(minutes / 60)) {
-                            model.pickWindow(minutes, premium: purchases.hasSubscription)
+                            model.pickWindow(minutes, premium: purchases.gatesOpen)
                         }
                     }
                 }
@@ -95,9 +95,9 @@ struct ParentEditView: View {
                     value: model.eveningTime ?? L10n.eveningOff,
                     monospaced: model.eveningTime != nil
                 ) {
-                    Button(L10n.eveningOff) { model.pickEvening(nil, premium: purchases.hasSubscription) }
+                    Button(L10n.eveningOff) { model.pickEvening(nil, premium: purchases.gatesOpen) }
                     ForEach(Self.eveningOptions, id: \.self) { time in
-                        Button(time) { model.pickEvening(time, premium: purchases.hasSubscription) }
+                        Button(time) { model.pickEvening(time, premium: purchases.gatesOpen) }
                     }
                 }
                 .padding(.top, 22)

@@ -22,6 +22,23 @@ struct Parent: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
+// MARK: - Placeholder
+
+extension Parent {
+    static let placeholder = Parent(
+        id: UUID(),
+        kind: .mom,
+        displayName: "",
+        cityName: "",
+        phone: nil,
+        timezone: TimeZone.current.identifier,
+        checkinTime: "09:00",
+        windowMinutes: 180,
+        eveningTime: nil,
+        botLanguage: "ru"
+    )
+}
+
 // MARK: - Sample
 
 extension Parent {

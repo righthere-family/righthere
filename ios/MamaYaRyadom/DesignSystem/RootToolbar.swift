@@ -2,8 +2,9 @@ import SwiftUI
 
 // MARK: - Root Toolbar
 
-// The three root tabs share one header: a quiet title on the leading side and
-// the brand mark trailing. The navigation bar itself always exists (with a
+// The three root tabs share one header: a quiet title in the centre, the brand
+// mark trailing, and the settings gear leading where a tab has one — testers
+// read a leading title as a button. The navigation bar itself always exists (with a
 // hidden background) so pushes never toggle bar visibility — toggling is what
 // made outgoing screens jump. On iOS 26 the liquid-glass capsules are removed:
 // glass reads as "tappable", and neither element is.
@@ -14,7 +15,11 @@ private struct RootToolbar: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content.toolbar {
-                ToolbarItem(placement: .topBarLeading) { leading }
+                if settingsAction != nil {
+                    ToolbarItem(placement: .topBarLeading) { gear }
+                        .sharedBackgroundVisibility(.hidden)
+                }
+                ToolbarItem(placement: .principal) { titleText }
                     .sharedBackgroundVisibility(.hidden)
                 ToolbarItem(placement: .topBarTrailing) { mark }
                     .sharedBackgroundVisibility(.hidden)
@@ -22,26 +27,27 @@ private struct RootToolbar: ViewModifier {
             .toolbarBackground(.hidden, for: .navigationBar)
         } else {
             content.toolbar {
-                ToolbarItem(placement: .topBarLeading) { leading }
+                if settingsAction != nil {
+                    ToolbarItem(placement: .topBarLeading) { gear }
+                }
+                ToolbarItem(placement: .principal) { titleText }
                 ToolbarItem(placement: .topBarTrailing) { mark }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
         }
     }
 
-    private var leading: some View {
-        HStack(spacing: 10) {
-            titleText
-            if let settingsAction {
-                Button(action: settingsAction) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Palette.inkSecondary)
-                        .padding(.vertical, 4)
-                        .contentShape(.rect)
-                }
-                .buttonStyle(.plain)
+    @ViewBuilder
+    private var gear: some View {
+        if let settingsAction {
+            Button(action: settingsAction) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Palette.inkSecondary)
+                    .padding(4)
+                    .contentShape(.rect)
             }
+            .buttonStyle(.plain)
         }
     }
 
