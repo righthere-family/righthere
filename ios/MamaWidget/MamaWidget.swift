@@ -305,8 +305,7 @@ struct MamaWidgetView: View {
     private func statusColor(_ state: String) -> Color {
         switch state {
         case "ok": palette.leaf
-        case "not_ok", "quiet": palette.cherry
-        case "reminded": palette.honey
+        case "not_ok", "reminded": palette.honey
         default: palette.ink
         }
     }
