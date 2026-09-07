@@ -11,6 +11,36 @@ import landingPage from './landing.html';
 import landingPageEn from './landing-en.html';
 import privacyPage from './privacy.html';
 import privacyPageEn from './privacy-en.html';
+import ogImage from './og.png';
+import ogImageEn from './og-en.png';
+
+const SITE = 'https://righthere.family';
+const SITE_UPDATED = '2026-09-07';
+
+const ROBOTS = `User-agent: *
+Allow: /
+Disallow: /join/
+Sitemap: ${SITE}/sitemap.xml
+`;
+
+function sitemapEntry(path: string, ru: string, en: string): string {
+  return `  <url>
+    <loc>${SITE}${path}</loc>
+    <lastmod>${SITE_UPDATED}</lastmod>
+    <xhtml:link rel="alternate" hreflang="ru" href="${SITE}${ru}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${SITE}${en}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${ru}"/>
+  </url>`;
+}
+
+const SITEMAP = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${sitemapEntry('/', '/', '/en')}
+${sitemapEntry('/en', '/', '/en')}
+${sitemapEntry('/privacy', '/privacy', '/en/privacy')}
+${sitemapEntry('/en/privacy', '/privacy', '/en/privacy')}
+</urlset>
+`;
 
 let botInfo: UserFromGetMe | undefined;
 
@@ -214,6 +244,18 @@ async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
 
   if ((url.pathname === '/' || url.pathname === '/en') && req.method === 'GET') {
     return html(url.pathname === '/en' ? landingPageEn : landingPage);
+  }
+
+  if (url.pathname === '/robots.txt' && req.method === 'GET') {
+    return new Response(ROBOTS, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  }
+  if (url.pathname === '/sitemap.xml' && req.method === 'GET') {
+    return new Response(SITEMAP, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
+  }
+  if ((url.pathname === '/og.png' || url.pathname === '/og-en.png') && req.method === 'GET') {
+    return new Response(url.pathname === '/og.png' ? ogImage : ogImageEn, {
+      headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
+    });
   }
 
   if (url.pathname === '/privacy' && req.method === 'GET') {
