@@ -81,7 +81,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     });
   };
 
-  const MESSAGE_PUSH_GAP_MS = 3 * 60_000;
+  const MESSAGE_PUSH_GAP_MS = 60_000;
 
   const pushMessage = async (
     forwarded: { familyId: string; name: string; kind: 'text' | 'voice' | 'photo' } | null,
