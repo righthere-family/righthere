@@ -48,6 +48,16 @@ enum PushRegistrar {
 // MARK: - App Delegate
 
 final class PushAppDelegate: NSObject, UIApplicationDelegate {
+    @MainActor static var onOpen: ((String) -> Void)?
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
@@ -62,5 +72,25 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate {
         #if DEBUG
         NSLog("push registration failed: %@", String(describing: error))
         #endif
+    }
+}
+
+
+// MARK: - Foreground Notifications
+
+extension PushAppDelegate: UNUserNotificationCenterDelegate {
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let category = response.notification.request.content.categoryIdentifier
+        await MainActor.run { Self.onOpen?(category) }
     }
 }

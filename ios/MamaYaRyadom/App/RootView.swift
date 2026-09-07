@@ -71,6 +71,18 @@ struct RootView: View {
                 Task { await PushRegistrar.requestAndRegister() }
             }
         }
+        .onAppear {
+            PushAppDelegate.onOpen = { category in
+                switch category {
+                case "MESSAGE":
+                    router.tab = .family
+                    router.familyPath = NavigationPath([Route.messages])
+                default:
+                    router.tab = .today
+                    router.todayPath = NavigationPath()
+                }
+            }
+        }
     }
 
     private var preferredScheme: ColorScheme? {
@@ -105,6 +117,7 @@ struct RootView: View {
                     .navigationDestination(for: Route.self) { destination(for: $0) }
             }
             .tabItem { Label(L10n.tabFamily, systemImage: "person.2") }
+            .badge(router.unreadMessages)
             .tag(AppTab.family)
         }
         // Permission is asked here, past onboarding, when a family exists —

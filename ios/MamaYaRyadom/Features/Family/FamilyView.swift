@@ -4,6 +4,7 @@ import SwiftUI
 
 struct FamilyView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(AppRouter.self) private var router
     @State private var model = FamilyViewModel()
     @State private var isShowingPaywall = false
@@ -37,7 +38,15 @@ struct FamilyView: View {
         .rootToolbar(title: L10n.tabFamily, settingsAction: { router.push(.settings) })
         .task {
             await model.load(using: dependencies.checkinService)
+            router.unreadMessages = model.unreadMessages
             await purchases.load()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task {
+                await model.refreshUnread()
+                router.unreadMessages = model.unreadMessages
+            }
         }
         .sheet(isPresented: $isShowingPaywall) { PaywallSheet() }
     }
@@ -154,7 +163,7 @@ struct FamilyView: View {
     private var addParentRow: some View {
         Button {
             // The second parent is where free ends; the first is always open.
-            if model.members.count >= 1 && !purchases.hasSubscription {
+            if model.members.count >= 1 && !purchases.gatesOpen {
                 isShowingPaywall = true
             } else {
                 router.push(.addParent)
@@ -196,6 +205,14 @@ struct FamilyView: View {
                         .foregroundStyle(Palette.inkSecondary)
                 }
                 Spacer()
+                if router.unreadMessages > 0 {
+                    Text("\(router.unreadMessages)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Palette.accent, in: .capsule)
+                }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Palette.accent.opacity(0.7))
@@ -210,7 +227,7 @@ struct FamilyView: View {
 
     private var storiesRow: some View {
         Button {
-            if purchases.hasSubscription {
+            if purchases.gatesOpen {
                 router.push(.stories)
             } else {
                 isShowingPaywall = true
@@ -229,7 +246,7 @@ struct FamilyView: View {
                         .foregroundStyle(Palette.inkSecondary)
                 }
                 Spacer()
-                Image(systemName: purchases.hasSubscription ? "chevron.right" : "sparkles")
+                Image(systemName: purchases.gatesOpen ? "chevron.right" : "sparkles")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Palette.accent.opacity(0.7))
             }
@@ -244,7 +261,7 @@ struct FamilyView: View {
     // The archive grows for everyone; the teaser tells locked-out families
     // exactly what is waiting behind the door.
     private var storiesTitle: String {
-        if purchases.hasSubscription || model.storyCount == 0 {
+        if purchases.gatesOpen || model.storyCount == 0 {
             return L10n.storiesTitle(kinds: model.parentKinds)
         }
         return L10n.storiesPremium(model.storyCount)
@@ -322,9 +339,10 @@ final class FamilyViewModel {
         let isConnected: Bool
     }
 
-    private(set) var parent: Parent = .sample
+    private(set) var parent: Parent = .placeholder
     private(set) var members: [Member] = []
     private(set) var storyCount = 0
+    private(set) var unreadMessages = 0
 
     var parentKinds: Set<Parent.Kind> {
         Set(members.map(\.kind))
@@ -335,10 +353,15 @@ final class FamilyViewModel {
         return URL(string: "\(AppConfig.joinBaseURL)/join/\(AppConfig.familyToken)")
     }
 
+    func refreshUnread() async {
+        unreadMessages = await UnreadMessages.count()
+    }
+
     func load(using service: any CheckinService) async {
         guard let snapshot = try? await service.todaySnapshot() else { return }
         parent = snapshot.parent
         storyCount = (try? await FamilyAPI().stories().count) ?? 0
+        await refreshUnread()
         members = snapshot.everyone.map { member in
             Member(
                 id: member.parent.id,

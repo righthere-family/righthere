@@ -42,6 +42,7 @@
 		782CCC1424515F9CBF3AFBBB /* CheckIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A41961DC2D9FA6E9E834BDD /* CheckIn.swift */; };
 		7E56A3EC3471761AA3E9F599 /* RootToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D0B02CD8A4C9B47BE8A33D /* RootToolbar.swift */; };
 		7EF942A99C33E9E72670457F /* DayDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2310D6B2340FA74B3ED74814 /* DayDetailView.swift */; };
+		80F1341E12AE431E88D955BF /* UnreadMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C6B6DF284B789C7D6911AF7 /* UnreadMessages.swift */; };
 		8C344D3009402A1CBFA059A3 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 416A5EE92483E51C84BCC2DB /* WidgetSnapshot.swift */; };
 		8D6DF5B8049D00A8AB268518 /* TodayStatusCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1768F0AA02C3B2CC43E3C97 /* TodayStatusCardView.swift */; };
 		8DF2CC3197013D92784967FE /* MamaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A08A4131D8EE62C6964B741 /* MamaWidget.swift */; };
@@ -131,6 +132,7 @@
 		69844ACA735FBE52945D82FD /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		699FE68E85C51AFD930C5F2A /* SupabaseHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseHub.swift; sourceTree = "<group>"; };
 		6A59AE438EB61322CF632569 /* LaunchOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchOverlay.swift; sourceTree = "<group>"; };
+		6C6B6DF284B789C7D6911AF7 /* UnreadMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadMessages.swift; sourceTree = "<group>"; };
 		6CF1BB206F3761AB951F840B /* MamaYaRyadom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MamaYaRyadom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F06C0D7E33562A3A7E53F60 /* ParentEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentEditView.swift; sourceTree = "<group>"; };
 		712A1BB4D670032B9140F855 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -440,6 +442,7 @@
 				56CE4B5DB06A2DB809B53281 /* LiveHistoryService.swift */,
 				F18F86E5BD889D6AF7A50A82 /* PurchaseModel.swift */,
 				4212CE6603D856C761DF6246 /* PushRegistrar.swift */,
+				6C6B6DF284B789C7D6911AF7 /* UnreadMessages.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -636,6 +639,7 @@
 				DC844B2E37AF0A53B0859CBB /* TodayViewModel.swift in Sources */,
 				CD345B0F7A858DCB15DC1F89 /* TrendsCard.swift in Sources */,
 				97BA4446B21CBD054D3DFD68 /* Typography.swift in Sources */,
+				80F1341E12AE431E88D955BF /* UnreadMessages.swift in Sources */,
 				8C344D3009402A1CBFA059A3 /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -719,7 +723,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = UL9T5C3V94;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -796,7 +800,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = UL9T5C3V94;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

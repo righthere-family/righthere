@@ -33,6 +33,7 @@ final class AppRouter {
     var todayPath = NavigationPath()
     var historyPath = NavigationPath()
     var familyPath = NavigationPath()
+    var unreadMessages = 0
 
     func push(_ route: Route) {
         switch tab {

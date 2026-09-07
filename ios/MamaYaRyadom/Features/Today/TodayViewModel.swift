@@ -18,7 +18,7 @@ enum TodayStage: Equatable {
 @MainActor
 final class TodayViewModel {
     private(set) var stage: TodayStage = .loading
-    private(set) var parent: Parent = .sample
+    private(set) var parent: Parent = .placeholder
     private(set) var status: DayStatus = .stillMorning(usualBy: nil)
     private(set) var week: [WeekDayResult] = []
     private(set) var streak = 0
@@ -212,9 +212,14 @@ final class TodayViewModel {
         }
     }
 
-    func observeUpdates(_ updates: any FamilyLiveUpdates, reloadUsing service: any CheckinService) async {
+    func observeUpdates(
+        _ updates: any FamilyLiveUpdates,
+        reloadUsing service: any CheckinService,
+        then afterReload: @MainActor @Sendable () async -> Void = {}
+    ) async {
         for await _ in await updates.stream() {
             await load(using: service)
+            await afterReload()
         }
     }
 

@@ -4,6 +4,7 @@ import SwiftUI
 // MARK: - Parent Messages
 
 struct MessagesView: View {
+    @Environment(AppRouter.self) private var router
     @Environment(\.dependencies) private var dependencies
     @State private var model = MessagesViewModel()
 
@@ -33,7 +34,11 @@ struct MessagesView: View {
         .background(Palette.background)
         .navigationTitle(L10n.messagesTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await model.load(using: dependencies.checkinService) }
+        .task {
+            await model.load(using: dependencies.checkinService)
+            UnreadMessages.markSeen()
+            router.unreadMessages = 0
+        }
         .onDisappear { model.stopPlayback() }
     }
 

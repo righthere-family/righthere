@@ -66,7 +66,9 @@ struct TodayView: View {
         .rootToolbar(title: model.dateLine)
         .task(id: model.liveEpoch) {
             await model.load(using: dependencies.checkinService)
-            await model.observeUpdates(dependencies.familyUpdates, reloadUsing: dependencies.checkinService)
+            await model.observeUpdates(dependencies.familyUpdates, reloadUsing: dependencies.checkinService) {
+                router.unreadMessages = await UnreadMessages.count()
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
