@@ -140,7 +140,6 @@ export interface Env {
   RC_WEBHOOK_AUTH: string;
   ADMIN_EMAIL?: string;
   ADMIN_TELEGRAM_ID?: string;
-  PREVIEW_KEY?: string;
   APNS_TOPIC?: string;
   APNS_TEAM_ID?: string;
   APNS_KEY_ID?: string;
@@ -202,93 +201,6 @@ function logApexHit(req: Request, url: URL): void {
   }));
 }
 
-function comingSoonPage(lang: 'ru' | 'en'): string {
-  const title = lang === 'ru' ? 'Мама, я рядом' : 'Mom, I’m Right Here';
-  const text =
-    lang === 'ru'
-      ? 'Скоро здесь появится кое-что тёплое: одна кнопка утром — и близкие знают, что всё хорошо.'
-      : 'Something warm is coming: one button in the morning — and the family knows all is well.';
-  const description =
-    lang === 'ru'
-      ? 'Одна кнопка утром — и близкие знают, что всё хорошо. Скоро.'
-      : 'One button in the morning — and the family knows all is well. Soon.';
-  const switcher =
-    lang === 'ru' ? '<a class="lang" href="/en">EN</a>' : '<a class="lang" href="/">RU</a>';
-  return `<!doctype html>
-<html lang="${lang}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title}</title>
-<meta name="description" content="${description}">
-<style>
-  body { margin: 0; background: #F5F0E7; color: #33291F;
-         font: 17px/1.6 -apple-system, "SF Pro Text", system-ui, sans-serif;
-         display: flex; min-height: 100vh; align-items: center; justify-content: center;
-         text-align: center; }
-  .card { max-width: 380px; padding: 24px; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 600;
-       font-size: 34px; margin: 22px 0 12px; }
-  p { color: #7A6F62; font-size: 16px; margin: 0 0 26px; }
-  .mark { height: 34px; }
-  .lang { position: fixed; top: 20px; right: 24px; color: #9A6410;
-          text-decoration: none; font-size: 14px; }
-</style>
-</head>
-<body>
-  ${switcher}
-  <div class="card">
-    <svg class="mark" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 8 26 Q 30 -6 52 26" fill="none" stroke="#33291F" stroke-opacity=".35"
-            stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
-      <circle cx="8" cy="26" r="3.4" fill="#B8791A"/>
-      <circle cx="52" cy="26" r="3.4" fill="#33291F"/>
-    </svg>
-    <h1>${title}</h1>
-    <p>${text}</p>
-  </div>
-</body>
-</html>`;
-}
-
-function previewLoginPage(wrongKey: boolean): string {
-  return `<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>Предпросмотр</title>
-<style>
-  body { margin: 0; background: #F5F0E7; color: #33291F;
-         font: 15px/1.5 -apple-system, system-ui, sans-serif;
-         display: flex; min-height: 100vh; align-items: center; justify-content: center; }
-  form { width: 300px; padding: 24px; background: #fff; border-radius: 18px;
-         box-shadow: 0 3px 14px rgba(51,41,31,.06); }
-  input { width: 100%; box-sizing: border-box; padding: 10px 12px; margin-bottom: 10px;
-          border: 1px solid #E0D6C4; border-radius: 10px; font-size: 15px; background: #FFFDF8; }
-  button { width: 100%; background: #9A6410; color: #fff; border: 0; border-radius: 10px;
-           padding: 10px; font-size: 14px; cursor: pointer; }
-  .err { color: #8E3A4C; font-size: 13px; margin: 0 0 10px; }
-</style>
-</head>
-<body>
-  <form method="post">
-    ${wrongKey ? '<p class="err">Не подошло</p>' : ''}
-    <input type="password" name="key" placeholder="Ключ предпросмотра" autofocus>
-    <button>Смотреть лендинг</button>
-  </form>
-</body>
-</html>`;
-}
-
-const PREVIEW_COOKIE = 'rh_preview';
-
-function previewCookieValue(req: Request): string {
-  const match = (req.headers.get('Cookie') ?? '').match(/rh_preview=([^;\s]+)/);
-  return match?.[1] ?? '';
-}
-
 async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
   const html = (page: string, status = 200) =>
     new Response(page, { status, headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -301,11 +213,7 @@ async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
   }
 
   if ((url.pathname === '/' || url.pathname === '/en') && req.method === 'GET') {
-    const lang = url.pathname === '/en' ? 'en' : 'ru';
-    const unlocked =
-      !!env.PREVIEW_KEY && timingSafeEqual(previewCookieValue(req), env.PREVIEW_KEY);
-    if (!unlocked) return html(comingSoonPage(lang));
-    return html(lang === 'en' ? landingPageEn : landingPage);
+    return html(url.pathname === '/en' ? landingPageEn : landingPage);
   }
 
   if (url.pathname === '/privacy' && req.method === 'GET') {
@@ -313,39 +221,6 @@ async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
   }
   if (url.pathname === '/en/privacy' && req.method === 'GET') {
     return html(privacyPageEn);
-  }
-
-  if (url.pathname === '/preview') {
-    const linkKey = url.searchParams.get('key');
-    if (req.method === 'GET' && env.PREVIEW_KEY && linkKey) {
-      if (timingSafeEqual(linkKey, env.PREVIEW_KEY)) {
-        return new Response(null, {
-          status: 303,
-          headers: {
-            Location: '/',
-            'Set-Cookie':
-              `${PREVIEW_COOKIE}=${linkKey}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`,
-          },
-        });
-      }
-      return html(previewLoginPage(true), 403);
-    }
-    if (req.method === 'POST' && env.PREVIEW_KEY) {
-      const form = await req.formData();
-      const key = String(form.get('key') ?? '');
-      if (timingSafeEqual(key, env.PREVIEW_KEY)) {
-        return new Response(null, {
-          status: 303,
-          headers: {
-            Location: '/',
-            'Set-Cookie':
-              `${PREVIEW_COOKIE}=${key}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`,
-          },
-        });
-      }
-      return html(previewLoginPage(true), 403);
-    }
-    return html(previewLoginPage(false));
   }
 
   return new Response('not found', { status: 404 });
