@@ -288,6 +288,45 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     await ctx.reply(T(lang).help(await d.childName(ctx.from!.id)));
   });
 
+  bot.command('words', async (ctx) => {
+    const lang = await langFor(ctx);
+    const S = T(lang);
+    if (!(await d.parentByTelegramId(ctx.from!.id))) {
+      await ctx.reply(S.help(await d.childName(ctx.from!.id)));
+      return;
+    }
+    const keyboard = new InlineKeyboard();
+    S.words.options.forEach((option, index) => {
+      keyboard.text(option, `words:${index}`).row();
+    });
+    await ctx.reply(S.words.ask, { reply_markup: keyboard });
+  });
+
+  bot.callbackQuery(/^words:([0-3])$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const lang = await langFor(ctx);
+    const S = T(lang);
+    const text = S.words.options[Number(ctx.match[1])];
+    if (!text) return;
+    try {
+      await ctx.editMessageReplyMarkup();
+    } catch {
+
+    }
+    const forwarded = await d.forwardToFamily(ctx.from.id, { text });
+    if (!forwarded) {
+      await ctx.reply(S.help(await d.childName(ctx.from.id)));
+      return;
+    }
+    await ctx.reply(S.words.sent(await d.childName(ctx.from.id)));
+    await pushToFamily(env, forwarded.familyId, {
+      title: forwarded.name,
+      body: { ru: text, en: text },
+      level: 'active',
+      category: 'MESSAGE',
+    });
+  });
+
   bot.command('time', async (ctx) => {
     const parent = await d.parentByTelegramId(ctx.from!.id);
     if (!parent) {

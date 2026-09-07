@@ -189,6 +189,17 @@ const ru = {
     keyboardHint: `А чтобы отметка стала зелёной — нажмите кнопку, она вот здесь 👇`,
   },
 
+  words: {
+    ask: 'Что передать семье? Одно нажатие — и они увидят.',
+    options: [
+      'Всё хорошо, позвоню позже',
+      'Не могу говорить, всё в порядке',
+      'Позвони, когда сможешь',
+      'Скучаю. Всё хорошо',
+    ] as readonly string[],
+    sent: (child: string) => `Передал ✅ ${child} увидит прямо сейчас.`,
+  },
+
   trouble: {
     checkinFailed:
       `Кажется, у меня сейчас сбой — ответ не записался. ` +
@@ -242,6 +253,7 @@ const ru = {
     '• Напоминаю про лекарства, если их завели в приложении.\n' +
     '• Передаю ваши сообщения, голосовые и фотографии семье.\n\n' +
     'Команды:\n' +
+    '/words — передать семье пару слов одним нажатием\n' +
     '/time — поменять время утреннего сообщения\n' +
     '/family — ссылка для семьи, если кто-то сменил телефон\n' +
     '/pause — сделать паузу на несколько дней\n' +
@@ -468,6 +480,17 @@ const en: BotStrings = {
     keyboardHint: `And to make today’s mark green — tap the button, it’s right here 👇`,
   },
 
+  words: {
+    ask: 'What shall I pass on? One tap — and they will see it.',
+    options: [
+      'All good, I’ll call later',
+      'Can’t talk now, all is well',
+      'Call me when you can',
+      'Miss you. All is well',
+    ] as readonly string[],
+    sent: (child: string) => `Passed on ✅ ${child} will see it right away.`,
+  },
+
   trouble: {
     checkinFailed:
       `Something went wrong on my end — the answer didn’t get recorded. ` +
@@ -520,6 +543,7 @@ const en: BotStrings = {
     '• I remind you about medications, if they’re set up in the app.\n' +
     '• I pass your messages, voice notes and photos on to the family.\n\n' +
     'Commands:\n' +
+    '/words — send the family a few words with one tap\n' +
     '/time — change the time of the morning message\n' +
     '/family — the family link, in case someone changed phones\n' +
     '/pause — take a break for a few days\n' +

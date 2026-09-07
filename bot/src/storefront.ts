@@ -17,6 +17,7 @@ const STOREFRONTS: Storefront[] = [
   {
     language: '',
     commands: [
+      { command: 'words', description: 'Передать семье пару слов' },
       { command: 'time', description: 'Время утреннего сообщения' },
       { command: 'family', description: 'Ссылка для семьи' },
       { command: 'pause', description: 'Пауза на несколько дней' },
@@ -36,6 +37,7 @@ const STOREFRONTS: Storefront[] = [
   {
     language: 'en',
     commands: [
+      { command: 'words', description: 'A few words for the family' },
       { command: 'time', description: 'Morning message time' },
       { command: 'family', description: 'Family link' },
       { command: 'pause', description: 'Pause for a few days' },
