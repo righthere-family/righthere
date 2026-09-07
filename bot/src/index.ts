@@ -13,6 +13,9 @@ import privacyPage from './privacy.html';
 import privacyPageEn from './privacy-en.html';
 import ogImage from './og.png';
 import ogImageEn from './og-en.png';
+import faviconIco from './favicon.ico';
+import faviconPng from './favicon.png';
+import touchIcon from './apple-touch-icon.png';
 
 const SITE = 'https://righthere.family';
 const SITE_UPDATED = '2026-09-07';
@@ -41,6 +44,14 @@ ${sitemapEntry('/privacy', '/privacy', '/en/privacy')}
 ${sitemapEntry('/en/privacy', '/privacy', '/en/privacy')}
 </urlset>
 `;
+
+const FILES: Record<string, { body: ArrayBuffer; type: string }> = {
+  '/favicon.ico': { body: faviconIco, type: 'image/x-icon' },
+  '/favicon.png': { body: faviconPng, type: 'image/png' },
+  '/apple-touch-icon.png': { body: touchIcon, type: 'image/png' },
+  '/og.png': { body: ogImage, type: 'image/png' },
+  '/og-en.png': { body: ogImageEn, type: 'image/png' },
+};
 
 let botInfo: UserFromGetMe | undefined;
 
@@ -252,12 +263,6 @@ async function handleApex(req: Request, env: Env, url: URL): Promise<Response> {
   if (url.pathname === '/sitemap.xml' && req.method === 'GET') {
     return new Response(SITEMAP, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
   }
-  if ((url.pathname === '/og.png' || url.pathname === '/og-en.png') && req.method === 'GET') {
-    return new Response(url.pathname === '/og.png' ? ogImage : ogImageEn, {
-      headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
-    });
-  }
-
   if (url.pathname === '/privacy' && req.method === 'GET') {
     return html(privacyPage);
   }
@@ -282,6 +287,13 @@ export default {
     if (url.protocol === 'http:') {
       url.protocol = 'https:';
       return Response.redirect(url.toString(), 301);
+    }
+
+    const file = FILES[url.pathname];
+    if (file && req.method === 'GET') {
+      return new Response(file.body, {
+        headers: { 'content-type': file.type, 'cache-control': 'public, max-age=86400' },
+      });
     }
 
     if (url.hostname === 'righthere.family') {

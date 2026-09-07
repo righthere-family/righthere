@@ -15,7 +15,7 @@ fallthrough = true
 
 [[rules]]
 type = "Data"
-globs = ["**/*.png"]
+globs = ["**/*.png", "**/*.ico"]
 fallthrough = true
 
 [triggers]
