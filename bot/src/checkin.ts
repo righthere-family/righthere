@@ -132,7 +132,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
       {
         title: name,
         body: {
-          ru: 'Утро прошло без весточки. Скорее всего, всё в порядке — но лучше позвонить.',
+          ru: 'Утром ответа не было. Скорее всего, всё в порядке — но лучше позвонить.',
           en: 'The morning went by without a hello. Most likely all is fine — but a call would be best.',
         },
         level: 'time-sensitive',
