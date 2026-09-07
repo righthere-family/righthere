@@ -201,7 +201,7 @@ function joinPage(token: string): string {
          display: flex; min-height: 100vh; align-items: center; justify-content: center; }
   .card { background: #fff; border-radius: 24px; padding: 36px 28px; max-width: 340px;
           margin: 20px; box-shadow: 0 14px 40px rgba(51,41,31,.10); text-align: center; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 600;
+  h1 { font-weight: 700; letter-spacing: -.01em;
        font-size: 28px; margin: 18px 0 10px; }
   p { color: #7A6F62; font-size: 15px; margin: 0 0 22px; }
   .btn { display: block; background: #9A6410; color: #fff; text-decoration: none;
