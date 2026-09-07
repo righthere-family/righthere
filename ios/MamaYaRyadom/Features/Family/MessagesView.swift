@@ -5,6 +5,8 @@ import SwiftUI
 
 struct MessagesView: View {
     @Environment(AppRouter.self) private var router
+    @State private var seenBefore: Date = .distantPast
+    @State private var faded: Set<UUID> = []
     @Environment(\.dependencies) private var dependencies
     @State private var model = MessagesViewModel()
 
@@ -35,8 +37,9 @@ struct MessagesView: View {
         .navigationTitle(L10n.messagesTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            seenBefore = UnreadMessages.seenAt
             await model.load(using: dependencies.checkinService)
-            UnreadMessages.markSeen()
+            UnreadMessages.markSeen(through: model.messages.map(\.createdAt).max())
             router.unreadMessages = 0
         }
         .onDisappear { model.stopPlayback() }
@@ -50,6 +53,15 @@ struct MessagesView: View {
                 Text(model.parentName(for: message.parentId))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Palette.accent)
+                if isFresh(message) {
+                    Text(L10n.messagesNew)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Palette.accentBright, in: .capsule)
+                        .transition(.opacity)
+                }
                 Spacer()
                 Text(message.createdAt.formatted(
                     Date.FormatStyle(date: .abbreviated, time: .shortened, locale: L10n.locale)
@@ -77,13 +89,36 @@ struct MessagesView: View {
         .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.card, in: .rect(cornerRadius: 18))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Palette.accentBright.opacity(isFresh(message) ? 0.45 : 0), lineWidth: 1)
+        }
         .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .animation(.easeOut(duration: 0.7), value: faded)
+        .onAppear {
+            guard isFresh(message) else { return }
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                fade(message)
+            }
+        }
+    }
+
+    private func isFresh(_ message: ParentMessage) -> Bool {
+        message.createdAt > seenBefore && !faded.contains(message.id)
+    }
+
+    private func fade(_ message: ParentMessage) {
+        withAnimation(.easeOut(duration: 0.7)) {
+            _ = faded.insert(message.id)
+        }
     }
 
     // MARK: - Voice
 
     private func voiceRow(_ message: ParentMessage) -> some View {
         Button {
+            fade(message)
             Task { await model.togglePlayback(message) }
         } label: {
             HStack(spacing: 10) {

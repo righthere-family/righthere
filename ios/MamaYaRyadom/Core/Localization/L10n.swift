@@ -292,6 +292,7 @@ enum L10n {
     static var messagesTitle: String { String(localized: "messages.title", bundle: bundle) }
     static var messagesRowHint: String { String(localized: "messages.rowHint", bundle: bundle) }
     static var messagesEmpty: String { String(localized: "messages.empty", bundle: bundle) }
+    static var messagesNew: String { String(localized: "messages.new", bundle: bundle) }
     static var messagesVoice: String { String(localized: "messages.voice", bundle: bundle) }
 
     static var paywallPricesUnavailable: String { String(localized: "paywall.pricesUnavailable", bundle: bundle) }

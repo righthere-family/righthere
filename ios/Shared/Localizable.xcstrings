@@ -3690,6 +3690,23 @@
         }
       }
     },
+    "messages.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "новое"
+          }
+        }
+      }
+    },
     "messages.rowHint": {
       "extractionState": "stale",
       "localizations": {

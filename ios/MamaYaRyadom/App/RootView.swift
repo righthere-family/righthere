@@ -3,6 +3,7 @@ import WidgetKit
 
 struct RootView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(\.dependencies) private var dependencies
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("onboardingDone") private var onboardingDone = false
     @AppStorage("appLanguage") private var appLanguage = ""
@@ -69,6 +70,12 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 Task { await PushRegistrar.requestAndRegister() }
+            }
+        }
+        .task(id: router.familyEpoch) {
+            for await _ in await dependencies.familyUpdates.stream() {
+                router.liveTick += 1
+                router.unreadMessages = await UnreadMessages.count()
             }
         }
         .onAppear {

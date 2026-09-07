@@ -48,7 +48,24 @@ enum PushRegistrar {
 // MARK: - App Delegate
 
 final class PushAppDelegate: NSObject, UIApplicationDelegate {
-    @MainActor static var onOpen: ((String) -> Void)?
+    @MainActor private static var pendingCategory: String?
+
+    @MainActor static var onOpen: ((String) -> Void)? {
+        didSet {
+            if let pendingCategory, let onOpen {
+                Self.pendingCategory = nil
+                onOpen(pendingCategory)
+            }
+        }
+    }
+
+    @MainActor private static func open(_ category: String) {
+        if let onOpen {
+            onOpen(category)
+        } else {
+            pendingCategory = category
+        }
+    }
 
     func application(
         _ application: UIApplication,
@@ -91,6 +108,6 @@ extension PushAppDelegate: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse
     ) async {
         let category = response.notification.request.content.categoryIdentifier
-        await MainActor.run { Self.onOpen?(category) }
+        await MainActor.run { Self.open(category) }
     }
 }

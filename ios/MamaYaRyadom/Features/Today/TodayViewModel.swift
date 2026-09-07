@@ -212,17 +212,6 @@ final class TodayViewModel {
         }
     }
 
-    func observeUpdates(
-        _ updates: any FamilyLiveUpdates,
-        reloadUsing service: any CheckinService,
-        then afterReload: @MainActor @Sendable () async -> Void = {}
-    ) async {
-        for await _ in await updates.stream() {
-            await load(using: service)
-            await afterReload()
-        }
-    }
-
     // MARK: Family Creation
 
     func createFamily() async {
