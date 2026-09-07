@@ -170,6 +170,38 @@ async function handleAuthorised(req: Request, env: Env, url: URL): Promise<Respo
     return json({ ok: true, sent, deferred: deferredFamilies });
   }
 
+  if (url.pathname === '/admin/api/bot-broadcast' && req.method === 'POST') {
+    const body = await req
+      .json<{ ru?: string; en?: string; audience?: string }>()
+      .catch(() => ({}) as { ru?: string; en?: string; audience?: string });
+    const ruRaw = body.ru?.trim();
+    const enRaw = body.en?.trim();
+    if (!ruRaw && !enRaw) return json({ error: 'empty' }, 400);
+    const ru = ruRaw || enRaw!;
+    const en = enRaw || ruRaw!;
+    const audience =
+      body.audience === 'parents' || body.audience === 'waitlist' ? body.audience : 'all';
+    const people = await d.botAudience(audience);
+    let spent = 2;
+    let sent = 0;
+    let failed = 0;
+    let deferred = 0;
+    for (const person of people) {
+      if (spent >= 38) {
+        deferred += 1;
+        continue;
+      }
+      spent += 1;
+      const delivery = await d.send(person.telegram_user_id, {
+        text: person.lang === 'en' ? en : ru,
+      });
+      if (delivery.kind === 'ok') sent += 1;
+      else failed += 1;
+    }
+    await d.logEvent('warn', 'broadcast', `${audience}: sent ${sent}, failed ${failed}, deferred ${deferred}`);
+    return json({ ok: true, total: people.length, sent, failed, deferred });
+  }
+
   const grantMatch = url.pathname.match(/^\/admin\/api\/family\/([0-9a-f-]{36})\/premium$/);
   if (grantMatch && req.method === 'POST') {
     const body = await req.json<{ entitlement?: 'premium' | 'family' }>();
@@ -444,6 +476,22 @@ const PAGE = `<!doctype html>
         <div class="chips" id="bcFamilies" style="margin-bottom:12px"></div>
         <div class="row">
           <button onclick="sendBroadcast(this)">Отправить</button>
+          <span class="saveflag"></span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tgroup"><h3>Сообщение в бота</h3>
+        <div class="vars">Уйдёт в Telegram от имени бота — так люди узнают о новых функциях. Каждый получит текст своего языка; хватит одного, второй подставится.</div>
+        <div class="row"><textarea id="tbRu" rows="4" placeholder="Текст по-русски…"></textarea></div>
+        <div class="row"><textarea id="tbEn" rows="4" placeholder="Text in English (optional)"></textarea></div>
+        <div class="row" style="gap:16px; flex-wrap:wrap">
+          <label><input type="radio" name="tbAud" value="parents" checked> родителям в боте</label>
+          <label><input type="radio" name="tbAud" value="waitlist"> листу ожидания</label>
+          <label><input type="radio" name="tbAud" value="all"> всем</label>
+        </div>
+        <div class="row">
+          <button onclick="sendBotBroadcast(this)">Отправить</button>
           <span class="saveflag"></span>
         </div>
       </div>
@@ -759,6 +807,28 @@ async function sendBroadcast(btn) {
     })});
     flag(btn, true, '✓ отправлено');
     alert('Отправлено семьям: ' + r.sent + (r.deferred ? '; не влезло в лимит: ' + r.deferred + ' — повтори для них отдельно' : ''));
+  } catch (e) {
+    flag(btn, false, null, 'не отправилось');
+  }
+  btn.disabled = false;
+}
+
+async function sendBotBroadcast(btn) {
+  const ru = document.getElementById('tbRu').value.trim();
+  const en = document.getElementById('tbEn').value.trim();
+  if (!ru && !en) { alert('Напиши текст — хватит любого одного языка.'); return; }
+  const audience = document.querySelector('input[name="tbAud"]:checked').value;
+  const who = { parents: 'родителям в боте', waitlist: 'листу ожидания', all: 'всем, кто есть в боте' }[audience];
+  if (!confirm('Отправить сообщение в бота ' + who + '?')) return;
+  btn.disabled = true;
+  try {
+    const r = await api('bot-broadcast', { method: 'POST', body: JSON.stringify({ ru, en, audience }) });
+    flag(btn, true, '✓ отправлено');
+    alert('Получателей: ' + r.total + ', доставлено: ' + r.sent +
+      (r.failed ? ', не доставлено: ' + r.failed : '') +
+      (r.deferred ? ', не влезло в лимит: ' + r.deferred + ' — повтори позже' : ''));
+    document.getElementById('tbRu').value = '';
+    document.getElementById('tbEn').value = '';
   } catch (e) {
     flag(btn, false, null, 'не отправилось');
   }

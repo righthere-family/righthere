@@ -166,6 +166,11 @@ const MOM_CHANNEL_TITLES: Record<MomChannel, string> = {
   unknown: 'не знает',
 };
 
+export interface BotRecipient {
+  telegram_user_id: number;
+  lang: string;
+}
+
 interface ChannelRoute {
   telegram_user_id: number | null;
   channel: string | null;
@@ -934,6 +939,31 @@ export function db(env: Env) {
 
     async adminWaitlistDelete(telegramUserId: number): Promise<void> {
       await sb.from('waitlist').delete().eq('telegram_user_id', telegramUserId);
+    },
+
+    async botAudience(kind: 'parents' | 'waitlist' | 'all'): Promise<BotRecipient[]> {
+      const seen = new Set<number>();
+      const people: BotRecipient[] = [];
+      const add = (rows: { telegram_user_id: number | null; lang: string | null }[] | null) => {
+        for (const row of rows ?? []) {
+          if (row.telegram_user_id === null || seen.has(row.telegram_user_id)) continue;
+          seen.add(row.telegram_user_id);
+          people.push({ telegram_user_id: row.telegram_user_id, lang: row.lang ?? 'ru' });
+        }
+      };
+      if (kind !== 'waitlist') {
+        const { data } = await sb
+          .from('parents')
+          .select('telegram_user_id, lang')
+          .eq('bot_state', 'active')
+          .not('telegram_user_id', 'is', null);
+        add(data as { telegram_user_id: number | null; lang: string | null }[] | null);
+      }
+      if (kind !== 'parents') {
+        const { data } = await sb.from('waitlist').select('telegram_user_id, lang');
+        add(data as { telegram_user_id: number | null; lang: string | null }[] | null);
+      }
+      return people;
     },
 
     async allFamilyIds(): Promise<string[]> {
