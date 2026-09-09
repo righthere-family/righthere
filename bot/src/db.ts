@@ -153,6 +153,7 @@ export interface ParentRow {
   city: string | null;
   phone: string | null;
   lang: string;
+  gender: string;
 }
 
 type PgResult<T> = { data: T | null; error: { message: string } | null };

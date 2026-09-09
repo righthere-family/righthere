@@ -5,6 +5,7 @@ import Foundation
 struct Parent: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     var kind: Kind
+    var gender: Gender
     var displayName: String
     var cityName: String
     var phone: String?
@@ -20,6 +21,11 @@ struct Parent: Identifiable, Codable, Hashable, Sendable {
         case dad
         case custom
     }
+
+    enum Gender: String, Codable, Sendable {
+        case f
+        case m
+    }
 }
 
 // MARK: - Placeholder
@@ -28,6 +34,7 @@ extension Parent {
     static let placeholder = Parent(
         id: UUID(),
         kind: .mom,
+        gender: .f,
         displayName: "",
         cityName: "",
         phone: nil,
@@ -45,6 +52,7 @@ extension Parent {
     static let sample = Parent(
         id: UUID(),
         kind: .mom,
+        gender: .f,
         displayName: String(localized: "parent.mom"),
         cityName: "Самара",
         phone: nil,

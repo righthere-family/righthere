@@ -74,7 +74,7 @@ enum L10n {
         String(format: String(localized: "status.streak", bundle: bundle), count)
     }
 
-    static var statusHerWords: String { String(localized: "status.herWords", bundle: bundle) }
+    static func statusWords(kind: Parent.Kind) -> String { dynamic("status.words.\(kind.rawValue)") }
 
     static func parentQuote(_ name: String, _ quote: String) -> String {
         String(format: String(localized: "parent.quote", bundle: bundle), name, quote)
@@ -185,9 +185,9 @@ enum L10n {
         String(format: String(localized: "history.summary", bundle: bundle), good, total)
     }
 
-    static var historyLegendHerWords: String { String(localized: "history.legend.herWords", bundle: bundle) }
+    static func historyLegendWords(gender: Parent.Gender) -> String { dynamic("history.legend.words.\(gender.rawValue)") }
     static var historyLegendQuiet: String { String(localized: "history.legend.quiet", bundle: bundle) }
-    static var historyDayHerWords: String { String(localized: "history.day.herWords", bundle: bundle) }
+    static func historyDayWords(gender: Parent.Gender) -> String { dynamic("history.day.words.\(gender.rawValue)") }
     static var historyDayNoWord: String { String(localized: "history.day.noWord", bundle: bundle) }
     static var historyDayNoWordNote: String { String(localized: "history.day.noWordNote", bundle: bundle) }
     static var historyDayPausedNote: String { String(localized: "history.day.pausedNote", bundle: bundle) }
@@ -244,6 +244,10 @@ enum L10n {
 
     // Dynamic keys must go through Bundle.localizedString: interpolating into
     // String.LocalizationValue would make the KEY itself "form.name.%@".
+    static var formGender: String { String(localized: "form.gender", bundle: bundle) }
+    static var parentGenderF: String { String(localized: "parent.gender.f", bundle: bundle) }
+    static var parentGenderM: String { String(localized: "parent.gender.m", bundle: bundle) }
+
     private static func dynamic(_ key: String) -> String {
         bundle.localizedString(forKey: key, value: nil, table: nil)
     }

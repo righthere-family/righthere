@@ -38,7 +38,7 @@ struct DayDetailView: View {
             Text(L10n.parentQuote(parent.displayName, quote ?? ""))
                 .font(Typography.display(24))
                 .foregroundStyle(Palette.alert)
-            Text(L10n.historyDayHerWords)
+            Text(L10n.historyDayWords(gender: parent.gender))
                 .font(.footnote)
                 .foregroundStyle(Palette.inkSecondary)
         case .missed:

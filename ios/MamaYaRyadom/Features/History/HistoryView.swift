@@ -320,7 +320,7 @@ struct HistoryView: View {
     private var legend: some View {
         HStack(spacing: 16) {
             legendItem(L10n.statusAllGood) { Circle().fill(Palette.okStrong) }
-            legendItem(L10n.historyLegendHerWords) { RoundedRectangle(cornerRadius: 2).fill(Palette.alert) }
+            legendItem(L10n.historyLegendWords(gender: model.parent.gender)) { RoundedRectangle(cornerRadius: 2).fill(Palette.alert) }
             legendItem(L10n.historyLegendQuiet) { Circle().strokeBorder(Palette.inkSecondary.opacity(0.5), lineWidth: 1.5) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -27,6 +27,7 @@ struct TodayCardState: Identifiable {
     let eveningIsOk: Bool?
     var isWaiting = false
     var inviteCode: String?
+    var kind: Parent.Kind = .mom
 }
 
 // MARK: - Skeleton Sample

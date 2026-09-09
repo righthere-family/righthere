@@ -120,7 +120,8 @@ final class TodayViewModel {
                               streak: streak,
                               weekdays: weekdays,
                               medicationsInfo: medicationsInfo,
-                              eveningIsOk: evening?.isOk)
+                              eveningIsOk: evening?.isOk,
+                              kind: parent.kind)
     }
 
     func choose(_ match: CitySearch.Match) {

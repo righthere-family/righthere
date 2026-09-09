@@ -84,7 +84,8 @@ struct FamilyAPI: Sendable {
         checkinTime: String,
         phone: String,
         parentId: UUID? = nil,
-        botLanguage: String? = nil
+        botLanguage: String? = nil,
+        gender: String? = nil
     ) async throws {
         guard let client = SupabaseHub.client else { throw FamilyAPIError.notConfigured }
         struct Params: Encodable {
@@ -96,6 +97,7 @@ struct FamilyAPI: Sendable {
             let pPhone: String
             let pParentId: UUID?
             let pLang: String?
+            let pGender: String?
 
             enum CodingKeys: String, CodingKey {
                 case pAppToken = "p_app_token"
@@ -106,6 +108,7 @@ struct FamilyAPI: Sendable {
                 case pPhone = "p_phone"
                 case pParentId = "p_parent_id"
                 case pLang = "p_lang"
+                case pGender = "p_gender"
             }
         }
         _ = try await client.rpc(
@@ -118,7 +121,8 @@ struct FamilyAPI: Sendable {
                 pCheckinTime: checkinTime,
                 pPhone: phone,
                 pParentId: parentId,
-                pLang: botLanguage
+                pLang: botLanguage,
+                pGender: gender
             )
         ).execute()
     }
@@ -466,6 +470,7 @@ struct FamilyAPI: Sendable {
     func addParent(
         name: String,
         kind: String,
+        gender: String,
         city: String,
         timezone: String,
         checkinTime: String,
@@ -480,7 +485,8 @@ struct FamilyAPI: Sendable {
                 pCity: city,
                 pTimezone: timezone,
                 pCheckinTime: checkinTime,
-                pLang: botLanguage
+                pLang: botLanguage,
+                pGender: gender
             )
         )
     }
@@ -541,6 +547,7 @@ private struct AddParentParams: Encodable {
     let pTimezone: String
     let pCheckinTime: String
     let pLang: String
+    let pGender: String
 
     enum CodingKeys: String, CodingKey {
         case pAppToken = "p_app_token"
@@ -550,6 +557,7 @@ private struct AddParentParams: Encodable {
         case pTimezone = "p_timezone"
         case pCheckinTime = "p_checkin_time"
         case pLang = "p_lang"
+        case pGender = "p_gender"
     }
 }
 
@@ -733,6 +741,7 @@ struct SnapshotPayload: Decodable {
     struct ParentPayload: Decodable {
         let id: UUID
         let kind: String
+        let gender: String?
         let displayName: String
         let city: String?
         let phone: String?
@@ -805,6 +814,7 @@ extension SnapshotPayload {
         Parent(
             id: parent.id,
             kind: Parent.Kind(rawValue: parent.kind) ?? .mom,
+            gender: Parent.Gender(rawValue: parent.gender ?? "") ?? (parent.kind == "dad" ? .m : .f),
             displayName: parent.displayName,
             cityName: Self.localizedCity(parent.city) ?? Self.city(fromTimezone: parent.timezone),
             phone: parent.phone,

@@ -77,7 +77,7 @@ struct TodayStatusCardView: View {
                     .padding(.top, 4)
             case .notOk(let kind, let quote):
                 if let quote, !quote.isEmpty {
-                    Text(L10n.statusHerWords)
+                    Text(L10n.statusWords(kind: state.kind))
                         .font(.system(size: 14))
                         .foregroundStyle(Palette.inkSecondary)
                     Text("«\(quote)»")

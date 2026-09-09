@@ -35,6 +35,11 @@ struct AddParentView: View {
             kindPicker
                 .padding(.top, 18)
 
+            if model.kind == .custom {
+                genderPicker
+                    .padding(.top, 10)
+            }
+
             FormUnderlineField(
                 label: L10n.formName(kind: model.kind.parentKind),
                 placeholder: model.kind.namePlaceholder,
@@ -95,6 +100,27 @@ struct AddParentView: View {
                         .padding(.vertical, 10)
                         .background(
                             model.kind == kind ? Palette.accent : Palette.background,
+                            in: .capsule
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var genderPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(["f", "m"], id: \.self) { gender in
+                Button {
+                    model.gender = gender
+                } label: {
+                    Text(gender == "f" ? L10n.parentGenderF : L10n.parentGenderM)
+                        .font(.system(size: 14, weight: model.gender == gender ? .semibold : .regular))
+                        .foregroundStyle(model.gender == gender ? .white : Palette.inkSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            model.gender == gender ? Palette.accent : Palette.background,
                             in: .capsule
                         )
                 }
@@ -189,7 +215,10 @@ final class AddParentViewModel {
         }
     }
 
-    var kind: Kind = .dad
+    var kind: Kind = .dad {
+        didSet { gender = kind == .dad ? "m" : "f" }
+    }
+    var gender = "m"
     var name = ""
     var cityQuery = "" {
         didSet {
@@ -230,6 +259,7 @@ final class AddParentViewModel {
         guard let added = try? await FamilyAPI().addParent(
             name: name,
             kind: kind.rawValue,
+            gender: gender,
             city: city.displayName,
             timezone: city.timezone,
             checkinTime: checkinTime,

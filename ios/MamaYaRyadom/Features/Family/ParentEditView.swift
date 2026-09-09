@@ -27,6 +27,11 @@ struct ParentEditView: View {
                     text: Bindable(model).name
                 )
 
+                if model.kind == .custom {
+                    genderPicker
+                        .padding(.top, 16)
+                }
+
                 FormUnderlineField(
                     label: L10n.editMomPhone,
                     placeholder: L10n.editMomPhonePlaceholder,
@@ -158,6 +163,27 @@ struct ParentEditView: View {
     }
 
     // MARK: - Invite
+
+    private var genderPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(["f", "m"], id: \.self) { gender in
+                Button {
+                    model.gender = gender
+                } label: {
+                    Text(gender == "f" ? L10n.parentGenderF : L10n.parentGenderM)
+                        .font(.system(size: 14, weight: model.gender == gender ? .semibold : .regular))
+                        .foregroundStyle(model.gender == gender ? .white : Palette.inkSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            model.gender == gender ? Palette.accent : Palette.background,
+                            in: .capsule
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
 
     private var inviteBlock: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -299,6 +325,7 @@ final class ParentEditViewModel {
     private(set) var parentId: UUID?
     private(set) var canRemove = false
     private(set) var kind: Parent.Kind = .mom
+    var gender = "f"
     private(set) var eveningTime: String?
     private(set) var eveningChanged = false
     private(set) var windowMinutes = 180
@@ -314,6 +341,7 @@ final class ParentEditViewModel {
         isWaiting = member.isWaitingParent
         inviteCode = member.inviteCode
         kind = member.parent.kind
+        gender = member.parent.gender.rawValue
         eveningTime = member.parent.eveningTime
         windowMinutes = member.parent.windowMinutes
         name = member.parent.displayName
@@ -384,7 +412,8 @@ final class ParentEditViewModel {
                 checkinTime: checkinTime,
                 phone: phone,
                 parentId: parentId,
-                botLanguage: botLang
+                botLanguage: botLang,
+                gender: gender
             )
             if eveningChanged, let parentId {
                 _ = try? await FamilyAPI().setEveningTime(parentId: parentId, time: eveningTime)

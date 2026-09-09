@@ -3231,6 +3231,23 @@
         }
       }
     },
+    "form.gender": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "She or he"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Она или он"
+          }
+        }
+      }
+    },
     "form.morning": {
       "extractionState": "manual",
       "localizations": {
@@ -3299,23 +3316,6 @@
         }
       }
     },
-    "history.day.herWords": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "She said so herself — that is why the day is cherry."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Она сказала это сама — поэтому день вишнёвый."
-          }
-        }
-      }
-    },
     "history.day.noWord": {
       "extractionState": "manual",
       "localizations": {
@@ -3367,19 +3367,36 @@
         }
       }
     },
-    "history.legend.herWords": {
+    "history.day.words.f": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "her words"
+            "value": "She said so herself — that is why the day is cherry."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "её слова"
+            "value": "Она сказала это сама — поэтому день вишнёвый."
+          }
+        }
+      }
+    },
+    "history.day.words.m": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He said so himself — that is why the day is cherry."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Он сказал это сам — поэтому день вишнёвый."
           }
         }
       }
@@ -3397,6 +3414,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "день без ответа"
+          }
+        }
+      }
+    },
+    "history.legend.words.f": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "her words"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "её слова"
+          }
+        }
+      }
+    },
+    "history.legend.words.m": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "his words"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "его слова"
           }
         }
       }
@@ -3611,13 +3662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No reminders yet. Add the first one — the bot will gently remind Mom and confirm she took it."
+            "value": "No reminders yet. Add the first one — the bot will gently remind and confirm it was taken."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пока нет напоминаний. Добавь первое — бот мягко напомнит маме и подтвердит, что всё принято."
+            "value": "Пока нет напоминаний. Добавь первое — бот мягко напомнит и подтвердит, что всё принято."
           }
         }
       }
@@ -3679,13 +3730,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing yet. When mom writes to the bot, sends a voice note or a photo — it all shows up here."
+            "value": "Nothing yet. Messages, voice notes and photos sent to the bot will show up here."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пока пусто. Когда мама напишет боту, пришлёт голосовое или фото — всё появится здесь."
+            "value": "Пока пусто. Сообщения, голосовые и фото, отправленные боту, появятся здесь."
           }
         }
       }
@@ -4162,6 +4213,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "МАМА"
+          }
+        }
+      }
+    },
+    "parent.gender.f": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "She"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Она"
+          }
+        }
+      }
+    },
+    "parent.gender.m": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Он"
           }
         }
       }
@@ -4971,13 +5056,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask your mom to send /family to the bot — she will get a link that brings everything back: the card, the streak, the history."
+            "value": "Ask your parent to send /family to the bot — a link will arrive that brings everything back: the card, the streak, the history."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Попросите маму отправить боту команду /family — ей придёт ссылка, которая вернёт всё на место: карточку, стрик, историю."
+            "value": "Попросите родителя отправить боту команду /family — придёт ссылка, которая вернёт всё на место: карточку, стрик, историю."
           }
         }
       }
@@ -5158,13 +5243,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The family, its history and your parents’ data will be gone. Mom will stop receiving her morning messages."
+            "value": "The family, its history and your parents’ data will be gone. Your parents will stop receiving their morning messages."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Семья, история и данные родителей исчезнут. Мама больше не будет получать утренние сообщения."
+            "value": "Семья, история и данные родителей исчезнут. Родители больше не будут получать утренние сообщения."
           }
         }
       }
@@ -5543,23 +5628,6 @@
         }
       }
     },
-    "status.herWords": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mom, in her own words:"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Мама — своими словами:"
-          }
-        }
-      }
-    },
     "status.notOk.callMe": {
       "extractionState": "manual",
       "localizations": {
@@ -5828,6 +5896,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "ждём до %1$@"
+          }
+        }
+      }
+    },
+    "status.words.custom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In their own words:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Своими словами:"
+          }
+        }
+      }
+    },
+    "status.words.dad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dad, in his own words:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папа — своими словами:"
+          }
+        }
+      }
+    },
+    "status.words.mom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mom, in her own words:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мама — своими словами:"
           }
         }
       }
