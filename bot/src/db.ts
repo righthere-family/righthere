@@ -21,6 +21,7 @@ export interface CheckinResult {
   was_escalated?: boolean;
   streak?: number;
   milestone?: number | null;
+  first?: boolean;
   parent_id?: string;
   family_id?: string;
 }
@@ -342,7 +343,7 @@ export function db(env: Env) {
         return { result: 'failed' };
       }
       const outcome = data as CheckinResult;
-      if (outcome.result === 'ok' && outcome.streak === 1) {
+      if (outcome.result === 'ok' && outcome.first) {
         const parent = await this.parentByTelegramId(telegramUserId);
         await this.notifyAdmin(
           `Первое «${status === 'ok' ? 'всё хорошо' : 'не очень'}»: ${parent?.display_name ?? telegramUserId}`,
