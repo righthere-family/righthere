@@ -126,7 +126,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
     const lang = resolveLang(parent.lang);
     const S = T(lang);
 
-    used += await pushToFamily(
+    const pushed = await pushToFamily(
       env,
       parent.family_id,
       {
@@ -140,6 +140,11 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
       },
       COST.escalation - used - 1,
     );
+    used += pushed.spent;
+    if (pushed.delivered > 0) {
+      await d.markChildrenNotified(parent.parent_id, parent.local_date);
+      used += 1;
+    }
 
     if (!flooded) {
       const child = parent.child_display_name || (lang === 'en' ? 'your family' : 'семья');

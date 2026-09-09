@@ -65,14 +65,15 @@ export async function pushToFamily(
   familyId: string,
   push: Push,
   maxSubrequests = Infinity,
-): Promise<number> {
+): Promise<{ spent: number; delivered: number }> {
   const jwt = await apnsJWT(env);
-  if (!jwt) return 0;
+  if (!jwt) return { spent: 0, delivered: 0 };
 
   const d = db(env);
   const targets = await d.pushTargets(familyId);
   let spent = 1;
   let reached = 0;
+  let delivered = 0;
   for (const target of targets) {
 
     if (push.level !== 'time-sensitive' && isNight(target.tz)) continue;
@@ -126,11 +127,13 @@ export async function pushToFamily(
     } else if (!res.ok) {
       await d.logEvent('warn', 'apns', `${res.status} for family ${familyId}`);
       spent += 1;
+    } else {
+      delivered += 1;
     }
   }
   if (reached >= MAX_PUSH_DEVICES && targets.length > MAX_PUSH_DEVICES) {
     await d.logEvent('warn', 'apns', `family ${familyId}: ${targets.length} devices, capped at ${MAX_PUSH_DEVICES}`);
     spent += 1;
   }
-  return spent;
+  return { spent, delivered };
 }

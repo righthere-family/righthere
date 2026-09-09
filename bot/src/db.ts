@@ -476,6 +476,19 @@ export function db(env: Env) {
       );
     },
 
+    async markChildrenNotified(parentId: string, localDate: string) {
+      await best(
+        'children-notified',
+        sb
+          .from('escalations')
+          .update({ state: 'children_notified' })
+          .eq('parent_id', parentId)
+          .eq('local_date', localDate)
+          .eq('state', 'reping_sent'),
+        null,
+      );
+    },
+
     async markRePingSent(parentId: string) {
       await must('mark_reping_sent', sb.rpc('mark_reping_sent', { p_parent_id: parentId }));
     },

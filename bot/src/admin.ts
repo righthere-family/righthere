@@ -159,12 +159,14 @@ async function handleAuthorised(req: Request, env: Env, url: URL): Promise<Respo
         deferredFamilies += 1;
         continue;
       }
-      spent += await pushToFamily(
-        env,
-        id,
-        { title, body: { ru, en }, level: 'active', category: 'SERVICE' },
-        40 - spent,
-      );
+      spent += (
+        await pushToFamily(
+          env,
+          id,
+          { title, body: { ru, en }, level: 'active', category: 'SERVICE' },
+          40 - spent,
+        )
+      ).spent;
       sent += 1;
     }
     return json({ ok: true, sent, deferred: deferredFamilies });
