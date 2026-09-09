@@ -126,12 +126,31 @@ final class PurchaseModel {
 
     func refreshEntitlements() async {
         var ids: Set<String> = []
+        var latest: (id: UInt64, expires: Date, jws: String)?
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
                 ids.insert(transaction.productID)
+                let expires = transaction.expirationDate ?? .distantFuture
+                if latest.map({ expires > $0.expires }) ?? true {
+                    latest = (transaction.id, expires, result.jwsRepresentation)
+                }
             }
         }
         purchasedIDs = ids
+        await syncSubscription(latest)
+    }
+
+    // MARK: - Server Sync
+
+    private static let syncedKey = "syncedTransaction"
+
+    private func syncSubscription(_ latest: (id: UInt64, expires: Date, jws: String)?) async {
+        guard AppConfig.hasFamily, let latest else { return }
+        let stamp = "\(AppConfig.familyToken):\(latest.id)"
+        guard UserDefaults.standard.string(forKey: Self.syncedKey) != stamp else { return }
+        if (try? await FamilyAPI().syncSubscription(jws: latest.jws)) == true {
+            UserDefaults.standard.set(stamp, forKey: Self.syncedKey)
+        }
     }
 
     func buy(_ product: Product) async {

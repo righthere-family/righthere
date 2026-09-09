@@ -136,30 +136,19 @@ struct FamilyAPI: Sendable {
         return payload?.appToken.uuidString.lowercased()
     }
 
-    func recordSubscription(entitlement: String, product: String, expiresAt: Date?) async throws {
-        guard let client = SupabaseHub.client else { throw FamilyAPIError.notConfigured }
-        struct Params: Encodable {
-            let pAppToken: String
-            let pEntitlement: String
-            let pProduct: String
-            let pExpiresAt: Date?
-
-            enum CodingKeys: String, CodingKey {
-                case pAppToken = "p_app_token"
-                case pEntitlement = "p_entitlement"
-                case pProduct = "p_product"
-                case pExpiresAt = "p_expires_at"
-            }
+    func syncSubscription(jws: String) async throws -> Bool {
+        struct Reply: Decodable { let ok: Bool }
+        guard let endpoint = URL(string: "\(AppConfig.joinBaseURL)/subscription") else {
+            throw FamilyAPIError.notConfigured
         }
-        _ = try await client.rpc(
-            "app_set_subscription",
-            params: Params(
-                pAppToken: AppConfig.familyToken,
-                pEntitlement: entitlement,
-                pProduct: product,
-                pExpiresAt: expiresAt
-            )
-        ).execute()
+        var request = URLRequest(url: endpoint, timeoutInterval: 15)
+        request.httpMethod = "POST"
+        request.setValue(AppConfig.familyToken, forHTTPHeaderField: "X-App-Token")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["jws": jws])
+        let (body, response) = try await URLSession.shared.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { return false }
+        return (try? JSONDecoder().decode(Reply.self, from: body).ok) ?? false
     }
 
     func setPushToken(

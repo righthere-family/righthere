@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from './index';
+import { entitlementFor, subscriptionStatus, type AppleTransaction } from './storekit';
 import { T, langFromTelegram, resolveLang, type Lang } from './texts';
 import {
   asChannel,
@@ -1088,8 +1089,45 @@ export function db(env: Env) {
       await this.broadcastToApp(parent.family_id, 'pause');
     },
 
-    async applyRevenueCatEvent(_payload: unknown) {
+    async storeAppleSubscription(
+      appToken: string,
+      tx: AppleTransaction,
+      entitlement: 'premium' | 'family',
+      status: 'active' | 'expired' | 'revoked',
+    ): Promise<boolean> {
+      const { data, error } = await sb.rpc('server_set_subscription', {
+        p_app_token: appToken,
+        p_entitlement: entitlement,
+        p_product: tx.productId ?? '',
+        p_original_transaction_id: tx.originalTransactionId ?? tx.transactionId ?? '',
+        p_environment: tx.environment ?? '',
+        p_status: status,
+        p_expires_at: tx.expiresDate ? new Date(tx.expiresDate).toISOString() : null,
+      });
+      if (error) {
+        await logEvent('error', 'subscription', error.message);
+        return false;
+      }
+      return data === true;
+    },
 
+    async updateAppleSubscription(tx: AppleTransaction, notificationType: string): Promise<void> {
+      const entitlement = entitlementFor(tx.productId);
+      if (!entitlement) return;
+      const status = subscriptionStatus(tx);
+      const { data, error } = await sb.rpc('server_update_subscription', {
+        p_original_transaction_id: tx.originalTransactionId ?? tx.transactionId ?? '',
+        p_entitlement: entitlement,
+        p_product: tx.productId ?? '',
+        p_environment: tx.environment ?? '',
+        p_status: status,
+        p_expires_at: tx.expiresDate ? new Date(tx.expiresDate).toISOString() : null,
+      });
+      if (error) {
+        await logEvent('error', 'apple-notification', `${notificationType}: ${error.message}`);
+      } else if (data !== true) {
+        await logEvent('warn', 'apple-notification', `${notificationType}: unknown transaction`);
+      }
     },
   };
 }

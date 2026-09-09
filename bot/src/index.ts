@@ -13,6 +13,7 @@ import privacyPage from './privacy.html';
 import privacyPageEn from './privacy-en.html';
 import ogImage from './og.png';
 import ogImageEn from './og-en.png';
+import { verifyAppleJWS, entitlementFor, subscriptionStatus, type AppleNotification, type AppleTransaction } from './storekit';
 import faviconIco from './favicon.ico';
 import faviconPng from './favicon.png';
 import touchIcon from './apple-touch-icon.png';
@@ -178,7 +179,6 @@ export interface Env {
   TELEGRAM_WEBHOOK_SECRET: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
-  RC_WEBHOOK_AUTH: string;
   ADMIN_EMAIL?: string;
   ADMIN_TELEGRAM_ID?: string;
   APNS_TOPIC?: string;
@@ -468,13 +468,53 @@ export default {
       return new Response(file.body, { headers: { ...cache, 'content-type': type } });
     }
 
-    if (req.method === 'POST' && url.pathname === '/rc-webhook') {
-      const auth = req.headers.get('Authorization') ?? '';
-      if (!timingSafeEqual(auth, env.RC_WEBHOOK_AUTH)) {
+    if (req.method === 'POST' && url.pathname === '/subscription') {
+      const token = req.headers.get('X-App-Token') ?? '';
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(token)) {
         return new Response('forbidden', { status: 403 });
       }
-      const payload = await req.json<never>();
-      ctx.waitUntil(db(env).applyRevenueCatEvent(payload));
+      const body = await req.json<{ jws?: unknown }>().catch(() => null);
+      const jws = typeof body?.jws === 'string' ? body.jws : '';
+      if (!jws || jws.length > 16_000) {
+        return new Response('bad request', { status: 400 });
+      }
+      const tx = await verifyAppleJWS<AppleTransaction>(jws);
+      if (!tx || tx.bundleId !== env.APNS_TOPIC) {
+        return new Response('invalid', { status: 401 });
+      }
+      const entitlement = entitlementFor(tx.productId);
+      if (!entitlement) {
+        return new Response('unknown product', { status: 422 });
+      }
+      const status = subscriptionStatus(tx);
+      const stored = await db(env).storeAppleSubscription(token, tx, entitlement, status);
+      return new Response(
+        JSON.stringify({
+          ok: stored,
+          entitlement: status === 'active' ? entitlement : null,
+          expires_at: tx.expiresDate ? new Date(tx.expiresDate).toISOString() : null,
+        }),
+        { headers: { 'content-type': 'application/json' } },
+      );
+    }
+
+    if (req.method === 'POST' && url.pathname === '/apple/notifications') {
+      const body = await req.json<{ signedPayload?: unknown }>().catch(() => null);
+      const signed = typeof body?.signedPayload === 'string' ? body.signedPayload : '';
+      if (!signed || signed.length > 32_000) {
+        return new Response('bad request', { status: 400 });
+      }
+      const note = await verifyAppleJWS<AppleNotification>(signed);
+      if (!note) {
+        return new Response('invalid', { status: 401 });
+      }
+      const info = note.data?.signedTransactionInfo;
+      if (typeof info === 'string') {
+        const tx = await verifyAppleJWS<AppleTransaction>(info);
+        if (tx && tx.bundleId === env.APNS_TOPIC) {
+          ctx.waitUntil(db(env).updateAppleSubscription(tx, note.notificationType ?? ''));
+        }
+      }
       return new Response('ok');
     }
 
