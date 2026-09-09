@@ -328,6 +328,10 @@ const ru = {
     done: `Записано ✅`,
     later: `Хорошо, напомню через полчаса.`,
     stale: `Это напоминание уже не актуально — оно от другого дня.`,
+    notedByText: (title: string) => `Отмечено: ${title} ✅`,
+    alreadyNoted: `Сегодня всё уже отмечено ✅`,
+    added: (title: string, times: string, child: string) =>
+      `Буду напоминать: ${title} в ${times}. ${child} увидит это в приложении и сможет поправить.`,
   },
 };
 
@@ -617,6 +621,10 @@ const en: BotStrings = {
     done: `Noted ✅`,
     later: `All right, I’ll remind you in half an hour.`,
     stale: `This reminder is from another day and no longer applies.`,
+    notedByText: (title: string) => `Noted: ${title} ✅`,
+    alreadyNoted: `Everything is already marked for today ✅`,
+    added: (title: string, times: string, child: string) =>
+      `I’ll remind you: ${title} at ${times}. ${child} will see it in the app and can adjust it.`,
   },
 };
 

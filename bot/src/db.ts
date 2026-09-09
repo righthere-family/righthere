@@ -1130,5 +1130,36 @@ export function db(env: Env) {
         await logEvent('warn', 'apple-notification', `${notificationType}: unknown transaction`);
       }
     },
+
+    async activeMeds(parentId: string): Promise<Array<{ id: string; title: string; times: string[] }>> {
+      return best(
+        'active-meds',
+        sb.from('meds').select('id,title,times').eq('parent_id', parentId).eq('active', true),
+        [],
+      );
+    },
+
+    async takenSlots(medId: string, localDate: string): Promise<string[]> {
+      const rows = await best<Array<{ slot: string }>>(
+        'taken-slots',
+        sb.from('med_events').select('slot').eq('med_id', medId).eq('local_date', localDate).eq('status', 'taken'),
+        [],
+      );
+      return rows.map((r) => r.slot);
+    },
+
+    async markMedTaken(medId: string, localDate: string, slot: string): Promise<boolean> {
+      const { error } = await sb
+        .from('med_events')
+        .upsert({ med_id: medId, local_date: localDate, slot, status: 'taken' }, { onConflict: 'med_id,local_date,slot' });
+      if (error) await logEvent('error', 'med-taken', error.message);
+      return !error;
+    },
+
+    async createMed(parentId: string, title: string, times: string[]): Promise<boolean> {
+      const { error } = await sb.from('meds').insert({ parent_id: parentId, title, human_text: title, times });
+      if (error) await logEvent('error', 'med-create', error.message);
+      return !error;
+    },
   };
 }

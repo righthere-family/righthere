@@ -2,6 +2,7 @@ import { Bot, Context, InlineKeyboard, Keyboard } from 'grammy';
 import type { UserFromGetMe } from 'grammy/types';
 import type { Env } from './index';
 import { pushToFamily } from './apns';
+import { detectMedRequest, detectMedTaken, pickOpenSlot } from './medsIntent';
 import { db, CheckinResult, type MomChannel } from './db';
 import {
   T,
@@ -105,6 +106,48 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       level: 'active',
       category: 'MESSAGE',
     });
+  };
+
+  const localTime = (timezone: string): string => {
+    try {
+      return new Intl.DateTimeFormat('en-GB', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    } catch {
+      return new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    }
+  };
+
+  const medIntent = async (
+    ctx: { from?: { id: number }; reply(text: string): Promise<unknown> },
+    text: string,
+    lang: Lang,
+  ): Promise<boolean> => {
+    const telegramUserId = ctx.from!.id;
+    const parent = await d.parentByTelegramId(telegramUserId);
+    if (!parent) return false;
+    const S = T(lang);
+    const meds = await d.activeMeds(parent.id);
+
+    const taken = detectMedTaken(text, meds);
+    if (taken) {
+      const med = meds.find((m) => m.id === taken.id);
+      const date = localDate(parent.timezone);
+      const slot = med ? pickOpenSlot(med.times, await d.takenSlots(med.id, date), localTime(parent.timezone)) : null;
+      if (slot && (await d.markMedTaken(taken.id, date, slot))) {
+        await ctx.reply(S.meds.notedByText(taken.title));
+        await d.broadcastToApp(parent.family_id, 'meds');
+      } else {
+        await ctx.reply(S.meds.alreadyNoted);
+      }
+      await pushMessage(await d.forwardToFamily(telegramUserId, { text }));
+      return true;
+    }
+
+    const request = detectMedRequest(text);
+    if (!request || !(await d.createMed(parent.id, request.title, request.times))) return false;
+    await ctx.reply(S.meds.added(request.title, request.times.join(', '), await d.childName(telegramUserId)));
+    await d.broadcastToApp(parent.family_id, 'meds');
+    await pushMessage(await d.forwardToFamily(telegramUserId, { text }));
+    return true;
   };
 
   const checkinKeyboard = (lang: Lang) =>
@@ -558,6 +601,8 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await pushRelief(res, ctx.from!.id);
       return;
     }
+
+    if (await medIntent(ctx, ctx.message.text, lang)) return;
 
     const storyFamily = await d.storyCapture(ctx.from!.id, ctx.message.text, null);
 
