@@ -156,6 +156,13 @@ export interface ParentRow {
   gender: string;
 }
 
+export interface DemoEvent {
+  family_id: string;
+  name: string;
+  kind: 'checkin' | 'message';
+  status?: string;
+}
+
 type PgResult<T> = { data: T | null; error: { message: string } | null };
 
 export const MOM_CHANNELS = ['telegram', 'whatsapp', 'sms', 'unknown'] as const;
@@ -1160,6 +1167,10 @@ export function db(env: Env) {
       const { error } = await sb.from('meds').insert({ parent_id: parentId, title, human_text: title, times });
       if (error) await logEvent('error', 'med-create', error.message);
       return !error;
+    },
+
+    async demoTick(): Promise<DemoEvent[]> {
+      return best<DemoEvent[]>('demo-tick', sb.rpc('demo_tick'), []);
     },
   };
 }

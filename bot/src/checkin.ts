@@ -334,6 +334,36 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
     }
   }
 
+  if (budget.afford(1)) {
+    for (const event of await d.demoTick()) {
+      if (!budget.afford(3)) break;
+      if (event.kind === 'checkin') {
+        await d.broadcastToApp(event.family_id, 'checkin');
+        await pushToFamily(
+          env,
+          event.family_id,
+          {
+            title: event.name,
+            body: event.status === 'ok'
+              ? { ru: 'Всё хорошо ☀️', en: 'All is well ☀️' }
+              : { ru: 'Сегодня не очень. Загляните в приложение — и лучше позвоните.', en: 'Not a great day today. Open the app — better yet, call.' },
+            level: 'active',
+            category: event.status === 'ok' ? 'CHECKIN_OK' : 'NOT_OK',
+          },
+          2,
+        );
+      } else {
+        await d.broadcastToApp(event.family_id, 'detail');
+        await pushToFamily(
+          env,
+          event.family_id,
+          { title: event.name, body: { ru: 'Пара слов для вас', en: 'A few words for you' }, level: 'active', category: 'MESSAGE' },
+          2,
+        );
+      }
+    }
+  }
+
   if (deferred > 0) {
     await d.logEvent('warn', 'cron-budget', `${deferred} item(s) deferred to the next tick`);
   }
