@@ -58,6 +58,19 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
   const pushRelief = async (res: CheckinResult, telegramUserId: number) => {
     if (!res.family_id || res.result === 'duplicate') return;
     const title = await d.addressForm(telegramUserId);
+    const silent = res.silent_before ?? 0;
+    if (silent >= 2) {
+      await pushToFamily(env, res.family_id, {
+        title,
+        body: {
+          ru: `Снова на связи после ${silent} дн.: всё хорошо ✅`,
+          en: `Back in touch after ${silent} days: all is well ✅`,
+        },
+        level: 'active',
+        category: 'CHECKIN_OK',
+      });
+      return;
+    }
     if (res.was_escalated) {
       await pushToFamily(env, res.family_id, {
         title,

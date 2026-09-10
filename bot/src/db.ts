@@ -23,6 +23,7 @@ export interface CheckinResult {
   streak?: number;
   milestone?: number | null;
   first?: boolean;
+  silent_before?: number;
   parent_id?: string;
   family_id?: string;
 }
@@ -473,6 +474,14 @@ export function db(env: Env) {
       await must(
         'mark_morning_sent',
         sb.rpc('mark_morning_sent', { p_parent_id: parentId, p_delivered: delivered }),
+      );
+    },
+
+    async silentDays(parentId: string, localDate: string): Promise<number> {
+      return best<number>(
+        'silent-days',
+        sb.rpc('parent_silent_days', { p_parent_id: parentId, p_date: localDate }),
+        0,
       );
     },
 

@@ -1,11 +1,67 @@
 import type { Env } from './index';
-import { pushToFamily } from './apns';
+import { pushToFamily, type Push } from './apns';
 import { db } from './db';
 import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
 
 export const NIGHT_START_HOUR = 23;
 export const NIGHT_END_HOUR = 8;
+
+function ruDays(n: number): string {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return `${n} день`;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} дня`;
+  return `${n} дней`;
+}
+
+function escalationPush(silentDays: number, name: string): Push | null {
+  if (silentDays <= 1) {
+    return {
+      title: name,
+      body: {
+        ru: 'Утром ответа не было. Скорее всего, всё в порядке — но лучше позвонить.',
+        en: 'The morning went by without a hello. Most likely all is fine — but a call would be best.',
+      },
+      level: 'time-sensitive',
+      category: 'ESCALATION',
+    };
+  }
+  if (silentDays === 2) {
+    return {
+      title: name,
+      body: {
+        ru: 'Второй день без ответа. Если вы уже созвонились — всё в порядке, просто кнопка не нажата. Если нет — позвоните.',
+        en: 'Second day without a hello. If you have already talked, all is fine and the button just wasn’t pressed. If not, please call.',
+      },
+      level: 'time-sensitive',
+      category: 'ESCALATION',
+    };
+  }
+  if (silentDays === 3) {
+    return {
+      title: name,
+      body: {
+        ru: 'Третий день без ответа. Похоже, бот больше не работает: телефон, Telegram или ответы прекратились. Проверьте, а если всё хорошо — поставьте паузу в приложении.',
+        en: 'Third day without a hello. The bot may have stopped working: the phone, Telegram, or the replies just stopped. Check in, and if all is well, pause the reminders in the app.',
+      },
+      level: 'active',
+      category: 'ESCALATION',
+    };
+  }
+  if (silentDays % 7 === 0) {
+    return {
+      title: name,
+      body: {
+        ru: `Без ответа уже ${ruDays(silentDays)}.`,
+        en: `No hello for ${silentDays} days now.`,
+      },
+      level: 'passive',
+      category: 'ESCALATION',
+    };
+  }
+  return null;
+}
 
 export async function runCronTick(env: Env, reserve = 0): Promise<void> {
   const d = db(env);
@@ -126,24 +182,16 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
     const lang = resolveLang(parent.lang);
     const S = T(lang);
 
-    const pushed = await pushToFamily(
-      env,
-      parent.family_id,
-      {
-        title: name,
-        body: {
-          ru: 'Утром ответа не было. Скорее всего, всё в порядке — но лучше позвонить.',
-          en: 'The morning went by without a hello. Most likely all is fine — but a call would be best.',
-        },
-        level: 'time-sensitive',
-        category: 'ESCALATION',
-      },
-      COST.escalation - used - 1,
-    );
-    used += pushed.spent;
-    if (pushed.delivered > 0) {
-      await d.markChildrenNotified(parent.parent_id, parent.local_date);
-      used += 1;
+    const silentDays = await d.silentDays(parent.parent_id, parent.local_date);
+    used += 1;
+    const push = escalationPush(silentDays, name);
+    if (push) {
+      const pushed = await pushToFamily(env, parent.family_id, push, COST.escalation - used - 1);
+      used += pushed.spent;
+      if (pushed.delivered > 0) {
+        await d.markChildrenNotified(parent.parent_id, parent.local_date);
+        used += 1;
+      }
     }
 
     if (!flooded) {
