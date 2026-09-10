@@ -79,11 +79,18 @@ struct RootView: View {
             }
         }
         .onAppear {
-            PushAppDelegate.onOpen = { category in
+            PushAppDelegate.onOpen = { category, parentId in
                 switch category {
                 case "MESSAGE":
                     router.tab = .family
                     router.familyPath = NavigationPath([Route.messages])
+                case "INVITE":
+                    router.tab = .family
+                    if let parentId, let id = UUID(uuidString: parentId) {
+                        router.familyPath = NavigationPath([Route.parentProfile(id)])
+                    } else {
+                        router.familyPath = NavigationPath()
+                    }
                 default:
                     router.tab = .today
                     router.todayPath = NavigationPath()

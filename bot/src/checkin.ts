@@ -1,5 +1,6 @@
 import type { Env } from './index';
 import { pushToFamily, type Push } from './apns';
+import type { InviteNudge } from './db';
 import { db } from './db';
 import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
@@ -13,6 +14,28 @@ function ruDays(n: number): string {
   if (m10 === 1 && m100 !== 11) return `${n} день`;
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} дня`;
   return `${n} дней`;
+}
+
+function inviteNudgePush(nudge: InviteNudge): Push {
+  const body = {
+    '1': {
+      ru: 'Ссылка ещё не открыта. Отправьте её — подключение занимает минуту.',
+      en: 'The link hasn’t been opened yet. Send it over — connecting takes a minute.',
+    },
+    '2': {
+      ru: 'Пока не подключились. Чаще всего помогает позвонить и вместе нажать «Запустить». Ссылка та же, она в приложении.',
+      en: 'Not connected yet. A call usually helps: press “Start” together. The link is the same, it’s in the app.',
+    },
+    '3': {
+      ru: 'Больше напоминать не буду. Когда будет удобно — ссылка ждёт в приложении.',
+      en: 'I won’t remind you again. Whenever it’s convenient, the link is waiting in the app.',
+    },
+    hot: {
+      ru: 'Бот открыт, но подтверждения нет. Позвоните и нажмите «Да, это я» вместе.',
+      en: 'The bot is open, but not confirmed yet. Call and press “Yes, it’s me” together.',
+    },
+  }[nudge.stage];
+  return { title: nudge.name, body, level: 'active', category: 'INVITE', parentId: nudge.parent_id };
 }
 
 function escalationPush(silentDays: number, name: string): Push | null {
@@ -89,6 +112,7 @@ const COST = {
   evening: 2,
   story: 2,
   digest: 2,
+  nudge: 5,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -414,6 +438,14 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
           2,
         );
       }
+    }
+  }
+
+  if (budget.afford(1)) {
+    for (const nudge of await d.inviteNudgesDue()) {
+      if (!budget.afford(COST.nudge)) break;
+      await d.markInviteNudge(nudge.parent_id, nudge.stage);
+      await pushToFamily(env, nudge.family_id, inviteNudgePush(nudge), COST.nudge - 1);
     }
   }
 

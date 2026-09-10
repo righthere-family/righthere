@@ -157,6 +157,13 @@ export interface ParentRow {
   gender: string;
 }
 
+export interface InviteNudge {
+  parent_id: string;
+  family_id: string;
+  name: string;
+  stage: '1' | '2' | '3' | 'hot';
+}
+
 export interface DemoEvent {
   family_id: string;
   name: string;
@@ -1189,6 +1196,15 @@ export function db(env: Env) {
       const { error } = await sb.from('meds').insert({ parent_id: parentId, title, human_text: title, times });
       if (error) await logEvent('error', 'med-create', error.message);
       return !error;
+    },
+
+    async inviteNudgesDue(): Promise<InviteNudge[]> {
+      return best<InviteNudge[]>('invite-nudges', sb.rpc('invite_nudges_due'), []);
+    },
+
+    async markInviteNudge(parentId: string, stage: InviteNudge['stage']) {
+      const update = stage === 'hot' ? { nudge_hot_at: new Date().toISOString() } : { nudge_stage: Number(stage) };
+      await best('invite-nudge-mark', sb.from('parents').update(update).eq('id', parentId), null);
     },
 
     async demoTick(): Promise<DemoEvent[]> {

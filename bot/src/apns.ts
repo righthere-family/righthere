@@ -6,7 +6,8 @@ export interface Push {
   body: string | { ru: string; en: string };
   level: 'passive' | 'active' | 'time-sensitive';
   silent?: boolean;
-  category?: 'CHECKIN_OK' | 'NOT_OK' | 'ESCALATION' | 'SERVICE' | 'MESSAGE';
+  category?: 'CHECKIN_OK' | 'NOT_OK' | 'ESCALATION' | 'SERVICE' | 'MESSAGE' | 'INVITE';
+  parentId?: string;
 }
 
 let jwtCache: { token: string; at: number } | null = null;
@@ -107,6 +108,7 @@ export async function pushToFamily(
           'interruption-level': push.level,
           category: push.category,
         },
+        ...(push.parentId ? { parent_id: push.parentId } : {}),
       }),
     }).catch(() => null);
     spent += 1;
