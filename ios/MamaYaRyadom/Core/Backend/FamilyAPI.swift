@@ -467,6 +467,14 @@ struct FamilyAPI: Sendable {
         try? await call("family_entitlement", params: ["p_app_token": AppConfig.familyToken])
     }
 
+    func wave(parentId: UUID) async throws -> Bool {
+        await ensureSession()
+        return try await call(
+            "app_wave",
+            params: ["p_app_token": AppConfig.familyToken, "p_parent_id": parentId.uuidString.lowercased()]
+        )
+    }
+
     func addParent(
         name: String,
         kind: String,

@@ -157,6 +157,14 @@ export interface ParentRow {
   gender: string;
 }
 
+export interface DueWave {
+  wave_id: string;
+  telegram_user_id: number;
+  author: string;
+  gender: string;
+  lang: string;
+}
+
 export interface InviteNudge {
   parent_id: string;
   family_id: string;
@@ -1196,6 +1204,14 @@ export function db(env: Env) {
       const { error } = await sb.from('meds').insert({ parent_id: parentId, title, human_text: title, times });
       if (error) await logEvent('error', 'med-create', error.message);
       return !error;
+    },
+
+    async wavesDue(): Promise<DueWave[]> {
+      return best<DueWave[]>('waves-due', sb.rpc('waves_due'), []);
+    },
+
+    async markWaveSent(waveId: string) {
+      await best('wave-sent', sb.from('waves').update({ sent_at: new Date().toISOString() }).eq('id', waveId), null);
     },
 
     async inviteNudgesDue(): Promise<InviteNudge[]> {

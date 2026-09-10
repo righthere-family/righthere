@@ -5050,6 +5050,23 @@
         }
       }
     },
+    "push.action.wave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wave 👋"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помахать 👋"
+          }
+        }
+      }
+    },
     "restore.hint": {
       "extractionState": "manual",
       "localizations": {

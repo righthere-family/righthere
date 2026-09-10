@@ -68,6 +68,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
         },
         level: 'active',
         category: 'CHECKIN_OK',
+        parentId: res.parent_id,
       });
       return;
     }
@@ -80,6 +81,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
         },
         level: 'active',
         category: 'CHECKIN_OK',
+        parentId: res.parent_id,
       });
       return;
     }
@@ -92,6 +94,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       level: 'active',
       silent: true,
       category: 'CHECKIN_OK',
+        parentId: res.parent_id,
     });
   };
 

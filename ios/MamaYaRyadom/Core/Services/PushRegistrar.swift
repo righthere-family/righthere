@@ -72,7 +72,14 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        Self.registerCategories()
         return true
+    }
+
+    private static func registerCategories() {
+        let wave = UNNotificationAction(identifier: "WAVE", title: L10n.pushActionWave, options: [])
+        let checkin = UNNotificationCategory(identifier: "CHECKIN_OK", actions: [wave], intentIdentifiers: [])
+        UNUserNotificationCenter.current().setNotificationCategories([checkin])
     }
 
     func application(
@@ -110,6 +117,12 @@ extension PushAppDelegate: UNUserNotificationCenterDelegate {
         let content = response.notification.request.content
         let category = content.categoryIdentifier
         let parentId = content.userInfo["parent_id"] as? String
+        if response.actionIdentifier == "WAVE" {
+            if let parentId, let id = UUID(uuidString: parentId) {
+                _ = try? await FamilyAPI().wave(parentId: id)
+            }
+            return
+        }
         await MainActor.run { Self.open(category, parentId: parentId) }
     }
 }

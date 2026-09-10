@@ -289,6 +289,9 @@ const ru = {
       (author ? `Вам открытка от ${author}:` : 'Вам открытка:') + `\n\n«${body}»`,
   },
 
+  wave: (author: string, daughter: boolean) =>
+    author ? `${author} увидел${daughter ? 'а' : ''} ваше «всё хорошо» и машет в ответ 👋` : 'Вам машут в ответ 👋',
+
   familyLink: {
     message: (child: string, url: string) =>
       (child ? `Если ${child} сменил телефон или приложение сбилось` : 'Если в семье кто-то сменил телефон') +
@@ -582,6 +585,9 @@ const en: BotStrings = {
     delivered: (author: string, body: string) =>
       (author ? `A postcard for you from ${author}:` : 'A postcard for you:') + `\n\n“${body}”`,
   },
+
+  wave: (author: string, _daughter: boolean) =>
+    author ? `${author} saw your “all good” and waves back 👋` : 'Someone waves back at you 👋',
 
   familyLink: {
     message: (child: string, url: string) =>

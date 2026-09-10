@@ -113,6 +113,7 @@ const COST = {
   story: 2,
   digest: 2,
   nudge: 5,
+  wave: 2,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -324,6 +325,16 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         }
       }
       await delivered(await d.send(card.telegram_user_id, { text: caption }));
+      if (flooded) break;
+    }
+  }
+
+  if (!flooded && budget.afford(1)) {
+    for (const wave of await d.wavesDue()) {
+      if (!budget.afford(COST.wave)) break;
+      await d.markWaveSent(wave.wave_id);
+      const text = T(resolveLang(wave.lang)).wave(wave.author, wave.gender === 'daughter');
+      await delivered(await d.send(wave.telegram_user_id, { text }));
       if (flooded) break;
     }
   }

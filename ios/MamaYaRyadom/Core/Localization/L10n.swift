@@ -42,6 +42,7 @@ enum L10n {
     // MARK: Statuses
 
     static var statusAllGood: String { String(localized: "status.allGood", bundle: bundle) }
+    static var pushActionWave: String { String(localized: "push.action.wave", bundle: bundle) }
     static var statusStillMorning: String { String(localized: "status.stillMorning", bundle: bundle) }
     static var statusReminded: String { String(localized: "status.reminded", bundle: bundle) }
     static var statusQuiet: String { String(localized: "status.quiet", bundle: bundle) }
