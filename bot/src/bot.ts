@@ -175,6 +175,10 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   const hideKeyboard = { remove_keyboard: true } as const;
 
+  const dropButtons = async (ctx: Context) => {
+    await dropButtons(ctx);
+  };
+
   const notOkOptionsKeyboard = (lang: Lang) => {
     const kb = new InlineKeyboard();
     T(lang).notOk.buttons.forEach((label, index) => {
@@ -241,11 +245,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       ctx.from.first_name,
       ctx.from.language_code,
     );
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
     await ctx.reply(result === 'added' ? guest.beta.joined : guest.beta.already);
 
     if ((await d.waitlistMomChannel(ctx.from.id)) === null) {
@@ -285,11 +285,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       .filter(Boolean)
       .join(' ');
     await d.setWaitlistMomChannel(ctx.from.id, ctx.match[1] as MomChannel, who);
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
     await ctx.reply(T(langFromTelegram(ctx.from.language_code)).beta.channelThanks);
   });
 
@@ -304,6 +300,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     }
     const S = T(resolveLang(invite.lang));
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     await d.broadcastToApp(invite.family_id, 'bound');
     await ctx.reply(S.onboarding.hello(invite.child_name, invite.child_gender));
     await ctx.reply(S.onboarding.whatIDo(invite.child_name));
@@ -317,6 +314,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery(/^ob_go:(.+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     await d.activateParent(ctx.match[1]!);
     const parent = await d.parentByTelegramId(ctx.from.id);
     const lang = parent ? resolveLang(parent.lang) : langFromTelegram(ctx.from.language_code);
@@ -326,6 +324,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery(/^ob_faq:(.+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     const lang = await langFor(ctx);
     const child = await d.childName(ctx.from.id);
     await ctx.reply(faqAnswers(lang, child), {
@@ -335,6 +334,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery(/^id_preview:(.+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
 
     const S = T(langFromTelegram(ctx.from.language_code));
     await ctx.reply(S.onboarding.previewIntro);
@@ -367,11 +367,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     const S = T(lang);
     const text = S.words.options[Number(ctx.match[1])];
     if (!text) return;
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
     const forwarded = await d.forwardToFamily(ctx.from.id, { text });
     if (!forwarded) {
       await ctx.reply(S.help(await d.childName(ctx.from.id)));
@@ -404,11 +400,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
   });
 
   const closeTimePicker = async (ctx: Context) => {
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
   };
 
   bot.callbackQuery(/^time:keep:(\d\d:\d\d)$/, async (ctx) => {
@@ -525,6 +517,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery(/^notok:(\d)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     const index = Number(ctx.match[1]);
     const S = T(await langFor(ctx));
     const child = await d.childName(ctx.from.id);
@@ -702,11 +695,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     await ctx.answerCallbackQuery();
     const S = T(await langFor(ctx));
     const marked = await d.medMark(ctx.from!.id, medId, slot, status, localDate);
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
     if (!marked) {
       await ctx.reply(S.meds.stale);
       return;
@@ -734,17 +723,14 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     const S = T(await langFor(ctx));
     const status = ctx.match[1] as 'ok' | 'not_ok';
     const familyId = await d.recordEvening(ctx.from.id, status);
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-
-    }
+    await dropButtons(ctx);
     await ctx.reply(status === 'ok' ? S.evening.ok : S.evening.notOk);
     if (familyId) await d.broadcastToApp(familyId, 'evening');
   });
 
   bot.callbackQuery('stop:full', async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
 
     const S = T(await langFor(ctx));
     await d.stopAndErase(ctx.from.id);
@@ -755,6 +741,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery('stop:pause', async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     const S = T(await langFor(ctx));
     const kb = new InlineKeyboard();
     S.pause.buttons.forEach((label, index) => kb.text(label, `pause:${index}`));
@@ -763,6 +750,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.callbackQuery(/^pause:(\d)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
+    await dropButtons(ctx);
     const lang = await langFor(ctx);
     const S = T(lang);
     const days = [1, 3, 7, 3650][Number(ctx.match[1])] ?? 1;
