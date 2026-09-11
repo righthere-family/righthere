@@ -46,6 +46,13 @@ struct FamilyAPI: Sendable {
         )
     }
 
+    func medsWeek(parentId: UUID? = nil) async throws -> MedsWeek {
+        try await call(
+            "app_meds_week",
+            params: MedsParams(pAppToken: AppConfig.familyToken, pParentId: parentId)
+        )
+    }
+
     func addMed(title: String, times: [String], parentId: UUID? = nil) async throws {
         struct AddResult: Decodable {
             let id: UUID
@@ -659,6 +666,11 @@ struct MedInfo: Decodable, Identifiable, Sendable {
     let id: UUID
     let title: String
     let times: [String]
+}
+
+struct MedsWeek: Decodable, Sendable {
+    let taken: Int
+    let total: Int
 }
 
 // MARK: - Created Family

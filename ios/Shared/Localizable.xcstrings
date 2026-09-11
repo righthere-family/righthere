@@ -3724,6 +3724,23 @@
         }
       }
     },
+    "meds.week": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked %lld of %lld over the last 7 days"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За 7 дней отмечено %lld из %lld"
+          }
+        }
+      }
+    },
     "messages.empty": {
       "extractionState": "stale",
       "localizations": {

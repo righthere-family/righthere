@@ -12,6 +12,7 @@ final class MedsViewModel {
     }
 
     private(set) var meds: [MedInfo] = []
+    private(set) var week: MedsWeek?
     private(set) var isLoading = true
     private(set) var isSaving = false
     private(set) var editingMed: MedInfo?
@@ -38,6 +39,7 @@ final class MedsViewModel {
     func load(parentId: UUID?) async {
         self.parentId = parentId
         meds = (try? await FamilyAPI().meds(parentId: parentId)) ?? []
+        week = try? await FamilyAPI().medsWeek(parentId: parentId)
         isLoading = false
     }
 

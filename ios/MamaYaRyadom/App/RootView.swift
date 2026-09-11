@@ -84,6 +84,13 @@ struct RootView: View {
                 case "MESSAGE":
                     router.tab = .family
                     router.familyPath = NavigationPath([Route.messages])
+                case "MEDS":
+                    router.tab = .family
+                    if let parentId, let id = UUID(uuidString: parentId) {
+                        router.familyPath = NavigationPath([Route.medications(id)])
+                    } else {
+                        router.familyPath = NavigationPath()
+                    }
                 case "INVITE":
                     router.tab = .family
                     if let parentId, let id = UUID(uuidString: parentId) {

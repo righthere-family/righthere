@@ -53,6 +53,12 @@ struct MedsView: View {
                             .padding(20)
                             .background(Palette.card, in: .rect(cornerRadius: 20))
                     } else {
+                        if let week = model.week, week.total > 0 {
+                            Text(L10n.medsWeek(week.taken, week.total))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(week.taken == week.total ? Palette.okStrong : Palette.inkSecondary)
+                                .padding(.horizontal, 4)
+                        }
                         ForEach(model.meds) { med in
                             medRow(med, scrollTo: proxy)
                         }

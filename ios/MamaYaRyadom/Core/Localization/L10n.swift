@@ -162,6 +162,9 @@ enum L10n {
     // MARK: Meds
 
     static var medsEmpty: String { String(localized: "meds.empty", bundle: bundle) }
+    static func medsWeek(_ taken: Int, _ total: Int) -> String {
+        String(format: String(localized: "meds.week", bundle: bundle), taken, total)
+    }
     static var medsNewTitle: String { String(localized: "meds.newTitle", bundle: bundle) }
     static var medsNamePlaceholder: String { String(localized: "meds.namePlaceholder", bundle: bundle) }
     static var medsAddTime: String { String(localized: "meds.addTime", bundle: bundle) }

@@ -114,6 +114,7 @@ const COST = {
   digest: 2,
   nudge: 5,
   wave: 2,
+  medAlert: 4,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -304,6 +305,29 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         }),
       );
       if (flooded) break;
+    }
+  }
+
+  if (!flooded && budget.afford(1)) {
+    for (const alert of await d.medAlertsDue()) {
+      if (!budget.afford(COST.medAlert)) break;
+      await d.markMedAlertSent(alert.event_id);
+      await d.broadcastToApp(alert.family_id, 'meds');
+      await pushToFamily(
+        env,
+        alert.family_id,
+        {
+          title: alert.name,
+          body: {
+            ru: `Лекарство не отмечено: ${alert.med_title} в ${alert.slot}. Кнопка не нажата — стоит спросить.`,
+            en: `Medication not marked: ${alert.med_title} at ${alert.slot}. The button wasn’t pressed — worth asking.`,
+          },
+          level: 'active',
+          category: 'MEDS',
+          parentId: alert.parent_id,
+        },
+        COST.medAlert - 2,
+      );
     }
   }
 

@@ -157,6 +157,16 @@ export interface ParentRow {
   gender: string;
 }
 
+export interface DueMedAlert {
+  event_id: string;
+  family_id: string;
+  parent_id: string;
+  name: string;
+  med_title: string;
+  slot: string;
+  lang: string;
+}
+
 export interface DueWave {
   wave_id: string;
   telegram_user_id: number;
@@ -1204,6 +1214,18 @@ export function db(env: Env) {
       const { error } = await sb.from('meds').insert({ parent_id: parentId, title, human_text: title, times });
       if (error) await logEvent('error', 'med-create', error.message);
       return !error;
+    },
+
+    async medAlertsDue(): Promise<DueMedAlert[]> {
+      return best<DueMedAlert[]>('med-alerts', sb.rpc('med_alerts_due'), []);
+    },
+
+    async markMedAlertSent(eventId: string) {
+      await best(
+        'med-alert-mark',
+        sb.from('med_events').update({ family_notified_at: new Date().toISOString() }).eq('id', eventId),
+        null,
+      );
     },
 
     async wavesDue(): Promise<DueWave[]> {
