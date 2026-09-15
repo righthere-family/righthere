@@ -157,6 +157,11 @@ export interface ParentRow {
   gender: string;
 }
 
+export interface Signal {
+  kind: 'text' | 'voice' | 'photo' | 'med';
+  at: string;
+}
+
 export interface DueMedAlert {
   event_id: string;
   family_id: string;
@@ -387,7 +392,7 @@ export function db(env: Env) {
       return outcome;
     },
 
-    async setNotOkDetail(telegramUserId: number, kind: NotOkKind, freeText?: string) {
+    async setNotOkDetail(telegramUserId: number, kind: NotOkKind | null, freeText?: string) {
       await sb.rpc('set_not_ok_detail', {
         p_telegram_user_id: telegramUserId,
         p_kind: kind,
@@ -507,6 +512,14 @@ export function db(env: Env) {
         'silent-days',
         sb.rpc('parent_silent_days', { p_parent_id: parentId, p_date: localDate }),
         0,
+      );
+    },
+
+    async signal(parentId: string, localDate: string): Promise<Signal | null> {
+      return best<Signal | null>(
+        'signal',
+        sb.rpc('parent_signal', { p_parent_id: parentId, p_date: localDate }),
+        null,
       );
     },
 
@@ -1205,7 +1218,10 @@ export function db(env: Env) {
     async markMedTaken(medId: string, localDate: string, slot: string): Promise<boolean> {
       const { error } = await sb
         .from('med_events')
-        .upsert({ med_id: medId, local_date: localDate, slot, status: 'taken' }, { onConflict: 'med_id,local_date,slot' });
+        .upsert(
+          { med_id: medId, local_date: localDate, slot, status: 'taken', last_reminded_at: new Date().toISOString() },
+          { onConflict: 'med_id,local_date,slot' },
+        );
       if (error) await logEvent('error', 'med-taken', error.message);
       return !error;
     },

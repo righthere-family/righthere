@@ -42,16 +42,20 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     }
   };
 
-  const pushNotOk = async (res: CheckinResult, telegramUserId: number) => {
+  const pushNotOk = async (res: CheckinResult, telegramUserId: number, quote?: string) => {
     if (!res.family_id || res.result === 'duplicate') return;
+    const said = quote?.trim().slice(0, 120);
     await pushToFamily(env, res.family_id, {
       title: await d.addressForm(telegramUserId),
-      body: {
-        ru: 'Сегодня не очень. Загляните в приложение — и лучше позвоните.',
-        en: 'Not a great day today. Open the app — better yet, call.',
-      },
+      body: said
+        ? { ru: `«${said}» — лучше позвоните.`, en: `“${said}” — better call.` }
+        : {
+            ru: 'Сегодня не очень. Загляните в приложение — и лучше позвоните.',
+            en: 'Not a great day today. Open the app — better yet, call.',
+          },
       level: 'time-sensitive',
       category: 'NOT_OK',
+      parentId: res.parent_id,
     });
   };
 
@@ -177,6 +181,13 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   const dropButtons = async (ctx: Context) => {
     await ctx.editMessageReplyMarkup().catch(() => undefined);
+  };
+
+  const replyNudgingButton = async (ctx: Context, text: string, lang: Lang) => {
+    const hasCheckin = await d.hasCheckinToday(ctx.from!.id);
+    await ctx.reply(hasCheckin ? text : `${text}\n\n${T(lang).freeInput.keyboardHint}`, {
+      reply_markup: hasCheckin ? hideKeyboard : checkinKeyboard(lang),
+    });
   };
 
   const notOkOptionsKeyboard = (lang: Lang) => {
@@ -373,12 +384,21 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await ctx.reply(S.help(await d.childName(ctx.from.id)));
       return;
     }
-    await ctx.reply(S.words.sent(await d.childName(ctx.from.id)));
+    const lowered = text.toLowerCase();
+    const res = !matchesNotOk(lowered) && matchesOk(lowered)
+      ? await d.recordCheckin(ctx.from.id, 'ok', 'text')
+      : null;
+    const counted = res !== null && res.result !== 'failed' && res.result !== 'duplicate';
+    await ctx.reply(S.words.sent(await d.childName(ctx.from.id)), {
+      reply_markup: counted ? hideKeyboard : undefined,
+    });
+    if (counted) await ringCheckin(res);
     await pushToFamily(env, forwarded.familyId, {
       title: forwarded.name,
       body: { ru: text, en: text },
       level: 'active',
-      category: 'MESSAGE',
+      category: counted ? 'CHECKIN_OK' : 'MESSAGE',
+      parentId: counted ? res.parent_id : undefined,
     });
   });
 
@@ -559,7 +579,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       }
       default:
         await done(S.notOk.private(name, child));
-        await d.setNotOkDetail(ctx.from.id, 'private');
+        await d.setNotOkDetail(ctx.from.id, 'private', '');
     }
   });
 
@@ -585,12 +605,13 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
         return;
       }
       if (res.result !== 'duplicate') {
+        await d.setNotOkDetail(ctx.from!.id, null, ctx.message.text.trim().slice(0, 300));
         await ctx.reply(S.notOk.ask(await d.addressForm(ctx.from!.id)), {
           reply_markup: notOkOptionsKeyboard(lang),
         });
       }
       await ringCheckin(res);
-      await pushNotOk(res, ctx.from!.id);
+      await pushNotOk(res, ctx.from!.id, ctx.message.text);
       return;
     }
     if (matchesOk(text)) {
@@ -624,16 +645,9 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await pushMessage(forwardedText);
       return;
     }
-    const hasCheckin = await d.hasCheckinToday(ctx.from!.id);
-    await ctx.reply(
-      S.freeInput.text(name, child) + (hasCheckin ? '' : `\n\n${S.freeInput.keyboardHint}`),
-      { reply_markup: hasCheckin ? hideKeyboard : checkinKeyboard(lang) },
-    );
+    await replyNudgingButton(ctx, S.freeInput.text(name, child), lang);
     await pushMessage(forwardedText);
   });
-
-  const markupForChat = async (telegramId: number, lang: Lang) =>
-    (await d.hasCheckinToday(telegramId)) ? hideKeyboard : checkinKeyboard(lang);
 
   bot.on('message:voice', async (ctx) => {
     const lang = await langFor(ctx);
@@ -646,18 +660,14 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await d.broadcastToApp(storyFamily, 'story');
       return;
     }
-    await ctx.reply(S.freeInput.voice(await d.childName(ctx.from!.id)), {
-      reply_markup: await markupForChat(ctx.from!.id, lang),
-    });
+    await replyNudgingButton(ctx, S.freeInput.voice(await d.childName(ctx.from!.id)), lang);
   });
 
   bot.on('message:photo', async (ctx) => {
     const lang = await langFor(ctx);
     const forwardedPhoto = await d.forwardToFamily(ctx.from!.id, { photoFileId: ctx.message.photo.at(-1)!.file_id });
     await pushMessage(forwardedPhoto);
-    await ctx.reply(T(lang).freeInput.photo(await d.childName(ctx.from!.id)), {
-      reply_markup: await markupForChat(ctx.from!.id, lang),
-    });
+    await replyNudgingButton(ctx, T(lang).freeInput.photo(await d.childName(ctx.from!.id)), lang);
   });
 
   bot.on('message_reaction', async (ctx) => {
@@ -676,12 +686,27 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
     if (ctx.chat?.type !== 'private') return;
     const status = ctx.myChatMember.new_chat_member.status;
+    const parent = await d.parentByTelegramId(ctx.from.id);
     if (status === 'kicked') {
       await d.setBotBlocked(ctx.from.id, true);
+      if (parent?.bot_state === 'active') {
+        await d.broadcastToApp(parent.family_id, 'stop');
+        await pushToFamily(env, parent.family_id, {
+          title: parent.address_form ?? parent.display_name,
+          body: {
+            ru: 'Бот остановлен в Telegram. Напоминаний не будет, пока в чате с ботом не нажать «Запустить».',
+            en: 'The bot was stopped in Telegram. No reminders until “Start” is pressed in the bot chat.',
+          },
+          level: 'active',
+          category: 'SERVICE',
+          parentId: parent.id,
+        });
+      }
       return;
     }
     if (status === 'member') {
       await d.setBotBlocked(ctx.from.id, false);
+      if (parent?.bot_state === 'blocked') await d.broadcastToApp(parent.family_id, 'bound');
     }
   });
 
@@ -693,18 +718,21 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     localDate: string,
   ) => {
     await ctx.answerCallbackQuery();
-    const S = T(await langFor(ctx));
+    const lang = await langFor(ctx);
+    const S = T(lang);
     const marked = await d.medMark(ctx.from!.id, medId, slot, status, localDate);
     await dropButtons(ctx);
     if (!marked) {
       await ctx.reply(S.meds.stale);
       return;
     }
-    await ctx.reply(status === 'taken' ? S.meds.done : S.meds.later);
-    if (status === 'taken') {
-      const parent = await d.parentByTelegramId(ctx.from!.id);
-      if (parent) await d.broadcastToApp(parent.family_id, 'meds');
+    if (status !== 'taken') {
+      await ctx.reply(S.meds.later);
+      return;
     }
+    await replyNudgingButton(ctx, S.meds.done, lang);
+    const parent = await d.parentByTelegramId(ctx.from!.id);
+    if (parent) await d.broadcastToApp(parent.family_id, 'meds');
   };
 
   bot.callbackQuery(/^med:([0-9a-f-]{36}):(\d\d:\d\d):([tp]):(\d{4}-\d\d-\d\d)$/, async (ctx) => {

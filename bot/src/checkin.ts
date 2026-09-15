@@ -1,6 +1,6 @@
 import type { Env } from './index';
 import { pushToFamily, type Push } from './apns';
-import type { InviteNudge } from './db';
+import type { InviteNudge, Signal } from './db';
 import { db } from './db';
 import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
@@ -38,7 +38,37 @@ function inviteNudgePush(nudge: InviteNudge): Push {
   return { title: nudge.name, body, level: 'active', category: 'INVITE', parentId: nudge.parent_id };
 }
 
-function escalationPush(silentDays: number, name: string): Push | null {
+function localClock(iso: string, timezone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false })
+      .format(new Date(iso));
+  } catch {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false })
+      .format(new Date(iso));
+  }
+}
+
+function signalPush(signal: Signal, name: string, timezone: string, parentId: string): Push {
+  const at = localClock(signal.at, timezone);
+  const what = {
+    text: { ru: 'было сообщение', en: 'there was a message' },
+    voice: { ru: 'было голосовое', en: 'a voice note came in' },
+    photo: { ru: 'была фотография', en: 'a photo came in' },
+    med: { ru: 'отмечено лекарство', en: 'a medication was marked' },
+  }[signal.kind];
+  return {
+    title: name,
+    body: {
+      ru: `Кнопка утром не нажата, но в ${at} ${what.ru}. Скорее всего, всё в порядке.`,
+      en: `The morning button wasn’t pressed, but at ${at} ${what.en}. Most likely all is fine.`,
+    },
+    level: 'passive',
+    category: 'ESCALATION',
+    parentId,
+  };
+}
+
+function escalationPush(silentDays: number, name: string, parentId: string): Push | null {
   if (silentDays <= 1) {
     return {
       title: name,
@@ -65,11 +95,12 @@ function escalationPush(silentDays: number, name: string): Push | null {
     return {
       title: name,
       body: {
-        ru: 'Третий день без ответа. Похоже, бот больше не работает: телефон, Telegram или ответы прекратились. Проверьте, а если всё хорошо — поставьте паузу в приложении.',
-        en: 'Third day without a hello. The bot may have stopped working: the phone, Telegram, or the replies just stopped. Check in, and if all is well, pause the reminders in the app.',
+        ru: 'Третий день без ответа. Похоже, бот больше не работает: телефон, Telegram или ответы прекратились. Проверьте, а если всё хорошо и напоминания не нужны — поставьте паузу в профиле.',
+        en: 'Third day without a hello. The bot may have stopped working: the phone, Telegram, or the replies just stopped. Check in, and if all is well and the reminders aren’t needed, pause them in the profile.',
       },
       level: 'active',
-      category: 'ESCALATION',
+      category: 'SERVICE',
+      parentId,
     };
   }
   if (silentDays % 7 === 0) {
@@ -80,7 +111,8 @@ function escalationPush(silentDays: number, name: string): Push | null {
         en: `No hello for ${silentDays} days now.`,
       },
       level: 'passive',
-      category: 'ESCALATION',
+      category: 'SERVICE',
+      parentId,
     };
   }
   return null;
@@ -112,9 +144,10 @@ const COST = {
   evening: 2,
   story: 2,
   digest: 2,
-  nudge: 5,
+  nudge: 6,
   wave: 2,
-  medAlert: 4,
+  medAlert: 7,
+  demo: 6,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -208,9 +241,12 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
     const lang = resolveLang(parent.lang);
     const S = T(lang);
 
-    const silentDays = await d.silentDays(parent.parent_id, parent.local_date);
-    used += 1;
-    const push = escalationPush(silentDays, name);
+    const signal = await d.signal(parent.parent_id, parent.local_date);
+    const silentDays = signal ? 0 : await d.silentDays(parent.parent_id, parent.local_date);
+    used += signal ? 1 : 2;
+    const push = signal
+      ? signalPush(signal, name, parent.tz, parent.parent_id)
+      : escalationPush(silentDays, name, parent.parent_id);
     if (push) {
       const pushed = await pushToFamily(env, parent.family_id, push, COST.escalation - used - 1);
       used += pushed.spent;
@@ -222,9 +258,11 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
 
     if (!flooded) {
       const child = parent.child_display_name || (lang === 'en' ? 'your family' : 'семья');
-      const text = texts[lang].missed?.[0]
-        ? render(texts[lang].missed[0]!, templateVars({ name, child }))
-        : S.missed.afterDeadline(name, parent.child_display_name);
+      const text = signal
+        ? S.missed.afterDeadlineSignal(name, parent.child_display_name)
+        : texts[lang].missed?.[0]
+          ? render(texts[lang].missed[0]!, templateVars({ name, child }))
+          : S.missed.afterDeadline(name, parent.child_display_name);
       try {
         await delivered(await d.send(parent.telegram_user_id, { text, checkinKeyboard: lang }));
         used += 1;
@@ -311,9 +349,8 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
   if (!flooded && budget.afford(1)) {
     for (const alert of await d.medAlertsDue()) {
       if (!budget.afford(COST.medAlert)) break;
-      await d.markMedAlertSent(alert.event_id);
       await d.broadcastToApp(alert.family_id, 'meds');
-      await pushToFamily(
+      const pushed = await pushToFamily(
         env,
         alert.family_id,
         {
@@ -328,6 +365,9 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         },
         COST.medAlert - 2,
       );
+      const settled = pushed.delivered > 0 || pushed.pending === 0;
+      if (settled) await d.markMedAlertSent(alert.event_id);
+      budget.refund(COST.medAlert - 1 - pushed.spent - (settled ? 1 : 0));
     }
   }
 
@@ -448,7 +488,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
 
   if (budget.afford(1)) {
     for (const event of await d.demoTick()) {
-      if (!budget.afford(3)) break;
+      if (!budget.afford(COST.demo)) break;
       if (event.kind === 'checkin') {
         await d.broadcastToApp(event.family_id, 'checkin');
         await pushToFamily(
@@ -462,7 +502,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
             level: 'active',
             category: event.status === 'ok' ? 'CHECKIN_OK' : 'NOT_OK',
           },
-          2,
+          COST.demo - 1,
         );
       } else {
         await d.broadcastToApp(event.family_id, 'detail');
@@ -470,7 +510,7 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
           env,
           event.family_id,
           { title: event.name, body: { ru: 'Пара слов для вас', en: 'A few words for you' }, level: 'active', category: 'MESSAGE' },
-          2,
+          COST.demo - 1,
         );
       }
     }
@@ -479,8 +519,10 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
   if (budget.afford(1)) {
     for (const nudge of await d.inviteNudgesDue()) {
       if (!budget.afford(COST.nudge)) break;
-      await d.markInviteNudge(nudge.parent_id, nudge.stage);
-      await pushToFamily(env, nudge.family_id, inviteNudgePush(nudge), COST.nudge - 1);
+      const pushed = await pushToFamily(env, nudge.family_id, inviteNudgePush(nudge), COST.nudge - 1);
+      const settled = pushed.delivered > 0 || pushed.pending === 0;
+      if (settled) await d.markInviteNudge(nudge.parent_id, nudge.stage);
+      budget.refund(COST.nudge - pushed.spent - (settled ? 1 : 0));
     }
   }
 

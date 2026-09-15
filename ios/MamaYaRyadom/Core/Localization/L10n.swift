@@ -54,6 +54,15 @@ enum L10n {
     static var statusNotOkCallMe: String { String(localized: "status.notOk.callMe", bundle: bundle) }
     static var statusQuietFamilyKnows: String { String(localized: "status.quietFamilyKnows", bundle: bundle) }
     static var statusPaused: String { String(localized: "status.paused", bundle: bundle) }
+    static var statusBlocked: String { String(localized: "status.blocked", bundle: bundle) }
+    static var statusBlockedHint: String { String(localized: "status.blockedHint", bundle: bundle) }
+
+    static func statusQuietSignal(kind: DayStatus.Signal.Kind, time: String) -> String {
+        String(format: dynamic("status.quietSignal.\(kind.rawValue)"), time)
+    }
+
+    static var pushDeniedText: String { String(localized: "push.denied.text", bundle: bundle) }
+    static var pushDeniedButton: String { String(localized: "push.denied.button", bundle: bundle) }
 
     static func statusTodayAt(_ time: String, _ city: String) -> String {
         String(format: String(localized: "status.todayAt", bundle: bundle), time, city)

@@ -72,6 +72,7 @@ targets:
       properties:
         aps-environment: development
         com.apple.developer.applesignin: [Default]
+        com.apple.developer.usernotifications.time-sensitive: true
         com.apple.security.application-groups: [group.family.righthere.app]
 
   MamaWidget:

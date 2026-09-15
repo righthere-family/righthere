@@ -64,9 +64,13 @@ struct TodayStatusCardView: View {
             case .reminded(let date, let deadline):
                 statusTitle(L10n.statusReminded, color: Palette.warn)
                 statusSubtitle("\(time(date)) · \(L10n.statusWaitingUntil(time(deadline)))")
-            case .quiet:
+            case .quiet(_, let signal):
                 statusTitle(L10n.statusQuiet, color: Palette.ink)
-                hint(L10n.statusQuietHint)
+                if let signal {
+                    hint(L10n.statusQuietSignal(kind: signal.kind, time: time(signal.at)))
+                } else {
+                    hint(L10n.statusQuietHint)
+                }
                 Text(L10n.statusQuietFamilyKnows)
                     .font(.system(size: 14))
                     .foregroundStyle(Palette.ink)
@@ -90,6 +94,9 @@ struct TodayStatusCardView: View {
             case .paused(let until, _):
                 statusTitle(L10n.statusPaused, color: Palette.ink)
                 statusSubtitle(L10n.statusPausedUntil(day(until)))
+            case .blocked:
+                statusTitle(L10n.statusBlocked, color: Palette.warn)
+                hint(L10n.statusBlockedHint)
             }
         }
     }

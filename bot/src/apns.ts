@@ -66,9 +66,9 @@ export async function pushToFamily(
   familyId: string,
   push: Push,
   maxSubrequests = Infinity,
-): Promise<{ spent: number; delivered: number }> {
+): Promise<{ spent: number; delivered: number; pending: number }> {
   const jwt = await apnsJWT(env);
-  if (!jwt) return { spent: 0, delivered: 0 };
+  if (!jwt) return { spent: 0, delivered: 0, pending: 0 };
 
   const d = db(env);
   const targets = await d.pushTargets(familyId);
@@ -76,11 +76,10 @@ export async function pushToFamily(
   let reached = 0;
   let delivered = 0;
   for (const target of targets) {
-
-    if (push.level !== 'time-sensitive' && isNight(target.tz)) continue;
-
     if (reached >= MAX_PUSH_DEVICES || spent + 2 > maxSubrequests) break;
     reached += 1;
+
+    const level = push.level !== 'time-sensitive' && isNight(target.tz) ? 'passive' : push.level;
 
     const host =
       target.apns_env === 'sandbox' ? 'api.sandbox.push.apple.com' : 'api.push.apple.com';
@@ -90,7 +89,7 @@ export async function pushToFamily(
         authorization: `bearer ${jwt}`,
         'apns-topic': env.APNS_TOPIC ?? '',
         'apns-push-type': 'alert',
-        'apns-priority': push.level === 'passive' ? '5' : '10',
+        'apns-priority': level === 'passive' ? '5' : '10',
         'apns-expiration': String(Math.floor(Date.now() / 1000) + 4 * 3600),
       },
       body: JSON.stringify({
@@ -104,8 +103,8 @@ export async function pushToFamily(
                   ? push.body.en
                   : push.body.ru,
           },
-          sound: push.level === 'passive' || push.silent ? undefined : 'default',
-          'interruption-level': push.level,
+          sound: level === 'passive' || push.silent ? undefined : 'default',
+          'interruption-level': level,
           category: push.category,
         },
         ...(push.parentId ? { parent_id: push.parentId } : {}),
@@ -137,5 +136,5 @@ export async function pushToFamily(
     await d.logEvent('warn', 'apns', `family ${familyId}: ${targets.length} devices, capped at ${MAX_PUSH_DEVICES}`);
     spent += 1;
   }
-  return { spent, delivered };
+  return { spent, delivered, pending: targets.length - delivered };
 }

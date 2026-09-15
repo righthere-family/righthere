@@ -91,12 +91,18 @@ struct RootView: View {
                     } else {
                         router.familyPath = NavigationPath()
                     }
-                case "INVITE":
-                    router.tab = .family
+                case "INVITE", "SERVICE":
+                    // A service push with a parent attached is about that
+                    // parent's connection; without one it is house news.
                     if let parentId, let id = UUID(uuidString: parentId) {
+                        router.tab = .family
                         router.familyPath = NavigationPath([Route.parentProfile(id)])
-                    } else {
+                    } else if category == "INVITE" {
+                        router.tab = .family
                         router.familyPath = NavigationPath()
+                    } else {
+                        router.tab = .today
+                        router.todayPath = NavigationPath()
                     }
                 default:
                     router.tab = .today

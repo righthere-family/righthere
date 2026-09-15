@@ -5084,6 +5084,40 @@
         }
       }
     },
+    "push.denied.button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включить"
+          }
+        }
+      }
+    },
+    "push.denied.text": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are off, so an alert won’t reach you."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомления выключены — тревога до вас не дойдёт."
+          }
+        }
+      }
+    },
     "restore.hint": {
       "extractionState": "manual",
       "localizations": {
@@ -5645,6 +5679,40 @@
         }
       }
     },
+    "status.blocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bot stopped"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бот остановлен"
+          }
+        }
+      }
+    },
+    "status.blockedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bot was stopped in Telegram, so no reminders arrive. Ask to open the chat with the bot and press “Start”."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бот остановлен в Telegram, напоминания не приходят. Попросите открыть чат с ботом и нажать «Запустить»."
+          }
+        }
+      }
+    },
     "status.cityTime": {
       "extractionState": "manual",
       "localizations": {
@@ -5828,6 +5896,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Весточки сегодня не было. Лучший способ узнать, как дела, — позвонить."
+          }
+        }
+      }
+    },
+    "status.quietSignal.med": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The button wasn’t pressed, but at %1$@ a medication was marked. Most likely all is fine."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка не нажата, но в %1$@ отмечено лекарство. Скорее всего, всё в порядке."
+          }
+        }
+      }
+    },
+    "status.quietSignal.photo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The button wasn’t pressed, but at %1$@ a photo came in. Most likely all is fine."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка не нажата, но в %1$@ была фотография. Скорее всего, всё в порядке."
+          }
+        }
+      }
+    },
+    "status.quietSignal.text": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The button wasn’t pressed, but at %1$@ there was a message. Most likely all is fine."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка не нажата, но в %1$@ было сообщение. Скорее всего, всё в порядке."
+          }
+        }
+      }
+    },
+    "status.quietSignal.voice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The button wasn’t pressed, but at %1$@ a voice note came in. Most likely all is fine."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка не нажата, но в %1$@ было голосовое. Скорее всего, всё в порядке."
           }
         }
       }

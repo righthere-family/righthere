@@ -168,6 +168,9 @@ const ru = {
       `${name}, сегодня вы пока не откликнулись — ничего страшного, всякое бывает: дела, гости, телефон в другой комнате.\n\n` +
       `${child} увидит, что утро прошло без вашего ответа, и, скорее всего, позвонит — просто услышать ваш голос.\n\n` +
       `А кнопки по-прежнему внизу — нажмите, когда будет минутка.`,
+    afterDeadlineSignal: (name: string, child: string) =>
+      `${name}, ваше сообщение я передал — а кнопку сегодня пока не нажали.\n\n` +
+      `Она внизу: одно нажатие, и у ${child} загорится зелёная отметка.`,
     lateCheckin: (name: string, child: string) =>
       `Вот и вы! ${child} сразу увидит, что всё в порядке. Хорошего дня, ${name}!`,
   },
@@ -466,6 +469,9 @@ const en: BotStrings = {
       `${name}, no word from you yet today — that’s all right, life happens: errands, guests, the phone in another room.\n\n` +
       `${child} will see that the morning went by without your hello and will most likely call — just to hear your voice.\n\n` +
       `The buttons are still down below — tap one when you have a minute.`,
+    afterDeadlineSignal: (name: string, child: string) =>
+      `${name}, I passed your message on — but today’s button hasn’t been pressed yet.\n\n` +
+      `It’s right below: one tap, and ${child} sees a green mark.`,
     lateCheckin: (name: string, child: string) =>
       `There you are! ${child} will see right away that everything is fine. Have a lovely day, ${name}!`,
   },
@@ -651,12 +657,12 @@ export const okButtonLabels = [ru.keyboard.ok, en.keyboard.ok] as const;
 export const notOkButtonLabels = [ru.keyboard.notOk, en.keyboard.notOk] as const;
 
 const notOkPatternRu =
-  /((?<!не)плохо|неважно|боле[юе]|нездоров|давлени|температур|(^|\s)не\s+(вс[её]\s+)?(очень|хорошо|нормально|в\s*порядке|отлично))/;
+  /((?<!не)плохо|неважно|боле[юе]|нездоров|давлени|температур|онемел|поскользн|слабост|кружится|головокруж|(^|\s)не\s+(вс[её]\s+)?(очень|хорошо|нормально|в\s*порядке|отлично))/;
 const okPatternRu =
   /(^|[\s,.!—-])(вс[её]\s+)?(хорошо|нормально|отлично|в\s*порядке)(?![а-яё])/;
 
 const notOkPatternEn =
-  /(not\s+((so|too|very|really)\s+)?((feeling|doing)\s+)?((so|too|very|really)\s+)?(good|great|well|fine|okay|ok)\b|unwell|sick\b|poorly|feeling\s+(bad|low|awful|terrible)|blood\s+pressure|dizzy|in\s+pain|it\s+hurts)/;
+  /(not\s+((so|too|very|really)\s+)?((feeling|doing)\s+)?((so|too|very|really)\s+)?(good|great|well|fine|okay|ok)\b|unwell|sick\b|poorly|feeling\s+(bad|low|awful|terrible|weak|faint)|blood\s+pressure|dizzy|light-?headed|numb\b|fell\s+(down|over)|slipped|in\s+pain|it\s+hurts)/;
 
 const okPatternEn =
   /(^|[\s,.!—-])((i['’]?m|i\s+am|doing|feeling)\s+(all\s+|pretty\s+|very\s+)?(good|fine|okay|ok|great|alright|all\s*right|well)|(all\s+)?(good|fine|okay|ok|great|alright|all\s*right))(?![a-z])/;

@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 // MARK: - Today
 
@@ -9,6 +10,7 @@ struct TodayView: View {
     @State private var model = TodayViewModel()
     @State private var postcardTo: Parent?
     @State private var expanded: Set<UUID> = []
+    @State private var isPushDenied = false
 
     var body: some View {
         ScrollView {
@@ -23,6 +25,10 @@ struct TodayView: View {
                 case .waiting(let code):
                     waitingCard(parent: model.parent, code: code, showsRefresh: true)
                 case .ready:
+                    if isPushDenied {
+                        pushDeniedCard
+                        Spacer().frame(height: 14)
+                    }
                     if let upcoming = model.upcomingDate {
                         upcomingDateCard(upcoming)
                         Spacer().frame(height: 14)
@@ -67,6 +73,7 @@ struct TodayView: View {
         .task(id: model.liveEpoch) {
             await model.load(using: dependencies.checkinService)
         }
+        .task { await refreshPushState() }
         .onChange(of: model.liveEpoch) { _, _ in
             router.familyEpoch += 1
         }
@@ -76,11 +83,52 @@ struct TodayView: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             Task { await model.load(using: dependencies.checkinService) }
+            Task { await refreshPushState() }
         }
         .sheet(item: $postcardTo) { member in
             PostcardView(parent: member)
                 .presentationDetents([.medium])
         }
+    }
+
+    // MARK: - Notifications Off
+
+    // The whole product is the alert that arrives; a phone that has turned
+    // notifications off must say so on the first screen, not on the third
+    // silent day.
+    private func refreshPushState() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        isPushDenied = settings.authorizationStatus == .denied
+    }
+
+    private var pushDeniedCard: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 15))
+                .foregroundStyle(Palette.alert)
+            Text(L10n.pushDeniedText)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Palette.ink)
+                .lineSpacing(2)
+            Spacer(minLength: 8)
+            Button {
+                if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                    openURL(url)
+                }
+            } label: {
+                Text(L10n.pushDeniedButton)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Palette.accent, in: .capsule)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 13)
+        .background(Palette.card, in: .rect(cornerRadius: 18))
+        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Loading / Failed

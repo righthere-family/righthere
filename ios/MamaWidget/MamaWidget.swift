@@ -297,6 +297,7 @@ struct MamaWidgetView: View {
         case "quiet": localized("status.quiet")
         case "reminded": localized("status.reminded")
         case "paused": localized("status.paused")
+        case "blocked": localized("status.blocked")
         case "waiting_parent": localized("waiting.title")
         default: localized("status.stillMorning")
         }
@@ -305,7 +306,7 @@ struct MamaWidgetView: View {
     private func statusColor(_ state: String) -> Color {
         switch state {
         case "ok": palette.leaf
-        case "not_ok", "reminded": palette.honey
+        case "not_ok", "reminded", "blocked": palette.honey
         default: palette.ink
         }
     }

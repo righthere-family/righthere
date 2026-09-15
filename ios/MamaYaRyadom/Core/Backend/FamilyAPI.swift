@@ -780,6 +780,12 @@ struct SnapshotPayload: Decodable {
         let deadline: Date?
         let usualBy: Date?
         let until: String?
+        let signal: SignalPayload?
+    }
+
+    struct SignalPayload: Decodable {
+        let kind: String
+        let at: Date
     }
 }
 
@@ -858,12 +864,20 @@ extension SnapshotPayload {
         case "reminded":
             .reminded(at: status.at ?? .now, deadline: status.deadline ?? .now)
         case "quiet":
-            .quiet(since: status.at)
+            .quiet(since: status.at, signal: signalModel)
         case "paused":
             .paused(until: Self.day(status.until) ?? .now, reason: nil)
+        case "blocked":
+            .blocked
         default:
             .stillMorning(usualBy: status.usualBy)
         }
+    }
+
+    private var signalModel: DayStatus.Signal? {
+        guard let signal = status.signal,
+              let kind = DayStatus.Signal.Kind(rawValue: signal.kind) else { return nil }
+        return DayStatus.Signal(kind: kind, at: signal.at)
     }
 
     // The stored city is whatever the family typed — usually Cyrillic. The
