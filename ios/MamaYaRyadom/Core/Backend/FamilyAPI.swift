@@ -506,6 +506,47 @@ struct FamilyAPI: Sendable {
         )
     }
 
+    // A date of nil lifts the pause; a date sets or extends it.
+    func setPause(parentId: UUID, until: Date?) async throws -> Bool {
+        struct Params: Encodable {
+            let pAppToken: String
+            let pParentId: UUID
+            let pUntil: String?
+
+            enum CodingKeys: String, CodingKey {
+                case pAppToken = "p_app_token"
+                case pParentId = "p_parent_id"
+                case pUntil = "p_until"
+            }
+        }
+        return try await call(
+            "app_set_pause",
+            params: Params(
+                pAppToken: AppConfig.familyToken,
+                pParentId: parentId,
+                pUntil: until.map { $0.formatted(.iso8601.year().month().day()) }
+            )
+        )
+    }
+
+    func setArchived(parentId: UUID, archived: Bool) async throws -> Bool {
+        struct Params: Encodable {
+            let pAppToken: String
+            let pParentId: UUID
+            let pArchived: Bool
+
+            enum CodingKeys: String, CodingKey {
+                case pAppToken = "p_app_token"
+                case pParentId = "p_parent_id"
+                case pArchived = "p_archived"
+            }
+        }
+        return try await call(
+            "app_archive_parent",
+            params: Params(pAppToken: AppConfig.familyToken, pParentId: parentId, pArchived: archived)
+        )
+    }
+
     func removeParent(id: UUID) async throws -> Bool {
         struct Params: Encodable {
             let pAppToken: String
@@ -770,6 +811,8 @@ struct SnapshotPayload: Decodable {
         let windowMin: Int
         let eveningTime: String?
         let lang: String?
+        let botState: String?
+        let pausedUntil: String?
     }
 
     struct StatusPayload: Decodable {
@@ -848,8 +891,20 @@ extension SnapshotPayload {
             checkinTime: parent.checkinTime,
             windowMinutes: parent.windowMin,
             eveningTime: parent.eveningTime,
-            botLanguage: parent.lang ?? "ru"
+            botLanguage: parent.lang ?? "ru",
+            reminders: remindersModel
         )
+    }
+
+    private var remindersModel: Parent.Reminders {
+        switch parent.botState {
+        case "archived":
+            .off
+        case "paused":
+            if let until = Self.day(parent.pausedUntil) { .paused(until: until) } else { .on }
+        default:
+            .on
+        }
     }
 
     private var statusModel: DayStatus {
@@ -869,6 +924,8 @@ extension SnapshotPayload {
             .paused(until: Self.day(status.until) ?? .now, reason: nil)
         case "blocked":
             .blocked
+        case "archived":
+            .archived
         default:
             .stillMorning(usualBy: status.usualBy)
         }

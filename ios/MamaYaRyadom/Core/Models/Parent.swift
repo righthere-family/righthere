@@ -15,11 +15,20 @@ struct Parent: Identifiable, Codable, Hashable, Sendable {
     var eveningTime: String?
     // The language the bot speaks to this parent: "ru" or "en".
     var botLanguage: String
+    var reminders: Reminders = .on
 
     enum Kind: String, Codable, Sendable {
         case mom
         case dad
         case custom
+    }
+
+    // Whether the bot writes to this parent at all: paused for a while by
+    // either side, or switched off by the family for good.
+    enum Reminders: Codable, Hashable, Sendable {
+        case on
+        case paused(until: Date)
+        case off
     }
 
     enum Gender: String, Codable, Sendable {

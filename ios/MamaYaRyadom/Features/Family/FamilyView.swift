@@ -48,6 +48,9 @@ struct FamilyView: View {
                 router.unreadMessages = model.unreadMessages
             }
         }
+        .onChange(of: router.liveTick) { _, _ in
+            Task { await model.load(using: dependencies.checkinService) }
+        }
         .sheet(isPresented: $isShowingPaywall) { PaywallSheet() }
     }
 
@@ -357,6 +360,20 @@ final class FamilyViewModel {
         unreadMessages = await UnreadMessages.count()
     }
 
+    private static func statusLine(for member: TodaySnapshot) -> String {
+        if member.isWaitingParent { return L10n.familyMomWaiting }
+        switch member.parent.reminders {
+        case .on:
+            return L10n.familyMomConnected
+        case .paused(let until):
+            var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
+            style.timeZone = .gmt
+            return L10n.statusPaused + " " + L10n.statusPausedUntil(until.formatted(style))
+        case .off:
+            return L10n.statusArchived
+        }
+    }
+
     func load(using service: any CheckinService) async {
         guard let snapshot = try? await service.todaySnapshot() else { return }
         parent = snapshot.parent
@@ -367,8 +384,8 @@ final class FamilyViewModel {
                 id: member.parent.id,
                 kind: member.parent.kind,
                 line: "\(member.parent.displayName) · \(member.parent.cityName)",
-                statusLine: member.isWaitingParent ? L10n.familyMomWaiting : L10n.familyMomConnected,
-                isConnected: !member.isWaitingParent
+                statusLine: Self.statusLine(for: member),
+                isConnected: !member.isWaitingParent && member.parent.reminders == .on
             )
         }
     }

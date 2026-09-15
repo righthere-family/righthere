@@ -10,6 +10,7 @@ enum DayStatus: Equatable, Sendable {
     case notOk(kind: NotOkKind, quote: String?)
     case paused(until: Date, reason: String?)
     case blocked
+    case archived
 }
 
 // MARK: - Signal

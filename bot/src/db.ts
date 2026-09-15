@@ -18,8 +18,9 @@ export type NotOkKind = 'health' | 'mood' | 'just_day' | 'call_me' | 'private';
 
 export interface CheckinResult {
 
-  result: 'ok' | 'upgraded' | 'worsened' | 'duplicate' | 'unknown_parent' | 'failed';
+  result: 'ok' | 'upgraded' | 'worsened' | 'duplicate' | 'unknown_parent' | 'archived' | 'failed';
   was_escalated?: boolean;
+  resumed?: boolean;
   streak?: number;
   milestone?: number | null;
   first?: boolean;
@@ -178,6 +179,14 @@ export interface DueWave {
   author: string;
   gender: string;
   lang: string;
+}
+
+export interface PauseNotice {
+  parent_id: string;
+  telegram_user_id: number;
+  lang: string;
+  kind: 'paused' | 'resumed';
+  until: string | null;
 }
 
 export interface InviteNudge {
@@ -761,9 +770,14 @@ export function db(env: Env) {
       },
     ): Promise<boolean> {
       const update: Record<string, unknown> = {};
-      if (fields.bot_state && ['active', 'paused'].includes(fields.bot_state)) {
+      if (fields.bot_state && ['active', 'paused', 'archived'].includes(fields.bot_state)) {
         update.bot_state = fields.bot_state;
-        if (fields.bot_state === 'active') update.paused_until = null;
+        if (fields.bot_state === 'active') {
+          update.paused_until = null;
+          update.paused_by = null;
+          update.archived_at = null;
+        }
+        if (fields.bot_state === 'archived') update.archived_at = new Date().toISOString();
       }
       if (fields.lang && ['ru', 'en'].includes(fields.lang)) {
         update.lang = fields.lang;
@@ -1148,13 +1162,19 @@ export function db(env: Env) {
       if (!parent) return;
       await must(
         'set-pause',
-        sb
-          .from('parents')
-          .update({ bot_state: 'paused', paused_until: untilLocalDate })
-          .eq('id', parent.id),
+        sb.rpc('parent_pause_set', { p_parent_id: parent.id, p_until: untilLocalDate, p_by: 'parent' }),
       );
+      await best('pause-notice', sb.from('parents').update({ pending_notice: null }).eq('id', parent.id), null);
       forgetParents();
       await this.broadcastToApp(parent.family_id, 'pause');
+    },
+
+    async pauseNoticesDue(): Promise<PauseNotice[]> {
+      return best<PauseNotice[]>('pause-notices', sb.rpc('pause_notices_due'), []);
+    },
+
+    async markPauseNoticeSent(parentId: string) {
+      await best('pause-notice-sent', sb.from('parents').update({ pending_notice: null }).eq('id', parentId), null);
     },
 
     async storeAppleSubscription(

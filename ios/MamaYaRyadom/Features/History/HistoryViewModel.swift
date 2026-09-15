@@ -69,7 +69,12 @@ final class HistoryViewModel {
         return DoctorReportPDF.render(
             parent: parent,
             monthTitle: monthTitle,
-            records: records.filter { if case .upcoming = $0.mark { false } else { true } },
+            records: records.filter { record in
+                switch record.mark {
+                case .upcoming, .off: false
+                default: true
+                }
+            },
             meds: meds
         )
     }
@@ -132,7 +137,7 @@ final class HistoryViewModel {
         guard !isParentWaiting else { return nil }
         let tracked = records.filter { record in
             switch record.mark {
-            case .upcoming: false
+            case .upcoming, .paused, .off: false
             default: true
             }
         }

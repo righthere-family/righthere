@@ -3350,6 +3350,23 @@
         }
       }
     },
+    "history.day.offNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bot didn’t write that day."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этот день бот не писал."
+          }
+        }
+      }
+    },
     "history.day.pausedNote": {
       "extractionState": "manual",
       "localizations": {
@@ -3397,6 +3414,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Он сказал это сам — поэтому день вишнёвый."
+          }
+        }
+      }
+    },
+    "history.legend.paused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pause"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "пауза"
           }
         }
       }
@@ -5118,6 +5152,227 @@
         }
       }
     },
+    "reminders.extendWeek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extend by a week"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продлить на неделю"
+          }
+        }
+      }
+    },
+    "reminders.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напоминания"
+          }
+        }
+      }
+    },
+    "reminders.off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключены"
+          }
+        }
+      }
+    },
+    "reminders.offHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bot goes quiet. History, messages and stories stay, and reminders can be turned back on any time."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бот замолчит. История, сообщения и рассказы останутся, а включить напоминания можно в любой момент."
+          }
+        }
+      }
+    },
+    "reminders.on": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включены"
+          }
+        }
+      }
+    },
+    "reminders.pauseDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause for %lld days"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза на %lld дн."
+          }
+        }
+      }
+    },
+    "reminders.pauseHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "During a pause the bot doesn’t write in the mornings and sends no reminders. The buttons stay: a tap still shows up here."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На паузе бот не пишет по утрам и не напоминает о лекарствах. Кнопки остаются: нажатие всё равно будет видно здесь."
+          }
+        }
+      }
+    },
+    "reminders.pausedUntil": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused until %1$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза до %1$@"
+          }
+        }
+      }
+    },
+    "reminders.resume": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возобновить"
+          }
+        }
+      }
+    },
+    "reminders.stop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop reminding"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Больше не напоминать"
+          }
+        }
+      }
+    },
+    "reminders.stopAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключить"
+          }
+        }
+      }
+    },
+    "reminders.stopConfirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn the reminders off?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключить напоминания?"
+          }
+        }
+      }
+    },
+    "reminders.turnOn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включить снова"
+          }
+        }
+      }
+    },
     "restore.hint": {
       "extractionState": "manual",
       "localizations": {
@@ -5675,6 +5930,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Всё хорошо"
+          }
+        }
+      }
+    },
+    "status.archived": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reminders"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без напоминаний"
+          }
+        }
+      }
+    },
+    "status.archivedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bot is silent. History, messages and stories stay here, and reminders can be turned back on in the profile."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бот молчит. История, сообщения и рассказы остаются здесь, а включить напоминания снова можно в профиле."
           }
         }
       }

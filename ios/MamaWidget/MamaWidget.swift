@@ -298,6 +298,7 @@ struct MamaWidgetView: View {
         case "reminded": localized("status.reminded")
         case "paused": localized("status.paused")
         case "blocked": localized("status.blocked")
+        case "archived": localized("status.archived")
         case "waiting_parent": localized("waiting.title")
         default: localized("status.stillMorning")
         }

@@ -97,6 +97,9 @@ struct TodayStatusCardView: View {
             case .blocked:
                 statusTitle(L10n.statusBlocked, color: Palette.warn)
                 hint(L10n.statusBlockedHint)
+            case .archived:
+                statusTitle(L10n.statusArchived, color: Palette.inkSecondary)
+                hint(L10n.statusArchivedHint)
             }
         }
     }

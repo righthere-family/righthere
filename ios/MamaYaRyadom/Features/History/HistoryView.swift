@@ -322,6 +322,7 @@ struct HistoryView: View {
             legendItem(L10n.statusAllGood) { Circle().fill(Palette.okStrong) }
             legendItem(L10n.historyLegendWords(gender: model.parent.gender)) { RoundedRectangle(cornerRadius: 2).fill(Palette.alert) }
             legendItem(L10n.historyLegendQuiet) { Circle().strokeBorder(Palette.inkSecondary.opacity(0.5), lineWidth: 1.5) }
+            legendItem(L10n.historyLegendPaused) { Capsule().fill(Palette.inkSecondary.opacity(0.6)).frame(width: 9, height: 3) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -378,6 +379,8 @@ private struct DayCell: View {
             Circle().strokeBorder(Palette.inkSecondary.opacity(0.5), lineWidth: 1.5)
         case .paused:
             Capsule().fill(Palette.inkSecondary.opacity(0.6)).frame(width: 9, height: 3)
+        case .off:
+            Capsule().fill(Palette.inkSecondary.opacity(0.3)).frame(width: 9, height: 3)
         case .upcoming:
             Color.clear
         }

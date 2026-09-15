@@ -56,6 +56,8 @@ enum L10n {
     static var statusPaused: String { String(localized: "status.paused", bundle: bundle) }
     static var statusBlocked: String { String(localized: "status.blocked", bundle: bundle) }
     static var statusBlockedHint: String { String(localized: "status.blockedHint", bundle: bundle) }
+    static var statusArchived: String { String(localized: "status.archived", bundle: bundle) }
+    static var statusArchivedHint: String { String(localized: "status.archivedHint", bundle: bundle) }
 
     static func statusQuietSignal(kind: DayStatus.Signal.Kind, time: String) -> String {
         String(format: dynamic("status.quietSignal.\(kind.rawValue)"), time)
@@ -204,6 +206,30 @@ enum L10n {
     static var historyDayNoWord: String { String(localized: "history.day.noWord", bundle: bundle) }
     static var historyDayNoWordNote: String { String(localized: "history.day.noWordNote", bundle: bundle) }
     static var historyDayPausedNote: String { String(localized: "history.day.pausedNote", bundle: bundle) }
+    static var historyDayOffNote: String { String(localized: "history.day.offNote", bundle: bundle) }
+    static var historyLegendPaused: String { String(localized: "history.legend.paused", bundle: bundle) }
+
+    // MARK: Reminders
+
+    static var remindersLabel: String { String(localized: "reminders.label", bundle: bundle) }
+    static var remindersOn: String { String(localized: "reminders.on", bundle: bundle) }
+    static var remindersOff: String { String(localized: "reminders.off", bundle: bundle) }
+    static var remindersPauseHint: String { String(localized: "reminders.pauseHint", bundle: bundle) }
+    static var remindersOffHint: String { String(localized: "reminders.offHint", bundle: bundle) }
+    static var remindersExtendWeek: String { String(localized: "reminders.extendWeek", bundle: bundle) }
+    static var remindersResume: String { String(localized: "reminders.resume", bundle: bundle) }
+    static var remindersTurnOn: String { String(localized: "reminders.turnOn", bundle: bundle) }
+    static var remindersStop: String { String(localized: "reminders.stop", bundle: bundle) }
+    static var remindersStopConfirm: String { String(localized: "reminders.stopConfirm", bundle: bundle) }
+    static var remindersStopAction: String { String(localized: "reminders.stopAction", bundle: bundle) }
+
+    static func remindersPausedUntil(_ date: String) -> String {
+        String(format: String(localized: "reminders.pausedUntil", bundle: bundle), date)
+    }
+
+    static func remindersPauseDays(_ days: Int) -> String {
+        String(format: String(localized: "reminders.pauseDays", bundle: bundle), days)
+    }
 
     // MARK: Family
 

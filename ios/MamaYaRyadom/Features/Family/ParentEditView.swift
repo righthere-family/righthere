@@ -12,6 +12,7 @@ struct ParentEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model = ParentEditViewModel()
     @State private var isConfirmingRemoval = false
+    @State private var isConfirmingArchive = false
 
     var body: some View {
         ScrollView {
@@ -117,6 +118,11 @@ struct ParentEditView: View {
                 }
                 .padding(.top, 22)
 
+                if !model.isWaiting {
+                    remindersRow
+                        .padding(.top, 22)
+                }
+
                 if model.saveFailed {
                     Text(L10n.setupError)
                         .font(.system(size: 13))
@@ -144,6 +150,7 @@ struct ParentEditView: View {
             .padding(.horizontal, 20)
             .padding(.top, 12)
 
+            archiveButton
             removeButton
         }
         .background(Palette.background)
@@ -158,6 +165,67 @@ struct ParentEditView: View {
             if wants {
                 isShowingPaywall = true
                 model.paywallShown()
+            }
+        }
+    }
+
+    // MARK: - Reminders
+
+    // The bot's voice is switched here, not on save: a pause is a decision
+    // made in the moment, and the bot tells mom about it within a minute.
+    private var remindersRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            FormUnderlineValue(label: L10n.remindersLabel, value: model.remindersValue) {
+                switch model.reminders {
+                case .on:
+                    ForEach([1, 3, 7, 30], id: \.self) { days in
+                        Button(L10n.remindersPauseDays(days)) {
+                            Task { await model.pause(days: days) }
+                        }
+                    }
+                case .paused:
+                    Button(L10n.remindersExtendWeek) {
+                        Task { await model.pause(days: 7) }
+                    }
+                    Button(L10n.remindersResume) {
+                        Task { await model.resume() }
+                    }
+                case .off:
+                    Button(L10n.remindersTurnOn) {
+                        Task { _ = await model.setArchived(false) }
+                    }
+                }
+            }
+            .disabled(model.isChangingReminders)
+            Text(model.reminders == .off ? L10n.remindersOffHint : L10n.remindersPauseHint)
+                .font(.system(size: 13))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+        }
+    }
+
+    @ViewBuilder
+    private var archiveButton: some View {
+        if model.reminders != .off {
+            Button {
+                isConfirmingArchive = true
+            } label: {
+                Text(L10n.remindersStop)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Palette.inkSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .padding(.top, 8)
+            .confirmDialog(
+                L10n.remindersStopConfirm,
+                message: L10n.remindersOffHint,
+                actionTitle: L10n.remindersStopAction,
+                isPresented: $isConfirmingArchive
+            ) {
+                Task {
+                    if await model.setArchived(true) { dismiss() }
+                }
             }
         }
     }
@@ -331,9 +399,13 @@ final class ParentEditViewModel {
     private(set) var windowMinutes = 180
     private(set) var windowChanged = false
     private(set) var wantsPaywall = false
+    private(set) var reminders: Parent.Reminders = .on
+    private(set) var isChangingReminders = false
+    private var service: (any CheckinService)?
 
     func load(parentId: UUID?, using service: any CheckinService) async {
         self.parentId = parentId
+        self.service = service
         guard let snapshot = try? await service.todaySnapshot() else { return }
         let member = snapshot.everyone.first { $0.parent.id == parentId } ?? snapshot
         // The last parent cannot be removed, so the button never appears for them.
@@ -351,7 +423,72 @@ final class ParentEditViewModel {
         timezone = member.parent.timezone
         checkinTime = member.parent.checkinTime
         botLang = member.parent.botLanguage
+        reminders = member.parent.reminders
         selectedCity = City.all.first { $0.matches(member.parent.cityName) }
+    }
+
+    // MARK: Reminders
+
+    var remindersValue: String {
+        switch reminders {
+        case .on: L10n.remindersOn
+        case .paused(let until): L10n.remindersPausedUntil(Self.dayText(until))
+        case .off: L10n.remindersOff
+        }
+    }
+
+    // Days are counted on the parent's calendar; the result is a UTC midnight
+    // that formats as the plain date the server expects.
+    func pause(days: Int) async {
+        guard let parentId else { return }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: timezone) ?? .current
+        let parts = calendar.dateComponents([.year, .month, .day], from: .now)
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = .gmt
+        guard let todayUTC = utc.date(from: DateComponents(year: parts.year, month: parts.month, day: parts.day)) else {
+            return
+        }
+        var base = todayUTC
+        if case .paused(let until) = reminders, until > base {
+            base = until
+        }
+        guard let until = utc.date(byAdding: .day, value: days, to: base) else { return }
+        await changeReminders {
+            try await FamilyAPI().setPause(parentId: parentId, until: until)
+        }
+    }
+
+    func resume() async {
+        guard let parentId else { return }
+        await changeReminders {
+            try await FamilyAPI().setPause(parentId: parentId, until: nil)
+        }
+    }
+
+    func setArchived(_ archived: Bool) async -> Bool {
+        guard let parentId else { return false }
+        return await changeReminders {
+            try await FamilyAPI().setArchived(parentId: parentId, archived: archived)
+        }
+    }
+
+    @discardableResult
+    private func changeReminders(_ change: () async throws -> Bool) async -> Bool {
+        guard !isChangingReminders else { return false }
+        isChangingReminders = true
+        defer { isChangingReminders = false }
+        let done = (try? await change()) ?? false
+        if done, let service {
+            await load(parentId: parentId, using: service)
+        }
+        return done
+    }
+
+    private static func dayText(_ date: Date) -> String {
+        var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
+        style.timeZone = .gmt
+        return date.formatted(style)
     }
 
     var inviteURL: URL? {

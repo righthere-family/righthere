@@ -61,6 +61,8 @@ struct TodayCompactCardView: View {
             "\(L10n.statusAllGood) · \(time(date))"
         case .paused(let until, _):
             L10n.statusPausedUntil(day(until))
+        case .archived:
+            L10n.statusArchived
         default:
             state.city
         }

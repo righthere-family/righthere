@@ -183,6 +183,12 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     await ctx.editMessageReplyMarkup().catch(() => undefined);
   };
 
+  const declinedAsArchived = async (ctx: Context, res: CheckinResult, lang: Lang): Promise<boolean> => {
+    if (res.result !== 'archived') return false;
+    await ctx.reply(T(lang).pause.archived, { reply_markup: hideKeyboard });
+    return true;
+  };
+
   const replyNudgingButton = async (ctx: Context, text: string, lang: Lang) => {
     const hasCheckin = await d.hasCheckinToday(ctx.from!.id);
     await ctx.reply(hasCheckin ? text : `${text}\n\n${T(lang).freeInput.keyboardHint}`, {
@@ -388,7 +394,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     const res = !matchesNotOk(lowered) && matchesOk(lowered)
       ? await d.recordCheckin(ctx.from.id, 'ok', 'text')
       : null;
-    const counted = res !== null && res.result !== 'failed' && res.result !== 'duplicate';
+    const counted = res !== null && (res.result === 'ok' || res.result === 'upgraded');
     await ctx.reply(S.words.sent(await d.childName(ctx.from.id)), {
       reply_markup: counted ? hideKeyboard : undefined,
     });
@@ -487,6 +493,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await ctx.reply(S.trouble.checkinFailed, { reply_markup: checkinKeyboard(lang) });
       return;
     }
+    if (await declinedAsArchived(ctx, res, lang)) return;
     if (res.result === 'duplicate') {
       await ctx.reply(S.okRepeatSameDay(name), { reply_markup: hideKeyboard });
       return;
@@ -508,6 +515,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
           : S.milestones[res.milestone]!(name, child)
       }`;
     }
+    if (res.resumed) reply += `\n\n${S.pause.resumed}`;
     await ctx.reply(reply, { reply_markup: hideKeyboard });
     await ringCheckin(res);
     await pushRelief(res, ctx.from!.id);
@@ -523,6 +531,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await ctx.reply(S.trouble.checkinFailed, { reply_markup: checkinKeyboard(lang) });
       return;
     }
+    if (await declinedAsArchived(ctx, res, lang)) return;
     if (res.result === 'duplicate') {
       await ctx.reply(S.notOk.alreadyKnown(await d.childName(ctx.from!.id)), {
         reply_markup: hideKeyboard,
@@ -604,6 +613,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
         await ctx.reply(S.trouble.checkinFailed, { reply_markup: checkinKeyboard(lang) });
         return;
       }
+      if (await declinedAsArchived(ctx, res, lang)) return;
       if (res.result !== 'duplicate') {
         await d.setNotOkDetail(ctx.from!.id, null, ctx.message.text.trim().slice(0, 300));
         await ctx.reply(S.notOk.ask(await d.addressForm(ctx.from!.id)), {
@@ -620,8 +630,12 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
         await ctx.reply(S.trouble.checkinFailed, { reply_markup: checkinKeyboard(lang) });
         return;
       }
+      if (await declinedAsArchived(ctx, res, lang)) return;
       if (res.result !== 'duplicate') {
-        await ctx.reply(S.freeInput.recordedOk, { reply_markup: hideKeyboard });
+        await ctx.reply(
+          res.resumed ? `${S.freeInput.recordedOk}\n\n${S.pause.resumed}` : S.freeInput.recordedOk,
+          { reply_markup: hideKeyboard },
+        );
       } else {
         await ctx.reply(S.okRepeatSameDay(await d.addressForm(ctx.from!.id)), {
           reply_markup: hideKeyboard,
@@ -678,6 +692,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       await ctx.reply(T(lang).trouble.checkinFailed, { reply_markup: checkinKeyboard(lang) });
       return;
     }
+    if (await declinedAsArchived(ctx, res, await langFor(ctx))) return;
     await ringCheckin(res);
     await pushRelief(res, ctx.from!.id);
   });

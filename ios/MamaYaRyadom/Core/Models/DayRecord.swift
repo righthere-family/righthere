@@ -16,5 +16,7 @@ enum DayMark: Equatable, Sendable {
     case notOk(quote: String?)
     case missed
     case paused
+    // Nobody asked that day: the bot was off, blocked, or not yet writing.
+    case off
     case upcoming
 }

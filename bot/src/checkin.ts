@@ -1,6 +1,6 @@
 import type { Env } from './index';
 import { pushToFamily, type Push } from './apns';
-import type { InviteNudge, Signal } from './db';
+import type { InviteNudge, PauseNotice, Signal } from './db';
 import { db } from './db';
 import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
@@ -66,6 +66,13 @@ function signalPush(signal: Signal, name: string, timezone: string, parentId: st
     category: 'ESCALATION',
     parentId,
   };
+}
+
+function pauseNoticeText(notice: PauseNotice): string {
+  const S = T(resolveLang(notice.lang));
+  return notice.kind === 'paused'
+    ? S.pause.byFamily(notice.until ?? '')
+    : S.pause.resumedByFamily;
 }
 
 function escalationPush(silentDays: number, name: string, parentId: string): Push | null {
@@ -148,6 +155,7 @@ const COST = {
   wave: 2,
   medAlert: 7,
   demo: 6,
+  notice: 2,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -389,6 +397,15 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         }
       }
       await delivered(await d.send(card.telegram_user_id, { text: caption }));
+      if (flooded) break;
+    }
+  }
+
+  if (!flooded && budget.afford(1)) {
+    for (const notice of await d.pauseNoticesDue()) {
+      if (!budget.afford(COST.notice)) break;
+      await d.markPauseNoticeSent(notice.parent_id);
+      await delivered(await d.send(notice.telegram_user_id, { text: pauseNoticeText(notice) }));
       if (flooded) break;
     }
   }

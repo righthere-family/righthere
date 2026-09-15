@@ -22,6 +22,8 @@ struct LiveHistoryService: HistoryService {
         case "ok": .allGood(time: day.time ?? "")
         case "not_ok": .notOk(quote: day.quote)
         case "missed": .missed
+        case "paused": .paused
+        case "off": .off
         default: .upcoming
         }
     }

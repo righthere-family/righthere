@@ -361,7 +361,7 @@ const PAGE = `<!doctype html>
   .error { color: #8E3A4C; font-size: 13px; margin-top: 8px; min-height: 18px; }
   .pill { display: inline-block; border-radius: 99px; padding: 1px 9px; font-size: 11px; }
   .pill.active { background: #EAF0E6; color: #3F7A4E; }
-  .pill.paused { background: #F5EEDF; color: #A5751B; }
+  .pill.paused, .pill.archived { background: #F5EEDF; color: #A5751B; }
   .pill.blocked, .pill.stopped { background: #F5E8EA; color: #8E3A4C; }
   .pill.invited, .pill.onboarding { background: #F0EAE0; color: #8C7F6D; }
   .pill.off { background: #F0EAE0; color: #8C7F6D; }
@@ -891,7 +891,7 @@ function renderFamilyDetail(f) {
         sel('Утро', p.id, 'checkin_time', ['07:00','08:00','09:00','10:00','11:00'], p.checkin_time) +
         sel('Вечер', p.id, 'evening_time', ['', '19:00','20:00','21:00','22:00'], p.evening_time || '') +
         sel('Окно', p.id, 'window_min', ['120','180','240'], String(p.window_min)) +
-        sel('Бот', p.id, 'bot_state', ['active','paused'], p.bot_state) +
+        sel('Бот', p.id, 'bot_state', ['active','paused','archived'], p.bot_state) +
         sel('Язык', p.id, 'lang', ['ru','en'], p.lang || 'ru') +
         '<span class="saveflag"></span>' +
       '</div></div>';

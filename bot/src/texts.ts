@@ -221,6 +221,14 @@ const ru = {
     untilReturn: 'вашего возвращения',
     confirmed: (until: string) =>
       `Пауза до ${until}. Вернётесь раньше — просто нажмите «Всё хорошо», и продолжим.`,
+    resumed: `Пауза снята — завтра утром напишу, как обычно.`,
+    byFamily: (until: string) =>
+      `Родные попросили сделать паузу до ${until}: по утрам писать не буду, напоминаний тоже не будет.\n\n` +
+      `Кнопки остаются — нажмёте, и они увидят.`,
+    resumedByFamily: `Родные включили напоминания снова — с завтрашнего утра пишу, как обычно.`,
+    archived:
+      `Напоминания для вас сейчас выключены — так настроили родные. ` +
+      `Если захотите вернуться, попросите их включить напоминания в приложении.`,
   },
 
   beta: {
@@ -522,6 +530,14 @@ const en: BotStrings = {
     untilReturn: 'your return',
     confirmed: (until: string) =>
       `Paused until ${until}. If you’re back sooner — just tap “All good” and we’ll continue.`,
+    resumed: `Pause lifted — tomorrow morning I’ll write as usual.`,
+    byFamily: (until: string) =>
+      `Your family asked for a pause until ${until}: no morning messages and no reminders.\n\n` +
+      `The buttons stay — tap one, and they’ll see.`,
+    resumedByFamily: `Your family turned the reminders back on — from tomorrow morning I’ll write as usual.`,
+    archived:
+      `Reminders are switched off for you — your family set it up that way. ` +
+      `If you’d like to come back, ask them to turn reminders on in the app.`,
   },
 
   beta: {

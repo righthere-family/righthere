@@ -55,7 +55,9 @@ struct TodayView: View {
                                 callButton(for: member)
                                 Spacer().frame(height: 12)
                             }
-                            postcardButton(for: member)
+                            if card.status != .archived {
+                                postcardButton(for: member)
+                            }
                             if member.id != model.parents.last?.id {
                                 Spacer().frame(height: 26)
                             }
@@ -429,7 +431,7 @@ struct TodayView: View {
     private func isCollapsed(_ card: TodayCardState) -> Bool {
         guard hasSeveral, !expanded.contains(card.id) else { return false }
         switch card.status {
-        case .ok, .paused: return true
+        case .ok, .paused, .archived: return true
         default: return false
         }
     }
