@@ -176,7 +176,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
   const hideKeyboard = { remove_keyboard: true } as const;
 
   const dropButtons = async (ctx: Context) => {
-    await dropButtons(ctx);
+    await ctx.editMessageReplyMarkup().catch(() => undefined);
   };
 
   const notOkOptionsKeyboard = (lang: Lang) => {
