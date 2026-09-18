@@ -219,7 +219,9 @@ struct HistoryView: View {
                 ForEach(model.parents) { member in
                     let isSelected = member.id == model.selectedParentId
                     Button {
-                        Task { await model.select(member, using: dependencies.historyService) }
+                        Task {
+                            await model.select(member, using: dependencies.historyService, reloadingTrends: hasPremium)
+                        }
                     } label: {
                         Text(member.displayName)
                             .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
@@ -317,14 +319,31 @@ struct HistoryView: View {
 
     // MARK: - Legend
 
+    // The pause mark is explained only in a month that has one; when four
+    // items do not fit a line, it moves to its own line instead of wrapping.
     private var legend: some View {
-        HStack(spacing: 16) {
-            legendItem(L10n.statusAllGood) { Circle().fill(Palette.okStrong) }
-            legendItem(L10n.historyLegendWords(gender: model.parent.gender)) { RoundedRectangle(cornerRadius: 2).fill(Palette.alert) }
-            legendItem(L10n.historyLegendQuiet) { Circle().strokeBorder(Palette.inkSecondary.opacity(0.5), lineWidth: 1.5) }
-            legendItem(L10n.historyLegendPaused) { Capsule().fill(Palette.inkSecondary.opacity(0.6)).frame(width: 9, height: 3) }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 16) {
+                legendMain
+                if model.hasPausedDays { legendPaused }
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 16) { legendMain }
+                if model.hasPausedDays { legendPaused }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var legendMain: some View {
+        legendItem(L10n.statusAllGood) { Circle().fill(Palette.okStrong) }
+        legendItem(L10n.historyLegendWords(gender: model.parent.gender)) { RoundedRectangle(cornerRadius: 2).fill(Palette.alert) }
+        legendItem(L10n.historyLegendQuiet) { Circle().strokeBorder(Palette.inkSecondary.opacity(0.5), lineWidth: 1.5) }
+    }
+
+    private var legendPaused: some View {
+        legendItem(L10n.historyLegendPaused) { Capsule().fill(Palette.inkSecondary.opacity(0.6)).frame(width: 9, height: 3) }
     }
 
     private func legendItem(_ title: String, @ViewBuilder shape: () -> some View) -> some View {
@@ -333,6 +352,7 @@ struct HistoryView: View {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(Palette.inkSecondary)
+                .fixedSize()
         }
     }
 }

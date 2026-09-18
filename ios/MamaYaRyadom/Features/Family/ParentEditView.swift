@@ -150,6 +150,7 @@ struct ParentEditView: View {
             .padding(.horizontal, 20)
             .padding(.top, 12)
 
+            medsRow
             archiveButton
             removeButton
         }
@@ -201,6 +202,37 @@ struct ParentEditView: View {
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.inkSecondary)
                 .lineSpacing(3)
+        }
+    }
+
+    // MARK: - Medications
+
+    // The profile is where a parent's setup lives, so medications are always
+    // reachable from here, even before the first one exists.
+    @ViewBuilder
+    private var medsRow: some View {
+        if let parentId, !model.isWaiting, model.reminders != .off {
+            NavigationLink(value: Route.medications(parentId)) {
+                HStack(spacing: 12) {
+                    Image(systemName: "pills")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Palette.accentBright)
+                    Text(L10n.todayMedications)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Palette.ink)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Palette.accent.opacity(0.7))
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 14)
+                .background(Palette.card, in: .rect(cornerRadius: 20))
+                .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
         }
     }
 
@@ -432,7 +464,7 @@ final class ParentEditViewModel {
     var remindersValue: String {
         switch reminders {
         case .on: L10n.remindersOn
-        case .paused(let until): L10n.remindersPausedUntil(Self.dayText(until))
+        case .paused(let until): L10n.pauseLine(until)
         case .off: L10n.remindersOff
         }
     }
@@ -483,12 +515,6 @@ final class ParentEditViewModel {
             await load(parentId: parentId, using: service)
         }
         return done
-    }
-
-    private static func dayText(_ date: Date) -> String {
-        var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
-        style.timeZone = .gmt
-        return date.formatted(style)
     }
 
     var inviteURL: URL? {

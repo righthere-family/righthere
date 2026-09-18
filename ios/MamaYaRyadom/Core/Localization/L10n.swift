@@ -82,6 +82,34 @@ enum L10n {
         String(format: String(localized: "status.pausedUntil", bundle: bundle), date)
     }
 
+    // "Until I'm back" in the bot is a ten-year date; nobody should read it.
+    static func pauseIsOpenEnded(_ until: Date) -> Bool {
+        until.timeIntervalSinceNow > 400 * 86_400
+    }
+
+    // The end of a pause under the "Paused" title: a date or "until back".
+    static func pauseEnd(_ until: Date) -> String {
+        if pauseIsOpenEnded(until) {
+            return String(localized: "status.pausedOpenEnded", bundle: bundle)
+        }
+        return statusPausedUntil(pauseDay(until))
+    }
+
+    // A pause as one line where there is no title above it.
+    static func pauseLine(_ until: Date) -> String {
+        if pauseIsOpenEnded(until) {
+            return String(localized: "reminders.pausedOpenEnded", bundle: bundle)
+        }
+        return remindersPausedUntil(pauseDay(until))
+    }
+
+    // Pause dates arrive as plain days and are kept as UTC midnight.
+    private static func pauseDay(_ date: Date) -> String {
+        var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: locale)
+        style.timeZone = .gmt
+        return date.formatted(style)
+    }
+
     static func statusStreak(_ count: Int) -> String {
         String(format: String(localized: "status.streak", bundle: bundle), count)
     }
@@ -97,6 +125,7 @@ enum L10n {
     static var todayTitle: String { String(localized: "today.title", bundle: bundle) }
     static var todayCallMom: String { String(localized: "today.callMom", bundle: bundle) }
     static var todayMedications: String { String(localized: "today.medications", bundle: bundle) }
+    static var todayMedicationsAdd: String { String(localized: "today.medicationsAdd", bundle: bundle) }
 
     static func todayMedicationsTaken(_ taken: Int, _ total: Int) -> String {
         String(format: String(localized: "today.medicationsTaken", bundle: bundle), taken, total)
@@ -277,7 +306,7 @@ enum L10n {
     static var postcardPlaceholder: String { String(localized: "postcard.placeholder", bundle: bundle) }
     static var postcardSend: String { String(localized: "postcard.send", bundle: bundle) }
     static var postcardCancel: String { String(localized: "postcard.cancel", bundle: bundle) }
-    static var postcardHint: String { String(localized: "postcard.hint", bundle: bundle) }
+    static func postcardHint(gender: Parent.Gender) -> String { dynamic("postcard.hint.\(gender.rawValue)") }
     static var postcardSent: String { String(localized: "postcard.sent", bundle: bundle) }
     static var postcardFailed: String { String(localized: "postcard.failed", bundle: bundle) }
 

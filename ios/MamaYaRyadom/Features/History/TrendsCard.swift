@@ -19,14 +19,16 @@ struct TrendsCard: View {
                     .foregroundStyle(Palette.inkSecondary.opacity(0.8))
             }
 
-            if let usual = usualLine {
-                row(icon: "clock", tint: Palette.accentBright) {
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text(usual)
-                            .foregroundStyle(Palette.ink)
-                        if let shift = shiftLine {
-                            Text(shift)
-                                .foregroundStyle(shiftColor)
+            if usualLine != nil || trends?.missed30d != nil {
+                if let usual = usualLine {
+                    row(icon: "clock", tint: Palette.accentBright) {
+                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+                            Text(usual)
+                                .foregroundStyle(Palette.ink)
+                            if let shift = shiftLine {
+                                Text(shift)
+                                    .foregroundStyle(shiftColor)
+                            }
                         }
                     }
                 }

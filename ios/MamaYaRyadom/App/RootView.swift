@@ -65,7 +65,10 @@ struct RootView: View {
             guard UUID(uuidString: token) != nil, !AppConfig.hasFamily else { return }
             AppConfig.storeFamilyToken(token)
             onboardingDone = true
-            Task { await PushRegistrar.requestAndRegister() }
+            Task {
+                await FamilyAPI().joinFamily()
+                await PushRegistrar.requestAndRegister()
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -149,7 +152,10 @@ struct RootView: View {
         }
         // Permission is asked here, past onboarding, when a family exists —
         // the first thing the app says must never be a system dialog.
-        .task { await PushRegistrar.requestAndRegister() }
+        .task {
+            await FamilyAPI().joinFamily()
+            await PushRegistrar.requestAndRegister()
+        }
     }
 
     // MARK: - Destinations

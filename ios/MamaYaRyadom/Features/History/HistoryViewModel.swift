@@ -79,11 +79,27 @@ final class HistoryViewModel {
         )
     }
 
-    func select(_ member: Parent, using service: any HistoryService) async {
+    // Trends belong to one parent like the calendar does; both are fetched
+    // together so the card never shows the previous parent's numbers.
+    func select(_ member: Parent, using service: any HistoryService, reloadingTrends: Bool) async {
         guard selectedParentId != member.id else { return }
         selectedParentId = member.id
         parent = member
+        async let freshTrends = Self.trends(for: member.id, enabled: reloadingTrends)
         await load(using: service)
+        let loaded = await freshTrends
+        if reloadingTrends {
+            trends = loaded
+        }
+    }
+
+    private static func trends(for parentId: UUID, enabled: Bool) async -> TrendsPayload? {
+        guard enabled else { return nil }
+        return try? await FamilyAPI().trends(parentId: parentId)
+    }
+
+    var hasPausedDays: Bool {
+        records.contains { $0.mark == .paused }
     }
 
     func showPreviousMonth(using service: any HistoryService) async {

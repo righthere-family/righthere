@@ -18,7 +18,7 @@ struct PostcardView: View {
                 editor
                 photoRow
                     .padding(.top, 12)
-                Text(L10n.postcardHint)
+                Text(L10n.postcardHint(gender: parent.gender))
                     .font(.system(size: 13))
                     .foregroundStyle(Palette.inkSecondary)
                     .lineSpacing(3)

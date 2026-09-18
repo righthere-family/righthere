@@ -4778,7 +4778,7 @@
         }
       }
     },
-    "postcard.hint": {
+    "postcard.hint.f": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4791,6 +4791,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Придёт ей в Telegram обычным сообщением от бота. Ночью не побеспокоит — дождётся утра."
+          }
+        }
+      }
+    },
+    "postcard.hint.m": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It arrives in his Telegram as a message from the bot. Not at night — it waits until morning."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Придёт ему в Telegram обычным сообщением от бота. Ночью не побеспокоит — дождётся утра."
           }
         }
       }
@@ -5267,6 +5284,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "На паузе бот не пишет по утрам и не напоминает о лекарствах. Кнопки остаются: нажатие всё равно будет видно здесь."
+          }
+        }
+      }
+    },
+    "reminders.pausedOpenEnded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused until they’re back"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза, пока не вернётся"
           }
         }
       }
@@ -6121,6 +6155,23 @@
         }
       }
     },
+    "status.pausedOpenEnded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "until they’re back"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "пока не вернётся"
+          }
+        }
+      }
+    },
     "status.pausedUntil": {
       "extractionState": "manual",
       "localizations": {
@@ -6763,6 +6814,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Лекарства"
+          }
+        }
+      }
+    },
+    "today.medicationsAdd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить"
           }
         }
       }

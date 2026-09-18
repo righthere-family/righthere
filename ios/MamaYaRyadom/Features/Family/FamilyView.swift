@@ -366,9 +366,7 @@ final class FamilyViewModel {
         case .on:
             return L10n.familyMomConnected
         case .paused(let until):
-            var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
-            style.timeZone = .gmt
-            return L10n.statusPaused + " " + L10n.statusPausedUntil(until.formatted(style))
+            return L10n.pauseLine(until)
         case .off:
             return L10n.statusArchived
         }

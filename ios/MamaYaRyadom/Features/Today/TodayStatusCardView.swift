@@ -34,7 +34,7 @@ struct TodayStatusCardView: View {
             
             weekStrip
             
-            if state.medicationsInfo.total > 0 {
+            if state.status != .archived {
                 Spacer().frame(height: 22)
                 medicationsRow
             }
@@ -93,7 +93,7 @@ struct TodayStatusCardView: View {
                 }
             case .paused(let until, _):
                 statusTitle(L10n.statusPaused, color: Palette.ink)
-                statusSubtitle(L10n.statusPausedUntil(day(until)))
+                statusSubtitle(L10n.pauseEnd(until))
             case .blocked:
                 statusTitle(L10n.statusBlocked, color: Palette.warn)
                 hint(L10n.statusBlockedHint)
@@ -143,11 +143,6 @@ struct TodayStatusCardView: View {
         return date.formatted(style)
     }
     
-    private func day(_ date: Date) -> String {
-        var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
-        style.timeZone = .gmt
-        return date.formatted(style)
-    }
     
     // MARK: - Week
     
@@ -211,11 +206,17 @@ struct TodayStatusCardView: View {
                     .fontWeight(.medium)
                 Spacer()
                 let medicationsInfo = state.medicationsInfo
-                let todayTaken = L10n.todayMedicationsTaken(medicationsInfo.taken, medicationsInfo.total)
-                let color = medicationsInfo.taken >= medicationsInfo.total ? Palette.okStrong : Palette.warn
-                Text(todayTaken)
-                    .foregroundStyle(color)
-                    .fontWeight(.semibold)
+                // With nothing scheduled the row is the way in, not a score.
+                if medicationsInfo.total == 0 {
+                    Text(L10n.todayMedicationsAdd)
+                        .foregroundStyle(Palette.accent)
+                } else {
+                    let todayTaken = L10n.todayMedicationsTaken(medicationsInfo.taken, medicationsInfo.total)
+                    let color = medicationsInfo.taken >= medicationsInfo.total ? Palette.okStrong : Palette.warn
+                    Text(todayTaken)
+                        .foregroundStyle(color)
+                        .fontWeight(.semibold)
+                }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Palette.accent.opacity(0.7))

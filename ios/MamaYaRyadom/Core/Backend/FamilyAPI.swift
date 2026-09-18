@@ -255,7 +255,8 @@ struct FamilyAPI: Sendable {
     }
 
     func sendPostcard(parentId: UUID, body: String, photoPath: String? = nil) async throws -> Bool {
-        try await call(
+        await ensureSession()
+        return try await call(
             "app_send_postcard",
             params: PostcardParams(
                 pAppToken: AppConfig.familyToken,
@@ -458,6 +459,27 @@ struct FamilyAPI: Sendable {
         if client.auth.currentSession == nil {
             try? await client.auth.signInAnonymously()
         }
+    }
+
+    // A device holding the family token belongs to the family. Membership
+    // used to arrive only with a push token, so a phone with notifications
+    // off could read everything and still not sign a postcard.
+    func joinFamily() async {
+        guard AppConfig.hasFamily else { return }
+        await ensureSession()
+        struct Params: Encodable {
+            let pAppToken: String
+            let pTimezone: String
+
+            enum CodingKeys: String, CodingKey {
+                case pAppToken = "p_app_token"
+                case pTimezone = "p_timezone"
+            }
+        }
+        let _: String? = try? await call(
+            "app_join_family",
+            params: Params(pAppToken: AppConfig.familyToken, pTimezone: TimeZone.current.identifier)
+        )
     }
 
     func myRole() async throws -> String? {

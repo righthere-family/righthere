@@ -60,7 +60,7 @@ struct TodayCompactCardView: View {
         case .ok(let date):
             "\(L10n.statusAllGood) · \(time(date))"
         case .paused(let until, _):
-            L10n.statusPausedUntil(day(until))
+            L10n.pauseLine(until)
         case .archived:
             L10n.statusArchived
         default:
@@ -70,14 +70,6 @@ struct TodayCompactCardView: View {
 
     private func time(_ date: Date) -> String {
         var style = Date.FormatStyle(date: .omitted, time: .shortened, locale: L10n.locale)
-        if let zone = TimeZone(identifier: state.timezone) {
-            style.timeZone = zone
-        }
-        return date.formatted(style)
-    }
-
-    private func day(_ date: Date) -> String {
-        var style = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: L10n.locale)
         if let zone = TimeZone(identifier: state.timezone) {
             style.timeZone = zone
         }
