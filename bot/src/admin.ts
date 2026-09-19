@@ -33,8 +33,11 @@ export async function handleAdmin(req: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (!env.ADMIN_MAIL || !env.ADMIN_EMAIL) {
-    return new Response('ADMIN_EMAIL is not configured', { status: 503 });
+  const mail = env.ADMIN_MAIL && env.ADMIN_EMAIL ? { sender: env.ADMIN_MAIL, to: env.ADMIN_EMAIL } : null;
+  const adminChat = Number(env.ADMIN_TELEGRAM_ID ?? '');
+  const telegram = Number.isFinite(adminChat) && adminChat > 0 && !!env.TELEGRAM_BOT_TOKEN;
+  if (!mail && !telegram) {
+    return new Response('no admin channel is configured', { status: 503 });
   }
 
   const secret = env.TELEGRAM_WEBHOOK_SECRET;
@@ -56,22 +59,47 @@ export async function handleAdmin(req: Request, env: Env): Promise<Response> {
     if (!issued.code) {
       return json({ error: 'too soon', retry_after: issued.retryAfterSec }, 429);
     }
-    try {
-      await env.ADMIN_MAIL.send({
-        to: env.ADMIN_EMAIL,
-        from: 'no-reply@righthere.family',
-        subject: 'Код для входа в админку «Мама, я рядом»',
-        text:
-          `Код: ${issued.code}\n\n` +
-          'Он действует 10 минут и срабатывает один раз.\n\n' +
-          'Если код запрашивали не вы — значит кто-то знает адрес панели. ' +
-          'Сам по себе код ему ничего не даёт, но ключ администратора стоит сменить.',
-      });
-    } catch (err) {
-      await db(env).logEvent('error', 'admin-otp', String(err).slice(0, 200));
+    const d = db(env);
+    const code = issued.code;
+    const [mailed, messaged] = await Promise.all([
+      mail
+        ? mail.sender
+            .send({
+              to: mail.to,
+              from: 'no-reply@righthere.family',
+              subject: 'Код для входа в админку «Мама, я рядом»',
+              text:
+                `Код: ${code}\n\n` +
+                'Он действует 10 минут и срабатывает один раз.\n\n' +
+                'Если код запрашивали не вы — значит кто-то знает адрес панели. ' +
+                'Сам по себе код ему ничего не даёт, но ключ администратора стоит сменить.',
+            })
+            .then(
+              () => true,
+              async (err: unknown) => {
+                await d.logEvent('error', 'admin-otp', `mail: ${String(err).slice(0, 200)}`);
+                return false;
+              },
+            )
+        : Promise.resolve(false),
+      telegram
+        ? tgCall(env.TELEGRAM_BOT_TOKEN, 'sendMessage', {
+            chat_id: adminChat,
+            parse_mode: 'HTML',
+            text:
+              `Код для входа в админку: <code>${code}</code>\n\n` +
+              'Действует 10 минут и срабатывает один раз. Нажми на код, чтобы скопировать.',
+          }).then(async (outcome) => {
+            if (outcome.kind === 'ok') return true;
+            await d.logEvent('error', 'admin-otp', `telegram: ${outcome.kind}`);
+            return false;
+          })
+        : Promise.resolve(false),
+    ]);
+    if (!mailed && !messaged) {
       return json({ error: 'could not send' }, 502);
     }
-    return json({ ok: true });
+    return json({ ok: true, via: [...(messaged ? ['telegram'] : []), ...(mailed ? ['mail'] : [])] });
   }
 
   if (url.pathname === '/admin/otp/verify' && req.method === 'POST') {
@@ -419,14 +447,14 @@ const PAGE = `<!doctype html>
     <h1>Мама, я рядом</h1>
     <div class="card loginCard">
       <div id="askStep">
-        <p class="lead">Пришлём одноразовый код на почту администратора.</p>
+        <p class="lead">Пришлём одноразовый код в Telegram и на почту администратора.</p>
         <button class="wide" onclick="requestCode(this)">Прислать код</button>
       </div>
 
       <div id="codeStep" hidden>
-        <p class="lead">Код отправлен на почту. Он действует 10 минут.</p>
+        <p class="lead" id="sentLead">Код отправлен. Он действует 10 минут.</p>
         <input id="code" class="codeInput" inputmode="numeric" autocomplete="one-time-code"
-               maxlength="6" aria-label="Код из письма"
+               maxlength="6" aria-label="Код для входа"
                oninput="onCodeInput()" onkeydown="if(event.key==='Enter')submitCode()">
         <button class="wide" onclick="submitCode()">Войти</button>
         <button class="linkish" onclick="requestCode(this)">Прислать ещё раз</button>
@@ -568,17 +596,21 @@ async function requestCode(button) {
     if (res.status === 429) {
       hint('код уже отправлен — следующий можно через ' + (data.retry_after || 60) + ' с', true);
     } else if (res.status === 503) {
-      hint('почта не настроена — задайте ADMIN_EMAIL', true);
+      hint('не настроены ни почта, ни Telegram — задайте ADMIN_EMAIL или ADMIN_TELEGRAM_ID', true);
     } else if (!res.ok) {
-      hint('не удалось отправить письмо', true);
+      hint('не удалось отправить код', true);
     } else {
+      const via = data.via || [];
+      const where = via.includes('telegram') && via.includes('mail') ? 'в Telegram и на почту'
+        : via.includes('telegram') ? 'в Telegram' : 'на почту';
+      document.getElementById('sentLead').textContent = 'Код отправлен ' + where + '. Он действует 10 минут.';
       document.getElementById('askStep').hidden = true;
       document.getElementById('codeStep').hidden = false;
       hint('');
       document.getElementById('code').focus();
     }
   } catch (e) {
-    hint('не удалось отправить письмо', true);
+    hint('не удалось отправить код', true);
   }
   setTimeout(() => { button.disabled = false; }, 60000);
 }
@@ -705,7 +737,7 @@ async function boot() {
     await loadTexts();
   } catch (e) {
     document.documentElement.className = '';
-    if (e.message === '503') hint('почта не настроена — задайте ADMIN_EMAIL', true);
+    if (e.message === '503') hint('не настроены ни почта, ни Telegram — задайте ADMIN_EMAIL или ADMIN_TELEGRAM_ID', true);
     else if (e.message !== '403') hint('ошибка: ' + e.message, true);
   }
 }
