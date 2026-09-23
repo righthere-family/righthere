@@ -36,4 +36,11 @@ enum SharedStore {
         get { defaults?.string(forKey: "appLanguage") ?? "" }
         set { defaults?.set(newValue, forKey: "appLanguage") }
     }
+
+    // The in-app light/dark choice ("" = follow the system), for the same
+    // reason: a dark app next to a light widget looks like a different product.
+    static var appTheme: String {
+        get { defaults?.string(forKey: "appTheme") ?? "" }
+        set { defaults?.set(newValue, forKey: "appTheme") }
+    }
 }

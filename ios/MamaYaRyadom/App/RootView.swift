@@ -50,6 +50,10 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.4), value: onboardingDone)
         .preferredColorScheme(preferredScheme)
+        .onChange(of: appTheme) { _, newValue in
+            SharedStore.appTheme = newValue
+            WidgetCenter.shared.reloadAllTimelines()
+        }
         .onChange(of: appLanguage) { _, newValue in
             // The widget lives in another process: hand it the choice through
             // the app group and ask it to redraw in the new language.
@@ -153,6 +157,10 @@ struct RootView: View {
         // Permission is asked here, past onboarding, when a family exists —
         // the first thing the app says must never be a system dialog.
         .task {
+            if SharedStore.appTheme != appTheme {
+                SharedStore.appTheme = appTheme
+                WidgetCenter.shared.reloadAllTimelines()
+            }
             await FamilyAPI().joinFamily()
             await PushRegistrar.requestAndRegister()
         }

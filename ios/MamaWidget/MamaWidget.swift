@@ -116,7 +116,17 @@ struct MamaWidgetView: View {
     @Environment(\.colorScheme) private var scheme
     var entry: MamaEntry
 
-    private var palette: WidgetPalette { WidgetPalette(dark: scheme == .dark) }
+    // The app pins its own appearance, so the widget follows that choice and
+    // falls back to the system only when the app follows it too.
+    private var palette: WidgetPalette { WidgetPalette(dark: isDark) }
+
+    private var isDark: Bool {
+        switch SharedStore.appTheme {
+        case "dark": true
+        case "light": false
+        default: scheme == .dark
+        }
+    }
     private var compact: Bool { family == .systemSmall }
 
     var body: some View {
