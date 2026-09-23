@@ -3,8 +3,22 @@ import SwiftUI
 // MARK: - Brand Mark
 
 struct BrandMark: View {
-    private let ink = Color(red: 0x33 / 255, green: 0x29 / 255, blue: 0x1F / 255)
-    private let honey = Color(red: 0xB8 / 255, green: 0x79 / 255, blue: 0x1A / 255)
+    // The mark lives in the navigation bar of both themes. Its colours were
+    // pinned to the light palette, so at night the arc and the child's dot
+    // sank into the background and only the sun was left.
+    @Environment(\.colorScheme) private var scheme
+
+    private var ink: Color { scheme == .dark ? hex(0xE8E6E1) : hex(0x33291F) }
+    private var honey: Color { scheme == .dark ? hex(0xD9B268) : hex(0xB8791A) }
+    private var arcOpacity: Double { scheme == .dark ? 0.55 : 0.4 }
+
+    private func hex(_ value: UInt32) -> Color {
+        Color(
+            red: Double((value >> 16) & 0xFF) / 255,
+            green: Double((value >> 8) & 0xFF) / 255,
+            blue: Double(value & 0xFF) / 255
+        )
+    }
 
     var body: some View {
         Canvas { context, size in
@@ -17,7 +31,7 @@ struct BrandMark: View {
             arc.addArc(center: center, radius: radius, startAngle: start, endAngle: end, clockwise: false)
             context.stroke(
                 arc,
-                with: .color(ink.opacity(0.4)),
+                with: .color(ink.opacity(arcOpacity)),
                 style: StrokeStyle(lineWidth: 2.1, lineCap: .round, dash: [0.1, 4.8])
             )
 

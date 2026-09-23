@@ -90,7 +90,7 @@ struct HistoryView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     private var calendarCard: some View {
@@ -120,7 +120,7 @@ struct HistoryView: View {
                 .padding(.top, 18)
                 .padding(.bottom, 20)
                 .background(Palette.card, in: .rect(cornerRadius: 24))
-                .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+                .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
                 .animation(.easeOut(duration: 0.25), value: model.isLoading)
 
                 if !model.isParentWaiting {
@@ -202,7 +202,7 @@ struct HistoryView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
             .background(Palette.card, in: .rect(cornerRadius: 18))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
         .sheet(item: $reportURL) { url in

@@ -93,7 +93,7 @@ struct MessagesView: View {
             RoundedRectangle(cornerRadius: 18)
                 .stroke(Palette.accentBright.opacity(isFresh(message) ? 0.45 : 0), lineWidth: 1)
         }
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         .animation(.easeOut(duration: 0.7), value: faded)
         .onAppear {
             guard isFresh(message) else { return }

@@ -85,7 +85,7 @@ struct FamilyView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
             .background(Palette.card, in: .rect(cornerRadius: 20))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -121,7 +121,7 @@ struct FamilyView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     private func step(_ number: Int, _ text: String) -> some View {
@@ -157,7 +157,7 @@ struct FamilyView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         .skeleton()
     }
 
@@ -184,7 +184,7 @@ struct FamilyView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 15)
             .background(Palette.card, in: .rect(cornerRadius: 20))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -223,7 +223,7 @@ struct FamilyView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
             .background(Palette.card, in: .rect(cornerRadius: 20))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -256,7 +256,7 @@ struct FamilyView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
             .background(Palette.card, in: .rect(cornerRadius: 20))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -289,7 +289,7 @@ struct FamilyView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
             .background(Palette.card, in: .rect(cornerRadius: 20))
-            .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+            .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -322,7 +322,7 @@ struct FamilyView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Subscription

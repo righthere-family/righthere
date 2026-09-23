@@ -130,7 +130,7 @@ struct TodayView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 13)
         .background(Palette.card, in: .rect(cornerRadius: 18))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Loading / Failed
@@ -159,7 +159,7 @@ struct TodayView: View {
         .padding(.vertical, 40)
         .padding(.horizontal, 22)
         .background(Palette.card, in: .rect(cornerRadius: 24))
-        .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+        .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
     }
 
     // MARK: - Setup Card
@@ -289,7 +289,7 @@ struct TodayView: View {
         .padding(.horizontal, 22)
         .padding(.vertical, 22)
         .background(Palette.card, in: .rect(cornerRadius: 24))
-        .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+        .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
     }
 
     private func fieldLabel(_ text: String) -> some View {
@@ -373,7 +373,7 @@ struct TodayView: View {
         .padding(.horizontal, 22)
         .padding(.vertical, 22)
         .background(Palette.card, in: .rect(cornerRadius: 24))
-        .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+        .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
     }
 
     // MARK: - Header
@@ -393,7 +393,7 @@ struct TodayView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 13)
         .background(Palette.card, in: .rect(cornerRadius: 18))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     private func upcomingLine(_ upcoming: TodaySnapshot.UpcomingDate) -> String {

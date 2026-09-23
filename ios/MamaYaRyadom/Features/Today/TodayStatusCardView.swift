@@ -44,7 +44,7 @@ struct TodayStatusCardView: View {
         .padding(.top, 20)
         .padding(.bottom, 24)
         .background(Palette.card, in: .rect(cornerRadius: 24))
-        .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+        .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
         .animation(.snappy, value: state.status)
     }
     

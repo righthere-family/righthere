@@ -84,7 +84,7 @@ struct PostcardView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Photo

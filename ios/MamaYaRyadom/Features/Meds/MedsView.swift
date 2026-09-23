@@ -158,7 +158,7 @@ struct MedsView: View {
                     lineWidth: 1.4
                 )
         )
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     // MARK: - Add
@@ -240,7 +240,7 @@ struct MedsView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 18)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 }
 

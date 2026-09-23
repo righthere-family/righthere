@@ -76,7 +76,7 @@ struct ConfirmDialog: ViewModifier {
         .padding(.bottom, 20)
         .frame(maxWidth: .infinity)
         .background(Palette.card, in: .rect(cornerRadius: 26))
-        .shadow(color: Palette.ink.opacity(0.16), radius: 26, y: -6)
+        .shadow(color: Palette.shade.opacity(0.16), radius: 26, y: -6)
         .padding(.horizontal, 12)
         .padding(.bottom, 12)
     }

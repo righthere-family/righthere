@@ -358,7 +358,7 @@ private struct MomPhone: View {
             RoundedRectangle(cornerRadius: 24)
                 .strokeBorder(Palette.ink.opacity(0.08), lineWidth: 1)
         )
-        .shadow(color: Palette.ink.opacity(0.12), radius: 16, y: 7)
+        .shadow(color: Palette.shade.opacity(0.12), radius: 16, y: 7)
     }
 }
 
@@ -384,7 +384,7 @@ private struct ChildPhone: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(Palette.card.opacity(0.5))
         )
-        .shadow(color: Palette.ink.opacity(0.12), radius: 16, y: 7)
+        .shadow(color: Palette.shade.opacity(0.12), radius: 16, y: 7)
         .opacity(step >= 2 ? 1 : 0)
         .scaleEffect(step >= 2 ? 1 : 0.7, anchor: .bottom)
         .animation(.spring(duration: 0.55, bounce: 0.25).delay(step >= 2 && !leaving ? 1.05 : 0), value: step)
@@ -429,7 +429,7 @@ private struct ChildPhone: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.card, in: .rect(cornerRadius: 16))
-        .shadow(color: Palette.ink.opacity(0.07), radius: 8, y: 3)
+        .shadow(color: Palette.shade.opacity(0.07), radius: 8, y: 3)
     }
 
     private static let apps: [(symbol: String, tint: Color)] = [

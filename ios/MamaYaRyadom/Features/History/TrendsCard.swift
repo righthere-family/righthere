@@ -53,7 +53,7 @@ struct TrendsCard: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
         .background(Palette.card, in: .rect(cornerRadius: 20))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     private func row(icon: String, tint: Color, @ViewBuilder content: () -> some View) -> some View {

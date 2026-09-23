@@ -84,7 +84,7 @@ struct AddParentView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .background(Palette.card, in: .rect(cornerRadius: 22))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
     private var kindPicker: some View {
@@ -177,7 +177,7 @@ struct AddParentView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .background(Palette.card, in: .rect(cornerRadius: 22))
-        .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
     }
 
 }

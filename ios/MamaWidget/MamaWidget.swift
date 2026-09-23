@@ -33,16 +33,16 @@ private struct WidgetPalette {
         )
     }
 
-    var ink: Color { pick(0x33291F, 0xEDE6D8) }
-    var inkSecondary: Color { pick(0x7A6F62, 0xA99C8B) }
-    var background: Color { pick(0xF5F0E7, 0x1E1913) }
-    var backgroundLift: Color { pick(0xFFFCF5, 0x272119) }
-    var card: Color { pick(0xFFFFFF, 0x2A241C) }
+    var ink: Color { pick(0x33291F, 0xE8E6E1) }
+    var inkSecondary: Color { pick(0x7A6F62, 0x9BA0A8) }
+    var background: Color { pick(0xF5F0E7, 0x0F1115) }
+    var backgroundLift: Color { pick(0xFFFCF5, 0x181C22) }
+    var card: Color { pick(0xFFFFFF, 0x20242C) }
     var leaf: Color { pick(0x3F7A4E, 0x6FA97E) }
     var honey: Color { pick(0x9A6410, 0xC99B3F) }
     var honeyBright: Color { pick(0xB8791A, 0xD9B268) }
-    var cherry: Color { pick(0x8E3A4C, 0xC4818E) }
-    var hairline: Color { pick(0xE2D9C7, 0x3A3128) }
+    var cherry: Color { pick(0x8E3A4C, 0xCF7E79) }
+    var hairline: Color { pick(0xE2D9C7, 0x2B313A) }
 }
 
 // MARK: - Entry

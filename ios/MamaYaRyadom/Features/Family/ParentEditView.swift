@@ -146,7 +146,7 @@ struct ParentEditView: View {
             .padding(.horizontal, 22)
             .padding(.vertical, 20)
             .background(Palette.card, in: .rect(cornerRadius: 24))
-            .shadow(color: Palette.ink.opacity(0.05), radius: 16, y: 6)
+            .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
             .padding(.horizontal, 20)
             .padding(.top, 12)
 
@@ -228,7 +228,7 @@ struct ParentEditView: View {
                 .padding(.horizontal, 18)
                 .padding(.vertical, 14)
                 .background(Palette.card, in: .rect(cornerRadius: 20))
-                .shadow(color: Palette.ink.opacity(0.04), radius: 10, y: 4)
+                .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
