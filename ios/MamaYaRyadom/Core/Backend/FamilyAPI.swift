@@ -496,6 +496,24 @@ struct FamilyAPI: Sendable {
         try? await call("family_entitlement", params: ["p_app_token": AppConfig.familyToken])
     }
 
+    // One call is enough for the whole family: the rest get a quiet note
+    // instead of dialling the same number.
+    func reached(parentId: UUID) async throws -> Bool {
+        await ensureSession()
+        return try await call(
+            "app_reached",
+            params: ["p_app_token": AppConfig.familyToken, "p_parent_id": parentId.uuidString.lowercased()]
+        )
+    }
+
+    func setMyName(_ name: String) async throws -> Bool {
+        await ensureSession()
+        return try await call(
+            "app_set_my_name",
+            params: ["p_app_token": AppConfig.familyToken, "p_name": name]
+        )
+    }
+
     func wave(parentId: UUID) async throws -> Bool {
         await ensureSession()
         return try await call(
@@ -804,7 +822,19 @@ struct SnapshotPayload: Decodable {
     let meds: MedsPayload?
     let parents: [SnapshotPayload]?
     let evening: EveningPayload?
+    let reached: ReachedPayload?
+    let me: MePayload?
     let upcomingDate: UpcomingDatePayload?
+
+    struct ReachedPayload: Decodable {
+        let name: String
+        let at: Date
+        let mine: Bool?
+    }
+
+    struct MePayload: Decodable {
+        let name: String
+    }
 
     struct UpcomingDatePayload: Decodable {
         let title: String
@@ -874,6 +904,7 @@ extension SnapshotPayload {
         // everyone else: older builds read the top level and never look here.
         let others = (parents ?? []).dropFirst().map(\.selfModel)
         var model = selfModel.withOthers(others)
+        model.myName = me?.name
         if let upcomingDate {
             model.upcomingDate = TodaySnapshot.UpcomingDate(
                 title: upcomingDate.title,
@@ -881,6 +912,11 @@ extension SnapshotPayload {
             )
         }
         return model
+    }
+
+    private var reachedModel: TodaySnapshot.Reached? {
+        guard let reached else { return nil }
+        return TodaySnapshot.Reached(name: reached.name, at: reached.at, mine: reached.mine ?? false)
     }
 
     private var eveningModel: TodaySnapshot.Evening? {
@@ -897,7 +933,8 @@ extension SnapshotPayload {
             inviteCode: inviteCode,
             medsTaken: meds?.taken ?? 0,
             medsTotal: meds?.total ?? 0,
-            evening: eveningModel
+            evening: eveningModel,
+            reached: reachedModel
         )
     }
 

@@ -1,6 +1,6 @@
 import type { Env } from './index';
 import { pushToFamily, type Push } from './apns';
-import type { InviteNudge, PauseNotice, Signal } from './db';
+import type { DueReach, InviteNudge, PauseNotice, Signal } from './db';
 import { db } from './db';
 import type { Delivery } from './channels';
 import { T, render, resolveLang, templateVars, type Lang } from './texts';
@@ -65,6 +65,20 @@ function signalPush(signal: Signal, name: string, timezone: string, parentId: st
     level: 'passive',
     category: 'ESCALATION',
     parentId,
+  };
+}
+
+function reachedPush(reach: DueReach): Push {
+  const daughter = reach.gender === 'daughter';
+  return {
+    title: reach.parent_name,
+    body: {
+      ru: T('ru').reached(reach.author, daughter, reach.parent_name),
+      en: T('en').reached(reach.author, daughter, reach.parent_name),
+    },
+    level: 'active',
+    category: 'SERVICE',
+    parentId: reach.parent_id,
   };
 }
 
@@ -156,6 +170,7 @@ const COST = {
   medAlert: 7,
   demo: 6,
   notice: 2,
+  reach: 5,
 };
 
 const FLOOD_STAMP = 'telegram/not-before';
@@ -407,6 +422,16 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
       await d.markPauseNoticeSent(notice.parent_id);
       await delivered(await d.send(notice.telegram_user_id, { text: pauseNoticeText(notice) }));
       if (flooded) break;
+    }
+  }
+
+  if (budget.afford(1)) {
+    for (const reach of await d.reachesDue()) {
+      if (!budget.afford(COST.reach)) break;
+      const pushed = await pushToFamily(env, reach.family_id, reachedPush(reach), COST.reach - 1, reach.member_id);
+      const settled = pushed.delivered > 0 || pushed.pending === 0;
+      if (settled) await d.markReachSent(reach.reach_id);
+      budget.refund(COST.reach - pushed.spent - (settled ? 1 : 0));
     }
   }
 

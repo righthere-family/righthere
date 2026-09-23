@@ -66,12 +66,14 @@ export async function pushToFamily(
   familyId: string,
   push: Push,
   maxSubrequests = Infinity,
+  exceptUserId?: string,
 ): Promise<{ spent: number; delivered: number; pending: number }> {
   const jwt = await apnsJWT(env);
   if (!jwt) return { spent: 0, delivered: 0, pending: 0 };
 
   const d = db(env);
-  const targets = await d.pushTargets(familyId);
+  const all = await d.pushTargets(familyId);
+  const targets = exceptUserId ? all.filter((target) => target.user_id !== exceptUserId) : all;
   let spent = 1;
   let reached = 0;
   let delivered = 0;

@@ -4965,6 +4965,40 @@
         }
       }
     },
+    "postcard.signature": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to sign it"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Как подписать"
+          }
+        }
+      }
+    },
+    "postcard.signaturePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your name"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваше имя"
+          }
+        }
+      }
+    },
     "postcard.title": {
       "extractionState": "manual",
       "localizations": {
@@ -5199,6 +5233,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Уведомления выключены — тревога до вас не дойдёт."
+          }
+        }
+      }
+    },
+    "reached.button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I got through"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я дозвонился"
+          }
+        }
+      }
+    },
+    "reached.by": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ got through at %2$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ дозвонился в %2$@"
+          }
+        }
+      }
+    },
+    "reached.byMe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You got through at %1$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы дозвонились в %1$@"
           }
         }
       }
@@ -5709,6 +5794,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ты перестанешь видеть карточку семьи на этом устройстве. Семья продолжит жить без изменений."
+          }
+        }
+      }
+    },
+    "settings.myName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your name"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваше имя"
           }
         }
       }

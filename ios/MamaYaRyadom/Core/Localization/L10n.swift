@@ -63,6 +63,20 @@ enum L10n {
         String(format: dynamic("status.quietSignal.\(kind.rawValue)"), time)
     }
 
+    static var reachedButton: String { String(localized: "reached.button", bundle: bundle) }
+
+    static func reachedBy(_ name: String, _ time: String) -> String {
+        String(format: String(localized: "reached.by", bundle: bundle), name, time)
+    }
+
+    static func reachedByMe(_ time: String) -> String {
+        String(format: String(localized: "reached.byMe", bundle: bundle), time)
+    }
+
+    static var postcardSignature: String { String(localized: "postcard.signature", bundle: bundle) }
+    static var postcardSignaturePlaceholder: String { String(localized: "postcard.signaturePlaceholder", bundle: bundle) }
+    static var settingsMyName: String { String(localized: "settings.myName", bundle: bundle) }
+
     static var pushDeniedText: String { String(localized: "push.denied.text", bundle: bundle) }
     static var pushDeniedButton: String { String(localized: "push.denied.button", bundle: bundle) }
 

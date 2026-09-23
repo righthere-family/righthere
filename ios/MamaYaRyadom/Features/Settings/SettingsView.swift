@@ -10,7 +10,9 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = ""
     @AppStorage("appTheme") private var appTheme = "light"
     @AppStorage("onboardingDone") private var onboardingDone = false
+    @Environment(\.dependencies) private var dependencies
     @State private var role: String?
+    @State private var myName = ""
     @State private var isConfirmingDeletion = false
     @State private var isDeleting = false
     @State private var deleteFailed = false
@@ -22,6 +24,7 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 subscriptionRow
+                nameRow
                 languageRow
                 themeRow
                 privacyRow
@@ -45,6 +48,7 @@ struct SettingsView: View {
         .task {
             await purchases.load()
             role = try? await FamilyAPI().myRole()
+            myName = (try? await dependencies.checkinService.todaySnapshot())?.myName ?? ""
         }
         .confirmDialog(
             isSibling ? L10n.settingsLeaveConfirm : L10n.settingsDeleteConfirm,
@@ -57,6 +61,22 @@ struct SettingsView: View {
     }
 
     // MARK: - Rows
+
+    // The name a parent sees under a postcard. A device that joined by link
+    // starts without one.
+    private var nameRow: some View {
+        row(L10n.settingsMyName) {
+            TextField(L10n.postcardSignaturePlaceholder, text: $myName)
+                .multilineTextAlignment(.trailing)
+                .font(.system(size: 15))
+                .foregroundStyle(Palette.ink)
+                .submitLabel(.done)
+                .onSubmit {
+                    Task { _ = try? await FamilyAPI().setMyName(myName) }
+                }
+                .frame(maxWidth: 170)
+        }
+    }
 
     private var subscriptionRow: some View {
         Button {

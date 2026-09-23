@@ -15,6 +15,19 @@ struct TodayStatusCardView: View {
             
             statusContent
 
+            if let reached = state.reached {
+                HStack(spacing: 6) {
+                    Image(systemName: "phone.connection")
+                        .font(.system(size: 12))
+                    Text(reached.mine
+                         ? L10n.reachedByMe(time(reached.at))
+                         : L10n.reachedBy(reached.name, time(reached.at)))
+                        .font(.system(size: 13))
+                }
+                .foregroundStyle(Palette.okStrong)
+                .padding(.top, 10)
+            }
+
             if let eveningIsOk = state.eveningIsOk {
                 HStack(spacing: 6) {
                     Image(systemName: eveningIsOk ? "moon.stars" : "moon")

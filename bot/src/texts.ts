@@ -300,6 +300,11 @@ const ru = {
       (author ? `Вам открытка от ${author}:` : 'Вам открытка:') + `\n\n«${body}»`,
   },
 
+  reached: (author: string, daughter: boolean, parent: string) =>
+    author
+      ? `${author} дозвонил${daughter ? 'ась' : 'ся'} до ${parent} — можно не дублировать.`
+      : `С ${parent} уже поговорили — можно не дублировать.`,
+
   wave: (author: string, daughter: boolean) =>
     author ? `${author} увидел${daughter ? 'а' : ''} ваше «всё хорошо» и машет в ответ 👋` : 'Вам машут в ответ 👋',
 
@@ -607,6 +612,11 @@ const en: BotStrings = {
     delivered: (author: string, body: string) =>
       (author ? `A postcard for you from ${author}:` : 'A postcard for you:') + `\n\n“${body}”`,
   },
+
+  reached: (author: string, _daughter: boolean, parent: string) =>
+    author
+      ? `${author} got through to ${parent} — no need to double up.`
+      : `Someone already spoke to ${parent} — no need to double up.`,
 
   wave: (author: string, _daughter: boolean) =>
     author ? `${author} saw your “all good” and waves back 👋` : 'Someone waves back at you 👋',

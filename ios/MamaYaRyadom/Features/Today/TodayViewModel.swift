@@ -25,6 +25,8 @@ final class TodayViewModel {
     private(set) var medicationsTaken = 0
     private(set) var medicationsTotal = 0
     private(set) var evening: TodaySnapshot.Evening?
+    private(set) var reached: TodaySnapshot.Reached?
+    private(set) var myName: String?
     private(set) var upcomingDate: TodaySnapshot.UpcomingDate?
     private(set) var others: [TodaySnapshot] = []
     private(set) var weeks: [UUID: [WeekDayResult]] = [:]
@@ -57,7 +59,8 @@ final class TodayViewModel {
             streak: streak,
             medsTaken: medicationsTaken,
             medsTotal: medicationsTotal,
-            evening: evening
+            evening: evening,
+            reached: reached
         )
     }
 
@@ -69,7 +72,8 @@ final class TodayViewModel {
                 streak: member.streak,
                 medsTaken: member.medsTaken,
                 medsTotal: member.medsTotal,
-                evening: member.evening
+                evening: member.evening,
+                reached: member.reached
             )
             card.isWaiting = member.isWaitingParent
             card.inviteCode = member.inviteCode
@@ -87,7 +91,8 @@ final class TodayViewModel {
         streak: Int,
         medsTaken: Int,
         medsTotal: Int,
-        evening: TodaySnapshot.Evening?
+        evening: TodaySnapshot.Evening?,
+        reached: TodaySnapshot.Reached?
     ) -> TodayCardState {
         // Days are counted in the parent's own timezone: the strip shows her
         // days, and the results underneath were computed there too. The locale
@@ -121,6 +126,7 @@ final class TodayViewModel {
                               weekdays: weekdays,
                               medicationsInfo: medicationsInfo,
                               eveningIsOk: evening?.isOk,
+                              reached: reached,
                               kind: parent.kind)
     }
 
@@ -201,6 +207,8 @@ final class TodayViewModel {
             medicationsTaken = snapshot.medsTaken
             medicationsTotal = snapshot.medsTotal
             evening = snapshot.evening
+            reached = snapshot.reached
+            myName = snapshot.myName
             upcomingDate = snapshot.upcomingDate
             others = snapshot.others
             weeks = loadedWeeks
@@ -214,6 +222,12 @@ final class TodayViewModel {
     }
 
     // MARK: Family Creation
+
+    // The call is recorded for everyone; the card then says who made it.
+    func markReached(parentId: UUID, using service: any CheckinService) async {
+        guard (try? await FamilyAPI().reached(parentId: parentId)) == true else { return }
+        await load(using: service)
+    }
 
     func createFamily() async {
         guard !isCreatingFamily, let city = selectedCity else { return }

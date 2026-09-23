@@ -54,6 +54,10 @@ struct TodayView: View {
                             if showsCall(for: card.status) {
                                 callButton(for: member)
                                 Spacer().frame(height: 12)
+                                if card.reached == nil {
+                                    reachedButton(for: member)
+                                    Spacer().frame(height: 12)
+                                }
                             }
                             if card.status != .archived {
                                 postcardButton(for: member)
@@ -446,6 +450,26 @@ struct TodayView: View {
     // MARK: - Call
 
     @Environment(\.openURL) private var openURL
+
+    // Pressed by whoever got through: the others see it on the card and get a
+    // quiet note instead of calling the same number again.
+    private func reachedButton(for member: Parent) -> some View {
+        Button {
+            Task { await model.markReached(parentId: member.id, using: dependencies.checkinService) }
+        } label: {
+            HStack(spacing: 7) {
+                Image(systemName: "phone.connection")
+                    .font(.system(size: 13))
+                Text(L10n.reachedButton)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundStyle(Palette.accent)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 11)
+            .background(Palette.accentBright.opacity(0.10), in: .capsule)
+        }
+        .buttonStyle(.plain)
+    }
 
     private func callButton(for member: Parent) -> some View {
         Button {

@@ -196,6 +196,16 @@ export interface InviteNudge {
   stage: '1' | '2' | '3' | 'hot';
 }
 
+export interface DueReach {
+  reach_id: string;
+  family_id: string;
+  parent_id: string;
+  parent_name: string;
+  author: string;
+  member_id: string;
+  gender: string;
+}
+
 export interface DemoEvent {
   family_id: string;
   name: string;
@@ -1279,6 +1289,14 @@ export function db(env: Env) {
     async markInviteNudge(parentId: string, stage: InviteNudge['stage']) {
       const update = stage === 'hot' ? { nudge_hot_at: new Date().toISOString() } : { nudge_stage: Number(stage) };
       await best('invite-nudge-mark', sb.from('parents').update(update).eq('id', parentId), null);
+    },
+
+    async reachesDue(): Promise<DueReach[]> {
+      return best<DueReach[]>('reaches-due', sb.rpc('reaches_due'), []);
+    },
+
+    async markReachSent(reachId: string) {
+      await best('reach-sent', sb.rpc('mark_reach_sent', { p_id: reachId }), null);
     },
 
     async demoTick(): Promise<DemoEvent[]> {

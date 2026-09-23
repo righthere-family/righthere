@@ -8,6 +8,13 @@ struct TodaySnapshot: Sendable {
         var at: Date?
     }
 
+    // Somebody in the family called the parent today, so the rest can skip it.
+    struct Reached: Sendable, Equatable {
+        var name: String
+        var at: Date
+        var mine: Bool
+    }
+
     var parent: Parent
     var status: DayStatus
     var streak: Int
@@ -21,6 +28,8 @@ struct TodaySnapshot: Sendable {
     }
 
     var evening: Evening?
+    var reached: Reached?
+    var myName: String?
     var upcomingDate: UpcomingDate?
     var others: [TodaySnapshot] = []
 

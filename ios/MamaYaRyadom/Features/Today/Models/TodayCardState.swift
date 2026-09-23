@@ -25,6 +25,7 @@ struct TodayCardState: Identifiable {
     let weekdays: [WeekDay]
     let medicationsInfo: MedicationsInfo
     let eveningIsOk: Bool?
+    var reached: TodaySnapshot.Reached?
     var isWaiting = false
     var inviteCode: String?
     var kind: Parent.Kind = .mom

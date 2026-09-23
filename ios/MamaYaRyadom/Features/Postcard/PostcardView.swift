@@ -5,6 +5,7 @@ import SwiftUI
 
 struct PostcardView: View {
     let parent: Parent
+    @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @State private var model = PostcardViewModel()
     @FocusState private var isWriting: Bool
@@ -15,6 +16,14 @@ struct PostcardView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
+                if model.needsName {
+                    FormUnderlineField(
+                        label: L10n.postcardSignature,
+                        placeholder: L10n.postcardSignaturePlaceholder,
+                        text: Bindable(model).authorName
+                    )
+                    .padding(.bottom, 18)
+                }
                 editor
                 photoRow
                     .padding(.top, 12)
@@ -41,6 +50,7 @@ struct PostcardView: View {
             .onAppear {
                 isWriting = true
                 Task { await purchases.load() }
+                Task { await model.loadName(using: dependencies.checkinService) }
             }
             .sheet(isPresented: $isShowingPaywall) { PaywallSheet() }
             .onChange(of: pickedPhoto) { _, item in
@@ -140,6 +150,10 @@ struct PostcardView: View {
 @MainActor
 final class PostcardViewModel {
     var body = ""
+    // A postcard is signed with the sender's name. A device that joined by
+    // link has none until it is asked here, once.
+    var authorName = ""
+    private(set) var needsName = false
     private(set) var isSending = false
     private(set) var isSent = false
     private(set) var didFail = false
@@ -169,6 +183,11 @@ final class PostcardViewModel {
         attachedData = nil
     }
 
+    func loadName(using service: any CheckinService) async {
+        guard let snapshot = try? await service.todaySnapshot() else { return }
+        needsName = (snapshot.myName ?? "").isEmpty
+    }
+
     func send(to parentId: UUID) async {
         guard canSend else { return }
         isSending = true
@@ -176,6 +195,10 @@ final class PostcardViewModel {
         defer { isSending = false }
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
+            let name = authorName.trimmingCharacters(in: .whitespacesAndNewlines)
+            if needsName, !name.isEmpty {
+                _ = try? await FamilyAPI().setMyName(name)
+            }
             var photoPath: String?
             if let attachedData {
                 photoPath = try await FamilyAPI().uploadPostcardPhoto(attachedData)
