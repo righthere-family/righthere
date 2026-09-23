@@ -19,7 +19,7 @@ import faviconPng from './favicon.png';
 import touchIcon from './apple-touch-icon.png';
 
 const SITE = 'https://righthere.family';
-const SITE_UPDATED = '2026-09-07';
+const SITE_UPDATED = '2026-09-19';
 
 const ROBOTS = `User-agent: *
 Allow: /
