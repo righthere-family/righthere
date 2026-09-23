@@ -7549,6 +7549,40 @@
         }
       }
     },
+    "widget.family": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Семья"
+          }
+        }
+      }
+    },
+    "widget.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "and more in the app"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "остальные — в приложении"
+          }
+        }
+      }
+    },
     "widget.notOk": {
       "extractionState": "manual",
       "localizations": {

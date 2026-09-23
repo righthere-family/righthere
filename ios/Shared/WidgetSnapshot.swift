@@ -7,6 +7,13 @@ struct WidgetSnapshot: Decodable, Sendable {
     let status: StatusInfo
     let streak: Int
     let week: [WeekDay]?
+    // The whole family rides along; the top level only repeats the first one.
+    let parents: [Member]?
+
+    struct Member: Decodable, Sendable {
+        let parent: ParentInfo
+        let status: StatusInfo
+    }
 
     struct WeekDay: Decodable, Sendable {
         let date: String

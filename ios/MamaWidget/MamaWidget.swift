@@ -132,7 +132,11 @@ struct MamaWidgetView: View {
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
-                content(snapshot)
+                if !compact, let members = snapshot.parents, members.count > 1 {
+                    family(members)
+                } else {
+                    content(snapshot)
+                }
             } else {
                 empty
             }
@@ -171,6 +175,91 @@ struct MamaWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    // MARK: - Family
+
+    // With several parents the medium widget answers "is everyone fine?", so
+    // it lists them all, whoever needs attention first.
+    private func family(_ members: [WidgetSnapshot.Member]) -> some View {
+        let ordered = members.sorted { rank($0.status.state) < rank($1.status.state) }
+        let shown = Array(ordered.prefix(3))
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(localized("widget.family").uppercased())
+                    .font(.system(size: 10, weight: .semibold))
+                    .tracking(0.6)
+                    .foregroundStyle(palette.inkSecondary)
+                Spacer(minLength: 0)
+                BrandGlyph(palette: palette)
+                    .frame(width: 22, height: 15)
+            }
+            .padding(.bottom, 2)
+
+            Spacer(minLength: 0)
+
+            ForEach(Array(shown.enumerated()), id: \.offset) { index, member in
+                if index > 0 {
+                    Rectangle()
+                        .fill(palette.hairline)
+                        .frame(height: 1)
+                }
+                familyRow(member)
+            }
+
+            if ordered.count > shown.count {
+                Text(localized("widget.more"))
+                    .font(.system(size: 10))
+                    .foregroundStyle(palette.inkSecondary)
+                    .padding(.top, 3)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func familyRow(_ member: WidgetSnapshot.Member) -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(statusColor(member.status.state))
+                .frame(width: 8, height: 8)
+            Text(member.parent.displayName)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(palette.ink)
+                .lineLimit(1)
+            Spacer(minLength: 6)
+            Text(rowDetail(member))
+                .font(.system(size: 11.5))
+                .foregroundStyle(member.status.state == "ok" ? palette.inkSecondary : statusColor(member.status.state))
+                .lineLimit(1)
+        }
+        .padding(.vertical, 7)
+    }
+
+    private func rowDetail(_ member: WidgetSnapshot.Member) -> String {
+        if member.status.state == "ok", let at = member.status.at {
+            var style = Date.FormatStyle(date: .omitted, time: .shortened).locale(widgetLocale)
+            if let zone = TimeZone(identifier: member.parent.timezone) {
+                style.timeZone = zone
+            }
+            return at.formatted(style)
+        }
+        return statusWord(member.status.state)
+    }
+
+    // Trouble first, calm last: the row order is the answer to one glance.
+    private func rank(_ state: String) -> Int {
+        switch state {
+        case "not_ok": 0
+        case "quiet": 1
+        case "reminded": 2
+        case "blocked": 3
+        case "waiting_parent": 4
+        case "still_morning": 5
+        case "ok": 6
+        case "paused": 7
+        default: 8
+        }
     }
 
     private func header(_ snapshot: WidgetSnapshot) -> some View {
