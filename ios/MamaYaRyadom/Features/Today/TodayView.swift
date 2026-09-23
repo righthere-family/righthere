@@ -47,7 +47,11 @@ struct TodayView: View {
                                 Spacer().frame(height: 12)
                             }
                         } else {
-                            TodayStatusCardView(state: card, emphasisesName: hasSeveral) {
+                            TodayStatusCardView(
+                                state: card,
+                                emphasisesName: hasSeveral,
+                                onCollapse: canCollapse(card) ? { expanded.remove(card.id) } : nil
+                            ) {
                                 router.push(.medications(member.id))
                             }
                             Spacer().frame(height: 14)
@@ -434,6 +438,12 @@ struct TodayView: View {
 
     private func isCollapsed(_ card: TodayCardState) -> Bool {
         guard hasSeveral, !expanded.contains(card.id) else { return false }
+        return canCollapse(card)
+    }
+
+    // A day that needs attention stays open: only calm cards fold away.
+    private func canCollapse(_ card: TodayCardState) -> Bool {
+        guard hasSeveral else { return false }
         switch card.status {
         case .ok, .paused, .archived: return true
         default: return false

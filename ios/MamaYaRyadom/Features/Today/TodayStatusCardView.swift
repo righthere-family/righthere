@@ -4,14 +4,27 @@ struct TodayStatusCardView: View {
     
     let state: TodayCardState
     var emphasisesName = false
+    // A card that can be folded back says so with the same chevron the folded
+    // card shows; without this, a family list only ever opened.
+    var onCollapse: (() -> Void)?
     let onMedicationsTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            (Text(state.name).foregroundStyle(emphasisesName ? Palette.ink : Palette.inkSecondary)
-                + Text(" · \(state.city)").foregroundStyle(Palette.inkSecondary))
-                .font(emphasisesName ? .system(size: 15, weight: .semibold) : Typography.cardTitle)
-                .tracking(emphasisesName ? 0 : 0.3)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                (Text(state.name).foregroundStyle(emphasisesName ? Palette.ink : Palette.inkSecondary)
+                    + Text(" · \(state.city)").foregroundStyle(Palette.inkSecondary))
+                    .font(emphasisesName ? .system(size: 15, weight: .semibold) : Typography.cardTitle)
+                    .tracking(emphasisesName ? 0 : 0.3)
+                if onCollapse != nil {
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Palette.accent)
+                }
+            }
+            .contentShape(.rect)
+            .onTapGesture { onCollapse?() }
             
             statusContent
 
