@@ -56,6 +56,7 @@ struct DoctorReportView: View {
         case .notOk: "не очень"
         case .missed: "пропуск"
         case .paused: "пауза"
+        case .today: "сегодня"
         case .off: "без напоминаний"
         case .upcoming: "—"
         }

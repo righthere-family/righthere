@@ -71,7 +71,7 @@ final class HistoryViewModel {
             monthTitle: monthTitle,
             records: records.filter { record in
                 switch record.mark {
-                case .upcoming, .off: false
+                case .upcoming, .today, .off: false
                 default: true
                 }
             },
@@ -153,7 +153,7 @@ final class HistoryViewModel {
         guard !isParentWaiting else { return nil }
         let tracked = records.filter { record in
             switch record.mark {
-            case .upcoming, .paused, .off: false
+            case .upcoming, .today, .paused, .off: false
             default: true
             }
         }

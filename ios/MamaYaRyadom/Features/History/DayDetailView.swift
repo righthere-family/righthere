@@ -55,6 +55,13 @@ struct DayDetailView: View {
             Text(L10n.historyDayPausedNote)
                 .font(.footnote)
                 .foregroundStyle(Palette.inkSecondary)
+        case .today:
+            Text(L10n.historyDayToday)
+                .font(Typography.display(24))
+                .foregroundStyle(Palette.ink)
+            Text(L10n.historyDayTodayNote)
+                .font(.footnote)
+                .foregroundStyle(Palette.inkSecondary)
         case .off:
             Text(L10n.statusArchived)
                 .font(Typography.display(24))

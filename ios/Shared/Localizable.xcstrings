@@ -3384,6 +3384,40 @@
         }
       }
     },
+    "history.day.today": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня"
+          }
+        }
+      }
+    },
+    "history.day.todayNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The day is still going — the mark appears once the answer arrives."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "День ещё идёт — отметка появится, когда придёт ответ."
+          }
+        }
+      }
+    },
     "history.day.words.f": {
       "extractionState": "manual",
       "localizations": {

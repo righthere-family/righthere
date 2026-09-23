@@ -366,6 +366,7 @@ private struct DayCell: View {
         VStack(spacing: 5) {
             Text("\(record.day)")
                 .font(.system(size: 13))
+                .fontWeight(record.mark == .today ? .semibold : .regular)
                 .foregroundStyle(numberColor)
             mark
                 .frame(width: 11, height: 11)
@@ -384,6 +385,7 @@ private struct DayCell: View {
         switch record.mark {
         case .allGood: Palette.okTint
         case .notOk: Palette.alertTint
+        case .today: Palette.background
         default: .clear
         }
     }
@@ -401,6 +403,8 @@ private struct DayCell: View {
             Capsule().fill(Palette.inkSecondary.opacity(0.6)).frame(width: 9, height: 3)
         case .off:
             Capsule().fill(Palette.inkSecondary.opacity(0.3)).frame(width: 9, height: 3)
+        case .today:
+            Circle().fill(Palette.inkSecondary.opacity(0.3)).frame(width: 4, height: 4)
         case .upcoming:
             Color.clear
         }

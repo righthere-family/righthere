@@ -236,6 +236,8 @@ enum L10n {
     static var historyDayNoWordNote: String { String(localized: "history.day.noWordNote", bundle: bundle) }
     static var historyDayPausedNote: String { String(localized: "history.day.pausedNote", bundle: bundle) }
     static var historyDayOffNote: String { String(localized: "history.day.offNote", bundle: bundle) }
+    static var historyDayToday: String { String(localized: "history.day.today", bundle: bundle) }
+    static var historyDayTodayNote: String { String(localized: "history.day.todayNote", bundle: bundle) }
     static var historyLegendPaused: String { String(localized: "history.legend.paused", bundle: bundle) }
 
     // MARK: Reminders
