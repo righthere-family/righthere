@@ -4268,6 +4268,57 @@
         }
       }
     },
+    "onboarding.widget.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "one widget for the family, or one for each"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "виджет на семью — или по одному на каждого"
+          }
+        }
+      }
+    },
+    "onboarding.widget.second": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DAD"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ПАПА"
+          }
+        }
+      }
+    },
+    "onboarding.widget.secondTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8:05"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8:05"
+          }
+        }
+      }
+    },
     "onboarding.widget.time": {
       "extractionState": "manual",
       "localizations": {
@@ -7613,6 +7664,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открой приложение, чтобы подключиться"
+          }
+        }
+      }
+    },
+    "widget.pick.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave empty to see the whole family, or pick one person for this widget."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оставьте пустым — будет вся семья. Выберите человека — виджет станет про него."
+          }
+        }
+      }
+    },
+    "widget.pick.parameter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parent"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Родитель"
+          }
+        }
+      }
+    },
+    "widget.pick.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is on the widget"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кто на виджете"
+          }
+        }
+      }
+    },
+    "widget.pick.type": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parent"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Родитель"
           }
         }
       }

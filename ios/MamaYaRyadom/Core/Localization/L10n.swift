@@ -174,6 +174,9 @@ enum L10n {
     static var onboardingPhoneGreeting: String { String(localized: "onboarding.phone.greeting", bundle: bundle) }
     static var onboardingPhoneNotOk: String { String(localized: "onboarding.phone.notOk", bundle: bundle) }
     static var onboardingWidgetWho: String { String(localized: "onboarding.widget.who", bundle: bundle) }
+    static var onboardingWidgetSecond: String { String(localized: "onboarding.widget.second", bundle: bundle) }
+    static var onboardingWidgetSecondTime: String { String(localized: "onboarding.widget.secondTime", bundle: bundle) }
+    static var onboardingWidgetHint: String { String(localized: "onboarding.widget.hint", bundle: bundle) }
     static var onboardingWidgetTime: String { String(localized: "onboarding.widget.time", bundle: bundle) }
 
     // MARK: Setup

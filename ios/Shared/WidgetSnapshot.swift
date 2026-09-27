@@ -13,6 +13,18 @@ struct WidgetSnapshot: Decodable, Sendable {
     struct Member: Decodable, Sendable {
         let parent: ParentInfo
         let status: StatusInfo
+        let streak: Int?
+        let week: [WeekDay]?
+    }
+
+    // The top level repeats the first parent, so a family of one still reads
+    // as a list of one.
+    var members: [Member] {
+        parents ?? [Member(parent: parent, status: status, streak: streak, week: week)]
+    }
+
+    func member(id: String?) -> Member {
+        members.first { $0.parent.id == id } ?? members[0]
     }
 
     struct WeekDay: Decodable, Sendable {
@@ -21,6 +33,7 @@ struct WidgetSnapshot: Decodable, Sendable {
     }
 
     struct ParentInfo: Decodable, Sendable {
+        let id: String
         let displayName: String
         let city: String?
         let timezone: String

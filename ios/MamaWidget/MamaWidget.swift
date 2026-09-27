@@ -1,3 +1,4 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
@@ -50,37 +51,25 @@ private struct WidgetPalette {
 struct MamaEntry: TimelineEntry, Sendable {
     let date: Date
     let snapshot: WidgetSnapshot?
-}
-
-// MARK: - Sendable Box
-
-private struct SendableBox<T>: @unchecked Sendable {
-    let value: T
-
-    init(_ value: T) {
-        self.value = value
-    }
+    // Empty means the widget is about the family, not one person.
+    var parentId: String?
 }
 
 // MARK: - Provider
 
-struct Provider: TimelineProvider {
+struct Provider: AppIntentTimelineProvider {
     func placeholder(in _: Context) -> MamaEntry {
         MamaEntry(date: .now, snapshot: cached())
     }
 
-    func getSnapshot(in _: Context, completion: @escaping (MamaEntry) -> Void) {
-        completion(MamaEntry(date: .now, snapshot: cached()))
+    func snapshot(for configuration: SelectParent, in _: Context) async -> MamaEntry {
+        MamaEntry(date: .now, snapshot: cached(), parentId: configuration.parent?.id)
     }
 
-    func getTimeline(in _: Context, completion: @escaping (Timeline<MamaEntry>) -> Void) {
-        let box = SendableBox(completion)
-        Task {
-            let snapshot = await fetch() ?? cached()
-            let entry = MamaEntry(date: .now, snapshot: snapshot)
-            let refresh = Date.now.addingTimeInterval(20 * 60)
-            box.value(Timeline(entries: [entry], policy: .after(refresh)))
-        }
+    func timeline(for configuration: SelectParent, in _: Context) async -> Timeline<MamaEntry> {
+        let snapshot = await fetch() ?? cached()
+        let entry = MamaEntry(date: .now, snapshot: snapshot, parentId: configuration.parent?.id)
+        return Timeline(entries: [entry], policy: .after(Date.now.addingTimeInterval(20 * 60)))
     }
 
     private func cached() -> WidgetSnapshot? {
@@ -132,10 +121,13 @@ struct MamaWidgetView: View {
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
-                if !compact, let members = snapshot.parents, members.count > 1 {
+                let members = snapshot.members
+                // No one picked and room to spare: the widget is about the
+                // family. Pick a parent and it becomes about them.
+                if !compact, entry.parentId == nil, members.count > 1 {
                     family(members)
                 } else {
-                    content(snapshot)
+                    content(snapshot.member(id: entry.parentId))
                 }
             } else {
                 empty
@@ -152,22 +144,22 @@ struct MamaWidgetView: View {
 
     // MARK: - Content
 
-    private func content(_ snapshot: WidgetSnapshot) -> some View {
+    private func content(_ member: WidgetSnapshot.Member) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            header(snapshot)
+            header(member)
 
-            Text(statusWord(snapshot.status.state))
+            Text(statusWord(member.status.state))
                 .font(.system(size: compact ? 22 : 26, weight: .semibold, design: .serif))
-                .foregroundStyle(statusColor(snapshot.status.state))
+                .foregroundStyle(statusColor(member.status.state))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
                 .padding(.top, compact ? 3 : 4)
 
-            secondLine(snapshot)
+            secondLine(member)
 
             Spacer(minLength: 6)
 
-            if let week = snapshot.week, !week.isEmpty {
+            if let week = member.week, !week.isEmpty {
                 weekStrip(week)
             } else {
                 SignalScene(palette: palette, compact: compact)
@@ -262,9 +254,9 @@ struct MamaWidgetView: View {
         }
     }
 
-    private func header(_ snapshot: WidgetSnapshot) -> some View {
+    private func header(_ member: WidgetSnapshot.Member) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(who(snapshot).uppercased())
+            Text(who(member).uppercased())
                 .font(.system(size: compact ? 9.5 : 10, weight: .semibold))
                 .tracking(0.6)
                 .foregroundStyle(palette.inkSecondary)
@@ -275,30 +267,30 @@ struct MamaWidgetView: View {
         }
     }
 
-    @ViewBuilder
-    private func secondLine(_ snapshot: WidgetSnapshot) -> some View {
-        HStack(spacing: 7) {
-            if snapshot.status.state == "ok" {
-                Text(timeText(snapshot))
+    private func secondLine(_ member: WidgetSnapshot.Member) -> some View {
+        let streak = member.streak ?? 0
+        return HStack(spacing: 7) {
+            if member.status.state == "ok" {
+                Text(timeText(member))
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(palette.inkSecondary)
-                if snapshot.streak >= 2 {
+                if streak >= 2 {
                     HStack(spacing: 3) {
                         Image(systemName: "sparkle").font(.system(size: 8.5))
-                        Text("\(snapshot.streak)").font(.system(size: 11, weight: .semibold))
+                        Text("\(streak)").font(.system(size: 11, weight: .semibold))
                     }
                     .foregroundStyle(palette.honey)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2.5)
                     .background(palette.honeyBright.opacity(0.15), in: .capsule)
                 }
-            } else if let quote = snapshot.status.quote, !quote.isEmpty, !compact {
+            } else if let quote = member.status.quote, !quote.isEmpty, !compact {
                 Text("«\(quote)»")
                     .font(.system(size: 13, weight: .semibold, design: .serif))
                     .foregroundStyle(palette.cherry)
                     .lineLimit(1)
             } else {
-                Text(detailLine(snapshot))
+                Text(detailLine())
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(palette.inkSecondary)
                     .lineLimit(1)
@@ -383,10 +375,10 @@ struct MamaWidgetView: View {
 
     // MARK: - Text
 
-    private func who(_ snapshot: WidgetSnapshot) -> String {
-        if compact { return snapshot.parent.displayName }
-        let city = snapshot.parent.city.map { " · \($0)" } ?? ""
-        return snapshot.parent.displayName + city
+    private func who(_ member: WidgetSnapshot.Member) -> String {
+        if compact { return member.parent.displayName }
+        let city = member.parent.city.map { " · \($0)" } ?? ""
+        return member.parent.displayName + city
     }
 
     private func statusWord(_ state: String) -> String {
@@ -411,14 +403,14 @@ struct MamaWidgetView: View {
         }
     }
 
-    private func detailLine(_ snapshot: WidgetSnapshot) -> String {
+    private func detailLine() -> String {
         Date.now.formatted(.dateTime.day().month().locale(widgetLocale))
     }
 
-    private func timeText(_ snapshot: WidgetSnapshot) -> String {
-        guard let at = snapshot.status.at else { return "" }
+    private func timeText(_ member: WidgetSnapshot.Member) -> String {
+        guard let at = member.status.at else { return "" }
         var style = Date.FormatStyle(date: .omitted, time: .shortened).locale(widgetLocale)
-        if let zone = TimeZone(identifier: snapshot.parent.timezone) {
+        if let zone = TimeZone(identifier: member.parent.timezone) {
             style.timeZone = zone
         }
         return at.formatted(style)
@@ -521,7 +513,7 @@ private struct WidgetArc: Shape {
 @main
 struct MamaWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "MamaWidget", provider: Provider()) { entry in
+        AppIntentConfiguration(kind: "MamaWidget", intent: SelectParent.self, provider: Provider()) { entry in
             MamaWidgetView(entry: entry)
         }
         .configurationDisplayName(localized("widget.displayName"))

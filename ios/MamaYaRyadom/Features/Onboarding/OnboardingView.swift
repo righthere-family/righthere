@@ -150,6 +150,9 @@ struct OnboardingView: View {
                     hint(L10n.onboardingStoryHintButton)
                         .padding(.top, 6)
                 }
+                if step == 3 {
+                    hint(L10n.onboardingWidgetHint)
+                }
             }
             .id(step)
             .transition(.asymmetric(
@@ -369,8 +372,11 @@ private struct ChildPhone: View {
     let leaving: Bool
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             widget
+            if step >= 3 {
+                secondWidget
+            }
             appRow
         }
         .padding(12)
@@ -430,6 +436,30 @@ private struct ChildPhone: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.card, in: .rect(cornerRadius: 16))
         .shadow(color: Palette.shade.opacity(0.07), radius: 8, y: 3)
+    }
+
+    // A second widget for a second parent: the home screen can hold one per
+    // person, and this is where that becomes obvious.
+    private var secondWidget: some View {
+        HStack(spacing: 7) {
+            Circle()
+                .fill(Palette.okStrong)
+                .frame(width: 6.5, height: 6.5)
+            Text(L10n.onboardingWidgetSecond)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(Palette.ink)
+            Spacer(minLength: 4)
+            Text(L10n.onboardingWidgetSecondTime)
+                .font(.system(size: 9.5, design: .monospaced))
+                .foregroundStyle(Palette.inkSecondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity)
+        .background(Palette.card, in: .rect(cornerRadius: 14))
+        .shadow(color: Palette.shade.opacity(0.06), radius: 6, y: 2)
+        .transition(.scale(scale: 0.85, anchor: .top).combined(with: .opacity))
+        .animation(.spring(duration: 0.45, bounce: 0.28).delay(0.55), value: step)
     }
 
     private static let apps: [(symbol: String, tint: Color)] = [
