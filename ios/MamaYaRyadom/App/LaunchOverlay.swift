@@ -7,6 +7,11 @@ import SwiftUI
 // pixels — the same image assets — so the hand-off is invisible. Then the
 // scene comes alive: a spark runs the arc from the honey dot to the graphite
 // one, and the whole scene lifts away into the app.
+//
+// The storyboard is rendered by the system in the phone's appearance, not the
+// theme chosen in the app, so its assets are light-only and the overlay pins
+// itself to light as well. Whatever theme the app runs in fades in underneath
+// as the scene lifts, instead of the screen snapping from dark to light.
 struct LaunchOverlay: View {
     @Binding var isPresented: Bool
     @State private var sparkT: CGFloat = 0
@@ -53,6 +58,7 @@ struct LaunchOverlay: View {
         // would center in the safe area, a dozen points lower, and the scene
         // would visibly hop at hand-off.
         .ignoresSafeArea()
+        .colorScheme(.light)
         .opacity(isLifting ? 0 : 1)
         .allowsHitTesting(false)
         .onAppear { run() }
