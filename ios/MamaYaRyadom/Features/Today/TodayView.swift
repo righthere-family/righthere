@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 import UserNotifications
 
@@ -11,6 +12,9 @@ struct TodayView: View {
     @State private var postcardTo: Parent?
     @State private var expanded: Set<UUID> = []
     @State private var isPushDenied = false
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var appleAttempt = AppleAccount.Attempt()
+    @State private var restoreError: String?
 
     var body: some View {
         ScrollView {
@@ -292,12 +296,52 @@ struct TodayView: View {
                 .foregroundStyle(Palette.inkSecondary)
                 .lineSpacing(3)
                 .padding(.top, 5)
+
+            SignInWithAppleButton(.signIn) { request in
+                let attempt = AppleAccount.Attempt()
+                appleAttempt = attempt
+                request.requestedScopes = [.email]
+                request.nonce = attempt.hashedNonce
+            } onCompletion: { result in
+                Task { await restoreWithApple(result) }
+            }
+            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+            .frame(height: 46)
+            .clipShape(.rect(cornerRadius: 12))
+            .padding(.top, 14)
+
+            if let restoreError {
+                Text(restoreError)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.alert)
+                    .padding(.top, 10)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)
         .padding(.vertical, 22)
         .background(Palette.card, in: .rect(cornerRadius: 24))
         .shadow(color: Palette.shade.opacity(0.05), radius: 16, y: 6)
+    }
+
+    // The Apple ID was tied to the account on the old phone; signing in with
+    // it here is what brings that account, and its family, to this one.
+    private func restoreWithApple(_ result: Result<ASAuthorization, any Error>) async {
+        guard let credentials = AppleAccount.credentials(result, attempt: appleAttempt) else {
+            if !AppleAccount.wasCancelled(result) { restoreError = L10n.restoreFailed }
+            return
+        }
+        guard await AppleAccount.signIn(credentials) else {
+            restoreError = L10n.restoreFailed
+            return
+        }
+        if await model.restoreFromAccount(using: dependencies.checkinService) {
+            restoreError = nil
+            await FamilyAPI().joinFamily()
+            await PushRegistrar.requestAndRegister()
+        } else {
+            restoreError = L10n.restoreNotFound
+        }
     }
 
     private func fieldLabel(_ text: String) -> some View {

@@ -5713,19 +5713,53 @@
         }
       }
     },
+    "restore.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not sign in. Please try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не получилось войти. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
     "restore.hint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask your parent to send /family to the bot — a link will arrive that brings everything back: the card, the streak, the history."
+            "value": "Sign in with the Apple ID you linked in Settings and the family comes back on its own. Or ask your parent to send /⁠family to the bot: a link will arrive that brings everything back."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Попросите родителя отправить боту команду /family — придёт ссылка, которая вернёт всё на место: карточку, стрик, историю."
+            "value": "Войдите с Apple ID, который привязали в настройках, — семья вернётся сама. Или попросите родителя отправить боту команду /⁠family: придёт ссылка, которая вернёт всё на место."
+          }
+        }
+      }
+    },
+    "restore.notFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No family is linked to this Apple ID. Create a new one or ask your parent for the link via /⁠family."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С этим Apple ID семья не найдена. Создайте новую или попросите у родителя ссылку через /⁠family."
           }
         }
       }
@@ -5845,6 +5879,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "Настройки"
+          }
+        }
+      }
+    },
+    "settings.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аккаунт"
+          }
+        }
+      }
+    },
+    "settings.appleLinkFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not link the Apple ID. Please try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не получилось привязать. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "settings.appleLinkHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link your Apple ID so the family can be found on a new phone and after a reinstall."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Привяжите Apple ID, чтобы семья нашлась на новом телефоне и после переустановки."
+          }
+        }
+      }
+    },
+    "settings.appleLinkTaken": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Apple ID is already linked to another account."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот Apple ID уже привязан к другому аккаунту."
+          }
+        }
+      }
+    },
+    "settings.appleLinked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple ID linked"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple ID привязан"
+          }
+        }
+      }
+    },
+    "settings.appleLinkedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your family will be found on a new phone and after a reinstall."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Семья найдётся на новом телефоне и после переустановки."
           }
         }
       }

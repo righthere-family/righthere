@@ -24,6 +24,7 @@
 		3C7466334E74E4A14FD4D585 /* TodaySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9730C108962B55E4FCD5F2D /* TodaySnapshot.swift */; };
 		41ADC14854D2E4EDB70CE5E4 /* FamilyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F3486DD1902217102394B3 /* FamilyView.swift */; };
 		4A9BE560955F0F2EB1AB8E38 /* MedsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE236D13BAC15D3FDB680C1 /* MedsViewModel.swift */; };
+		4B4894534F8D209E39AD5467 /* AppleAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA0A06A097056AC227EF99C /* AppleAccount.swift */; };
 		4D88CF1682E3E5C2D520C294 /* MamaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA356F53BE74C9BED1621A69 /* MamaApp.swift */; };
 		512ABDC1E4D559F803A8C5B1 /* FamilyLiveUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 303F522E1BBB73F4FA9E1FE8 /* FamilyLiveUpdates.swift */; };
 		51FF7DFDAD7D08C30130487B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C12330497C10D85CD546082 /* HistoryView.swift */; };
@@ -136,6 +137,7 @@
 		6A59AE438EB61322CF632569 /* LaunchOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchOverlay.swift; sourceTree = "<group>"; };
 		6C6B6DF284B789C7D6911AF7 /* UnreadMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadMessages.swift; sourceTree = "<group>"; };
 		6CF1BB206F3761AB951F840B /* MamaYaRyadom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MamaYaRyadom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EA0A06A097056AC227EF99C /* AppleAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAccount.swift; sourceTree = "<group>"; };
 		6F06C0D7E33562A3A7E53F60 /* ParentEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentEditView.swift; sourceTree = "<group>"; };
 		712A1BB4D670032B9140F855 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		71FDC64E4DD96C85398409CD /* TodayCardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayCardState.swift; sourceTree = "<group>"; };
@@ -437,6 +439,7 @@
 		E6B2D3C84279775C3E55CF47 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				6EA0A06A097056AC227EF99C /* AppleAccount.swift */,
 				813511258FCCB8AAF42E4301 /* CheckinService.swift */,
 				04F38F284CC0AAA7991AA053 /* CitySearch.swift */,
 				303F522E1BBB73F4FA9E1FE8 /* FamilyLiveUpdates.swift */,
@@ -590,6 +593,7 @@
 				E6AB634A9E817CD7CA174B54 /* AppConfig.swift in Sources */,
 				25F4AC38320AEC9588EB6FB5 /* AppDependencies.swift in Sources */,
 				D7D0D045630E7B5DD50AFD71 /* AppRouter.swift in Sources */,
+				4B4894534F8D209E39AD5467 /* AppleAccount.swift in Sources */,
 				E8827C6FCA4FC3127CD1CD73 /* BrandMark.swift in Sources */,
 				782CCC1424515F9CBF3AFBBB /* CheckIn.swift in Sources */,
 				5E3D5EB22F816FAB9CB0BC74 /* CheckinService.swift in Sources */,

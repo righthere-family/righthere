@@ -252,6 +252,17 @@ final class TodayViewModel {
         }
     }
 
+    // The signed-in account may already have a family; pick it up and load
+    // it the same way a stored token would have on launch.
+    func restoreFromAccount(using service: any CheckinService) async -> Bool {
+        guard let token = try? await FamilyAPI().myFamilyToken() else { return false }
+        AppConfig.storeFamilyToken(token)
+        stage = .loading
+        await load(using: service)
+        liveEpoch += 1
+        return true
+    }
+
     func inviteURL(code: String?) -> URL? {
         guard let code else { return nil }
         return URL(string: "https://t.me/\(AppConfig.botHandle)?start=inv_\(code)")

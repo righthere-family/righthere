@@ -76,6 +76,12 @@ enum L10n {
     static var postcardSignature: String { String(localized: "postcard.signature", bundle: bundle) }
     static var postcardSignaturePlaceholder: String { String(localized: "postcard.signaturePlaceholder", bundle: bundle) }
     static var settingsMyName: String { String(localized: "settings.myName", bundle: bundle) }
+    static var settingsAccount: String { String(localized: "settings.account", bundle: bundle) }
+    static var settingsAppleLinked: String { String(localized: "settings.appleLinked", bundle: bundle) }
+    static var settingsAppleLinkedHint: String { String(localized: "settings.appleLinkedHint", bundle: bundle) }
+    static var settingsAppleLinkHint: String { String(localized: "settings.appleLinkHint", bundle: bundle) }
+    static var settingsAppleLinkFailed: String { String(localized: "settings.appleLinkFailed", bundle: bundle) }
+    static var settingsAppleLinkTaken: String { String(localized: "settings.appleLinkTaken", bundle: bundle) }
 
     static var pushDeniedText: String { String(localized: "push.denied.text", bundle: bundle) }
     static var pushDeniedButton: String { String(localized: "push.denied.button", bundle: bundle) }
@@ -447,6 +453,8 @@ enum L10n {
 
     static var restoreTitle: String { String(localized: "restore.title", bundle: bundle) }
     static var restoreHint: String { String(localized: "restore.hint", bundle: bundle) }
+    static var restoreNotFound: String { String(localized: "restore.notFound", bundle: bundle) }
+    static var restoreFailed: String { String(localized: "restore.failed", bundle: bundle) }
 
     // MARK: Premium
 

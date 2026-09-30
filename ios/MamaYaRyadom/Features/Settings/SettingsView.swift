@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 // MARK: - Settings
@@ -10,6 +11,10 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = ""
     @AppStorage("appTheme") private var appTheme = "light"
     @AppStorage("onboardingDone") private var onboardingDone = false
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var appleLinked = AppleAccount.isLinked
+    @State private var appleAttempt = AppleAccount.Attempt()
+    @State private var linkError: String?
     @Environment(\.dependencies) private var dependencies
     @State private var role: String?
     @State private var myName = ""
@@ -25,6 +30,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 14) {
                 subscriptionRow
                 nameRow
+                accountRow
                 languageRow
                 themeRow
                 privacyRow
@@ -48,6 +54,7 @@ struct SettingsView: View {
         .task {
             await purchases.load()
             role = try? await FamilyAPI().myRole()
+            appleLinked = AppleAccount.isLinked
             myName = (try? await dependencies.checkinService.todaySnapshot())?.myName ?? ""
         }
         .confirmDialog(
@@ -75,6 +82,73 @@ struct SettingsView: View {
                     Task { _ = try? await FamilyAPI().setMyName(myName) }
                 }
                 .frame(maxWidth: 170)
+        }
+    }
+
+    // MARK: - Account
+
+    // An Apple ID tied to the anonymous account is what brings the family
+    // back on a new phone without asking a parent for the link.
+    private var accountRow: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                Text(L10n.settingsAccount)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Palette.ink)
+                Spacer()
+                if appleLinked {
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                        Text(L10n.settingsAppleLinked)
+                            .font(.system(size: 13))
+                    }
+                    .foregroundStyle(Palette.okStrong)
+                }
+            }
+            Text(appleLinked ? L10n.settingsAppleLinkedHint : L10n.settingsAppleLinkHint)
+                .font(.system(size: 13))
+                .foregroundStyle(Palette.inkSecondary)
+                .lineSpacing(3)
+            if !appleLinked {
+                SignInWithAppleButton(.continue) { request in
+                    let attempt = AppleAccount.Attempt()
+                    appleAttempt = attempt
+                    request.requestedScopes = [.email]
+                    request.nonce = attempt.hashedNonce
+                } onCompletion: { result in
+                    Task { await linkApple(result) }
+                }
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .frame(height: 46)
+                .clipShape(.rect(cornerRadius: 12))
+                .padding(.top, 2)
+                if let linkError {
+                    Text(linkError)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Palette.alert)
+                }
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 15)
+        .background(Palette.card, in: .rect(cornerRadius: 20))
+        .shadow(color: Palette.shade.opacity(0.04), radius: 10, y: 4)
+    }
+
+    private func linkApple(_ result: Result<ASAuthorization, any Error>) async {
+        guard let credentials = AppleAccount.credentials(result, attempt: appleAttempt) else {
+            if !AppleAccount.wasCancelled(result) { linkError = L10n.settingsAppleLinkFailed }
+            return
+        }
+        switch await AppleAccount.link(credentials) {
+        case .linked:
+            linkError = nil
+            appleLinked = true
+        case .taken:
+            linkError = L10n.settingsAppleLinkTaken
+        case .failed:
+            linkError = L10n.settingsAppleLinkFailed
         }
     }
 
