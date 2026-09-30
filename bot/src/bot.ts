@@ -140,6 +140,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     ctx: { from?: { id: number }; reply(text: string): Promise<unknown> },
     text: string,
     lang: Lang,
+    messageId: number,
   ): Promise<boolean> => {
     const telegramUserId = ctx.from!.id;
     const parent = await d.parentByTelegramId(telegramUserId);
@@ -158,7 +159,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       } else {
         await ctx.reply(S.meds.alreadyNoted);
       }
-      await pushMessage(await d.forwardToFamily(telegramUserId, { text }));
+      await pushMessage(await d.forwardToFamily(telegramUserId, { text, messageId }));
       return true;
     }
 
@@ -166,7 +167,7 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     if (!request || !(await d.createMed(parent.id, request.title, request.times))) return false;
     await ctx.reply(S.meds.added(request.title, request.times.join(', '), await d.childName(telegramUserId)));
     await d.broadcastToApp(parent.family_id, 'meds');
-    await pushMessage(await d.forwardToFamily(telegramUserId, { text }));
+    await pushMessage(await d.forwardToFamily(telegramUserId, { text, messageId }));
     return true;
   };
 
@@ -646,11 +647,14 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
       return;
     }
 
-    if (await medIntent(ctx, ctx.message.text, lang)) return;
+    if (await medIntent(ctx, ctx.message.text, lang, ctx.message.message_id)) return;
 
     const storyFamily = await d.storyCapture(ctx.from!.id, ctx.message.text, null);
 
-    const forwardedText = await d.forwardToFamily(ctx.from!.id, { text: ctx.message.text });
+    const forwardedText = await d.forwardToFamily(ctx.from!.id, {
+      text: ctx.message.text,
+      messageId: ctx.message.message_id,
+    });
     const name = await d.addressForm(ctx.from!.id);
     const child = await d.childName(ctx.from!.id);
     if (storyFamily) {
@@ -667,7 +671,10 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
     const lang = await langFor(ctx);
     const S = T(lang);
     const storyFamily = await d.storyCapture(ctx.from!.id, null, ctx.message.voice.file_id);
-    const forwardedVoice = await d.forwardToFamily(ctx.from!.id, { voiceFileId: ctx.message.voice.file_id });
+    const forwardedVoice = await d.forwardToFamily(ctx.from!.id, {
+      voiceFileId: ctx.message.voice.file_id,
+      messageId: ctx.message.message_id,
+    });
     await pushMessage(forwardedVoice);
     if (storyFamily) {
       await ctx.reply(S.story.captured);
@@ -679,7 +686,10 @@ export function makeBot(env: Env, botInfo?: UserFromGetMe): Bot {
 
   bot.on('message:photo', async (ctx) => {
     const lang = await langFor(ctx);
-    const forwardedPhoto = await d.forwardToFamily(ctx.from!.id, { photoFileId: ctx.message.photo.at(-1)!.file_id });
+    const forwardedPhoto = await d.forwardToFamily(ctx.from!.id, {
+      photoFileId: ctx.message.photo.at(-1)!.file_id,
+      messageId: ctx.message.message_id,
+    });
     await pushMessage(forwardedPhoto);
     await replyNudgingButton(ctx, T(lang).freeInput.photo(await d.childName(ctx.from!.id)), lang);
   });

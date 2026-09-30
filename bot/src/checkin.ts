@@ -402,16 +402,20 @@ async function tick(d: ReturnType<typeof db>, env: Env, reserve: number): Promis
         break;
       }
       await d.markPostcardSent(card.postcard_id);
-      const caption = T(resolveLang(card.lang)).postcard.delivered(card.author_name, card.body);
+      const P = T(resolveLang(card.lang)).postcard;
+      const replyTo = card.reply_to_message_id ?? undefined;
+      const caption = replyTo
+        ? P.reply(card.author_name, card.body)
+        : P.delivered(card.author_name, card.body);
       if (card.photo_path) {
         const bytes = await d.takePostcardPhoto(card.family_id, card.photo_path);
         if (bytes) {
-          await delivered(await d.sendPhoto(card.telegram_user_id, bytes, caption));
+          await delivered(await d.sendPhoto(card.telegram_user_id, bytes, caption, replyTo));
           if (flooded) break;
           continue;
         }
       }
-      await delivered(await d.send(card.telegram_user_id, { text: caption }));
+      await delivered(await d.send(card.telegram_user_id, { text: caption, replyTo }));
       if (flooded) break;
     }
   }

@@ -3843,6 +3843,74 @@
         }
       }
     },
+    "messages.reply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ответить"
+          }
+        }
+      }
+    },
+    "messages.replyDelivered": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivered"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доставлено"
+          }
+        }
+      }
+    },
+    "messages.replyPhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фотография"
+          }
+        }
+      }
+    },
+    "messages.replyWaiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting to be sent"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ждёт отправки"
+          }
+        }
+      }
+    },
     "messages.rowHint": {
       "extractionState": "stale",
       "localizations": {
@@ -3890,6 +3958,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Голосовое сообщение"
+          }
+        }
+      }
+    },
+    "messages.you": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы"
           }
         }
       }
@@ -4978,6 +5063,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Мам, у нас всё хорошо…"
+          }
+        }
+      }
+    },
+    "postcard.replyPhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a photo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "фотография"
+          }
+        }
+      }
+    },
+    "postcard.replyTo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replying to this message"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В ответ на сообщение"
+          }
+        }
+      }
+    },
+    "postcard.replyVoice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a voice note"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "голосовое сообщение"
           }
         }
       }

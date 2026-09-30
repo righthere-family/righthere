@@ -385,6 +385,15 @@ enum L10n {
     static var messagesEmpty: String { String(localized: "messages.empty", bundle: bundle) }
     static var messagesNew: String { String(localized: "messages.new", bundle: bundle) }
     static var messagesVoice: String { String(localized: "messages.voice", bundle: bundle) }
+    static var messagesReply: String { String(localized: "messages.reply", bundle: bundle) }
+    static var messagesYou: String { String(localized: "messages.you", bundle: bundle) }
+    static var messagesReplyPhoto: String { String(localized: "messages.replyPhoto", bundle: bundle) }
+    static var messagesReplyDelivered: String { String(localized: "messages.replyDelivered", bundle: bundle) }
+    static var messagesReplyWaiting: String { String(localized: "messages.replyWaiting", bundle: bundle) }
+    static var postcardReplyVoice: String { String(localized: "postcard.replyVoice", bundle: bundle) }
+    static var postcardReplyPhoto: String { String(localized: "postcard.replyPhoto", bundle: bundle) }
+
+    static var postcardReplyTo: String { String(localized: "postcard.replyTo", bundle: bundle) }
 
     static var paywallPricesUnavailable: String { String(localized: "paywall.pricesUnavailable", bundle: bundle) }
 

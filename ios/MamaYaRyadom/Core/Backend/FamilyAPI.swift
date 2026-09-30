@@ -254,7 +254,12 @@ struct FamilyAPI: Sendable {
         return created
     }
 
-    func sendPostcard(parentId: UUID, body: String, photoPath: String? = nil) async throws -> Bool {
+    func sendPostcard(
+        parentId: UUID,
+        body: String,
+        photoPath: String? = nil,
+        replyTo: UUID? = nil
+    ) async throws -> Bool {
         await ensureSession()
         return try await call(
             "app_send_postcard",
@@ -262,7 +267,8 @@ struct FamilyAPI: Sendable {
                 pAppToken: AppConfig.familyToken,
                 pParentId: parentId,
                 pBody: body,
-                pPhotoPath: photoPath
+                pPhotoPath: photoPath,
+                pReplyTo: replyTo
             )
         )
     }
@@ -626,12 +632,14 @@ private struct PostcardParams: Encodable {
     let pParentId: UUID
     let pBody: String
     let pPhotoPath: String?
+    let pReplyTo: UUID?
 
     enum CodingKeys: String, CodingKey {
         case pAppToken = "p_app_token"
         case pParentId = "p_parent_id"
         case pBody = "p_body"
         case pPhotoPath = "p_photo_path"
+        case pReplyTo = "p_reply_to"
     }
 }
 
@@ -785,6 +793,18 @@ struct ParentMessage: Decodable, Identifiable, Sendable {
     let voiceFileId: String?
     let photoFileId: String?
     let createdAt: Date
+    let replies: [Reply]?
+
+    // A postcard the family sent back to this message; sentAt is set once the
+    // bot has handed it to Telegram.
+    struct Reply: Decodable, Identifiable, Sendable {
+        let id: UUID
+        let authorName: String
+        let body: String
+        let hasPhoto: Bool
+        let createdAt: Date
+        let sentAt: Date?
+    }
 }
 
 struct FamilyStory: Decodable, Identifiable, Sendable {

@@ -5,10 +5,20 @@ import SwiftUI
 
 struct MessagesView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(\.scenePhase) private var scenePhase
     @State private var seenBefore: Date = .distantPast
     @State private var faded: Set<UUID> = []
     @Environment(\.dependencies) private var dependencies
     @State private var model = MessagesViewModel()
+    @State private var replying: ReplyTarget?
+
+    // A reply needs the message and its author together, so the sheet gets
+    // both as one item.
+    private struct ReplyTarget: Identifiable {
+        let message: ParentMessage
+        let parent: Parent
+        var id: UUID { message.id }
+    }
 
     var body: some View {
         ScrollView {
@@ -42,7 +52,24 @@ struct MessagesView: View {
             UnreadMessages.markSeen(through: model.messages.map(\.createdAt).max())
             router.unreadMessages = 0
         }
+        // The bot hands a letter over on its own schedule, so a fresh reply
+        // sits in "waiting" for up to a minute: keep asking until it moves.
+        .task(id: model.pendingReplies) {
+            while !Task.isCancelled, model.pendingReplies > 0 {
+                try? await Task.sleep(for: .seconds(10))
+                guard !Task.isCancelled else { return }
+                await model.refresh()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, !model.isLoading else { return }
+            Task { await model.refresh() }
+        }
         .onDisappear { model.stopPlayback() }
+        .sheet(item: $replying, onDismiss: { Task { await model.refresh() } }) { target in
+            PostcardView(parent: target.parent, replyTo: target.message)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     // MARK: - Card
@@ -84,6 +111,30 @@ struct MessagesView: View {
             if message.photoFileId != nil {
                 photoView(message)
             }
+
+            if let replies = message.replies, !replies.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(replies) { reply in
+                        replyRow(reply)
+                    }
+                }
+                .padding(.top, 4)
+            }
+
+            if let parent = model.parent(for: message.parentId) {
+                HStack {
+                    Spacer()
+                    Button {
+                        replying = ReplyTarget(message: message, parent: parent)
+                    } label: {
+                        Label(L10n.messagesReply, systemImage: "arrowshape.turn.up.left")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Palette.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 2)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
@@ -102,6 +153,49 @@ struct MessagesView: View {
                 fade(message)
             }
         }
+    }
+
+    // MARK: - Reply
+
+    // A reply reads as a thread under the parent's words: a thin bar, who
+    // wrote back, the text, and whether the bot has passed it on yet.
+    private func replyRow(_ reply: ParentMessage.Reply) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            RoundedRectangle(cornerRadius: 1)
+                .fill(Palette.accent.opacity(0.45))
+                .frame(width: 2)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(model.isMine(reply) ? L10n.messagesYou : reply.authorName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Palette.accent)
+                    Spacer()
+                    replyStatus(reply)
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    if reply.hasPhoto {
+                        Image(systemName: "photo")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Palette.inkSecondary)
+                    }
+                    Text(reply.body.isEmpty ? L10n.messagesReplyPhoto : reply.body)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Palette.ink)
+                        .lineSpacing(2)
+                }
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func replyStatus(_ reply: ParentMessage.Reply) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: reply.sentAt == nil ? "clock" : "checkmark")
+                .font(.system(size: 9, weight: .bold))
+            Text(reply.sentAt == nil ? L10n.messagesReplyWaiting : L10n.messagesReplyDelivered)
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(reply.sentAt == nil ? Palette.inkSecondary : Palette.okStrong)
     }
 
     private func isFresh(_ message: ParentMessage) -> Bool {
@@ -226,6 +320,8 @@ final class MessagesViewModel {
     private(set) var playingId: UUID?
     private(set) var progress: Double = 0
     private var parentNames: [UUID: String] = [:]
+    private var parents: [UUID: Parent] = [:]
+    private var myName: String?
     private var player: AVAudioPlayer?
     private var ticker: Timer?
 
@@ -236,17 +332,41 @@ final class MessagesViewModel {
         if let snap {
             for member in [snap.parent] + snap.others.map(\.parent) {
                 parentNames[member.id] = member.displayName
+                parents[member.id] = member
             }
+            myName = snap.myName
         }
         messages = loaded
         isLoading = false
+        await fetchAssets(for: loaded)
+    }
 
+    // A reply just went out from the sheet: pick up the feed again so the
+    // bubble shows under the message without a full reload.
+    func refresh() async {
+        guard let loaded = try? await FamilyAPI().parentMessages() else { return }
+        messages = loaded
+        await fetchAssets(for: loaded)
+    }
+
+    var pendingReplies: Int {
+        messages.reduce(0) { count, message in
+            count + (message.replies ?? []).filter { $0.sentAt == nil }.count
+        }
+    }
+
+    func isMine(_ reply: ParentMessage.Reply) -> Bool {
+        guard let myName, !myName.isEmpty else { return false }
+        return reply.authorName == myName
+    }
+
+    private func fetchAssets(for loaded: [ParentMessage]) async {
         // Photos resolve to short-lived signed links; voice notes are small,
         // so they download whole — the waveform and duration need the bytes,
         // and AVPlayer streaming needs range support the worker does not have.
         await withTaskGroup(of: Payload?.self) { group in
             for message in loaded {
-                if let fileId = message.photoFileId {
+                if let fileId = message.photoFileId, photoURLs[message.id] == nil {
                     group.addTask {
                         guard let url = try? await FamilyAPI().voicePlaybackURL(fileId: fileId) else {
                             return nil
@@ -254,7 +374,7 @@ final class MessagesViewModel {
                         return .photo(message.id, url)
                     }
                 }
-                if let fileId = message.voiceFileId {
+                if let fileId = message.voiceFileId, tracks[message.id] == nil {
                     group.addTask {
                         guard let track = await Self.downloadTrack(fileId: fileId) else { return nil }
                         return .voice(message.id, track)
@@ -274,6 +394,10 @@ final class MessagesViewModel {
     private enum Payload {
         case photo(UUID, URL)
         case voice(UUID, VoiceTrack)
+    }
+
+    func parent(for id: UUID) -> Parent? {
+        parents[id]
     }
 
     func parentName(for id: UUID) -> String {

@@ -23,6 +23,7 @@ export interface Outgoing {
   text: string;
   checkinKeyboard?: Lang;
   buttons?: Button[][];
+  replyTo?: number;
 }
 
 export type Delivery =
@@ -34,7 +35,7 @@ export type Delivery =
 export interface Channel {
   readonly kind: ChannelKind;
   send(address: string, message: Outgoing): Promise<Delivery>;
-  sendPhoto(address: string, bytes: ArrayBuffer, caption: string): Promise<Delivery>;
+  sendPhoto(address: string, bytes: ArrayBuffer, caption: string, replyTo?: number): Promise<Delivery>;
 }
 
 export interface ChannelEnv {
@@ -66,18 +67,25 @@ function telegramChannel(token: string): Channel {
         chat_id: Number(address),
         text: message.text,
         reply_markup: telegramMarkup(message),
+        reply_parameters: replyParameters(message.replyTo),
       };
       return fromTelegram(await tgCall(token, 'sendMessage', body));
     },
 
-    async sendPhoto(address, bytes, caption) {
+    async sendPhoto(address, bytes, caption, replyTo) {
       const form = new FormData();
       form.set('chat_id', address);
       form.set('photo', new Blob([bytes], { type: 'image/jpeg' }), 'postcard.jpg');
       if (caption) form.set('caption', caption);
+      if (replyTo) form.set('reply_parameters', JSON.stringify(replyParameters(replyTo)));
       return fromTelegram(await tgUpload(token, 'sendPhoto', form));
     },
   };
+}
+
+function replyParameters(messageId: number | undefined): unknown {
+  if (!messageId) return undefined;
+  return { message_id: messageId, allow_sending_without_reply: true };
 }
 
 function telegramMarkup(message: Outgoing): unknown {

@@ -5,6 +5,9 @@ import SwiftUI
 
 struct PostcardView: View {
     let parent: Parent
+    // Set when the postcard answers a message: the bot then sends it as a
+    // Telegram reply, quoting what the parent wrote.
+    var replyTo: ParentMessage?
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @State private var model = PostcardViewModel()
@@ -23,6 +26,10 @@ struct PostcardView: View {
                         text: Bindable(model).authorName
                     )
                     .padding(.bottom, 18)
+                }
+                if let replyTo {
+                    quote(replyTo)
+                        .padding(.bottom, 10)
                 }
                 editor
                 photoRow
@@ -61,6 +68,35 @@ struct PostcardView: View {
                 if sent { dismiss() }
             }
         }
+    }
+
+    // MARK: - Quote
+
+    private func quote(_ message: ParentMessage) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Capsule()
+                .fill(Palette.accentBright)
+                .frame(width: 3)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(L10n.postcardReplyTo)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Palette.accent)
+                Text(quoteText(message))
+                    .font(.system(size: 14))
+                    .foregroundStyle(Palette.inkSecondary)
+                    .lineLimit(3)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Palette.accentBright.opacity(0.08), in: .rect(cornerRadius: 14))
+    }
+
+    private func quoteText(_ message: ParentMessage) -> String {
+        if let body = message.body, !body.isEmpty { return "«\(body)»" }
+        if message.voiceFileId != nil { return L10n.postcardReplyVoice }
+        return L10n.postcardReplyPhoto
     }
 
     // MARK: - Editor
@@ -139,7 +175,7 @@ struct PostcardView: View {
             isEnabled: model.canSend,
             isBusy: model.isSending
         ) {
-            Task { await model.send(to: parent.id) }
+            Task { await model.send(to: parent.id, replyTo: replyTo?.id) }
         }
     }
 }
@@ -188,7 +224,7 @@ final class PostcardViewModel {
         needsName = (snapshot.myName ?? "").isEmpty
     }
 
-    func send(to parentId: UUID) async {
+    func send(to parentId: UUID, replyTo: UUID? = nil) async {
         guard canSend else { return }
         isSending = true
         didFail = false
@@ -203,7 +239,9 @@ final class PostcardViewModel {
             if let attachedData {
                 photoPath = try await FamilyAPI().uploadPostcardPhoto(attachedData)
             }
-            guard try await FamilyAPI().sendPostcard(parentId: parentId, body: text, photoPath: photoPath) else {
+            guard try await FamilyAPI().sendPostcard(
+                parentId: parentId, body: text, photoPath: photoPath, replyTo: replyTo
+            ) else {
                 didFail = true
                 return
             }

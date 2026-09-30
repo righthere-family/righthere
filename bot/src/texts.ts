@@ -298,6 +298,8 @@ const ru = {
   postcard: {
     delivered: (author: string, body: string) =>
       (author ? `Вам открытка от ${author}:` : 'Вам открытка:') + `\n\n«${body}»`,
+    reply: (author: string, body: string) =>
+      (author ? `${author} отвечает:` : 'Родные отвечают:') + `\n\n«${body}»`,
   },
 
   reached: (author: string, daughter: boolean, parent: string) =>
@@ -611,6 +613,8 @@ const en: BotStrings = {
   postcard: {
     delivered: (author: string, body: string) =>
       (author ? `A postcard for you from ${author}:` : 'A postcard for you:') + `\n\n“${body}”`,
+    reply: (author: string, body: string) =>
+      (author ? `${author} replies:` : 'Your family replies:') + `\n\n“${body}”`,
   },
 
   reached: (author: string, _daughter: boolean, parent: string) =>

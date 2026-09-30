@@ -64,6 +64,7 @@ export interface DuePostcard {
   body: string;
   photo_path: string | null;
   lang: string;
+  reply_to_message_id: number | null;
 }
 
 export interface DueEvening {
@@ -628,9 +629,9 @@ export function db(env: Env) {
       return bytes.buffer;
     },
 
-    async sendPhoto(telegramUserId: number, bytes: ArrayBuffer, caption: string): Promise<Delivery> {
+    async sendPhoto(telegramUserId: number, bytes: ArrayBuffer, caption: string, replyTo?: number): Promise<Delivery> {
       const recipient = await routeFor(telegramUserId);
-      const delivery = await channelFor(env, recipient.kind).sendPhoto(recipient.address, bytes, caption);
+      const delivery = await channelFor(env, recipient.kind).sendPhoto(recipient.address, bytes, caption, replyTo);
       if (delivery.kind === 'failed' || delivery.kind === 'gone') {
         await logEvent(
           'error',
@@ -1120,7 +1121,7 @@ export function db(env: Env) {
 
     async forwardToFamily(
       telegramUserId: number,
-      payload: { text?: string; voiceFileId?: string; photoFileId?: string },
+      payload: { text?: string; voiceFileId?: string; photoFileId?: string; messageId?: number },
     ): Promise<{ familyId: string; name: string; kind: 'text' | 'voice' | 'photo' } | null> {
       const parent = await this.parentByTelegramId(telegramUserId);
       if (!parent) return null;
@@ -1135,6 +1136,7 @@ export function db(env: Env) {
           body: payload.text ?? null,
           voice_file_id: payload.voiceFileId ?? null,
           photo_file_id: payload.photoFileId ?? null,
+          telegram_message_id: payload.messageId ?? null,
         }),
         null,
       );
