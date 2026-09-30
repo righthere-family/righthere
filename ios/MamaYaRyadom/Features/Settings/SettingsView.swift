@@ -12,7 +12,7 @@ struct SettingsView: View {
     @AppStorage("appTheme") private var appTheme = "light"
     @AppStorage("onboardingDone") private var onboardingDone = false
     @Environment(\.colorScheme) private var colorScheme
-    @State private var appleLinked = AppleAccount.isLinked
+    @State private var appleLinked: Bool? = AppleAccount.isLinked ? true : nil
     @State private var appleAttempt = AppleAccount.Attempt()
     @State private var linkError: String?
     @Environment(\.dependencies) private var dependencies
@@ -54,7 +54,7 @@ struct SettingsView: View {
         .task {
             await purchases.load()
             role = try? await FamilyAPI().myRole()
-            appleLinked = AppleAccount.isLinked
+            appleLinked = await AppleAccount.linkedState()
             myName = (try? await dependencies.checkinService.todaySnapshot())?.myName ?? ""
         }
         .confirmDialog(
@@ -88,7 +88,9 @@ struct SettingsView: View {
     // MARK: - Account
 
     // An Apple ID tied to the anonymous account is what brings the family
-    // back on a new phone without asking a parent for the link.
+    // back on a new phone without asking a parent for the link. Until the
+    // server has answered, the row offers nothing: a link button shown to an
+    // account that is already linked reads as if the link had been lost.
     private var accountRow: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
@@ -96,7 +98,7 @@ struct SettingsView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Palette.ink)
                 Spacer()
-                if appleLinked {
+                if appleLinked == true {
                     HStack(spacing: 5) {
                         Image(systemName: "checkmark")
                             .font(.system(size: 11, weight: .bold))
@@ -104,13 +106,19 @@ struct SettingsView: View {
                             .font(.system(size: 13))
                     }
                     .foregroundStyle(Palette.okStrong)
+                } else if appleLinked == nil {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(Palette.inkSecondary)
                 }
             }
-            Text(appleLinked ? L10n.settingsAppleLinkedHint : L10n.settingsAppleLinkHint)
-                .font(.system(size: 13))
-                .foregroundStyle(Palette.inkSecondary)
-                .lineSpacing(3)
-            if !appleLinked {
+            if let appleLinked {
+                Text(appleLinked ? L10n.settingsAppleLinkedHint : L10n.settingsAppleLinkHint)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.inkSecondary)
+                    .lineSpacing(3)
+            }
+            if appleLinked == false {
                 SignInWithAppleButton(.continue) { request in
                     let attempt = AppleAccount.Attempt()
                     appleAttempt = attempt

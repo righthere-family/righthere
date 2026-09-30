@@ -33,9 +33,31 @@ enum AppleAccount {
         case failed
     }
 
+    // What the session kept on the phone says. It can lag behind: the user
+    // in it is a copy made when the session was issued.
     static var isLinked: Bool {
         guard let user = SupabaseHub.client?.auth.currentSession?.user else { return false }
-        return user.identities?.contains { $0.provider == "apple" } == true
+        return hasApple(user)
+    }
+
+    // What the server says. When the stored copy disagrees, the session is
+    // renewed so the phone stops remembering the account as it used to be.
+    static func linkedState() async -> Bool {
+        guard let client = SupabaseHub.client, client.auth.currentSession != nil else { return false }
+        guard let user = try? await client.auth.user() else { return isLinked }
+        let linked = hasApple(user)
+        if linked != isLinked {
+            _ = try? await client.auth.refreshSession()
+        }
+        return linked
+    }
+
+    private static func hasApple(_ user: User) -> Bool {
+        if user.identities?.contains(where: { $0.provider == "apple" }) == true {
+            return true
+        }
+        guard case .array(let providers)? = user.appMetadata["providers"] else { return false }
+        return providers.contains(.string("apple"))
     }
 
     static func credentials(
@@ -63,6 +85,7 @@ enum AppleAccount {
                 try await client.auth.signInAnonymously()
             }
             _ = try await client.auth.linkIdentityWithIdToken(credentials: credentials)
+            _ = try? await client.auth.refreshSession()
             return .linked
         } catch let error as AuthError where error.errorCode == .identityAlreadyExists {
             return .taken
