@@ -337,8 +337,6 @@ struct TodayView: View {
         }
         if await model.restoreFromAccount(using: dependencies.checkinService) {
             restoreError = nil
-            await FamilyAPI().joinFamily()
-            await PushRegistrar.requestAndRegister()
         } else {
             restoreError = L10n.restoreNotFound
         }

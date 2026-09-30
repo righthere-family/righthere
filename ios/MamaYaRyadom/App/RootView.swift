@@ -8,6 +8,7 @@ struct RootView: View {
     @AppStorage("onboardingDone") private var onboardingDone = false
     @AppStorage("appLanguage") private var appLanguage = ""
     @AppStorage("appTheme") private var appTheme = "light"
+    @AppStorage("createdFamilyToken") private var familyToken = ""
     @State private var isLaunching = true
 
     var body: some View {
@@ -69,8 +70,17 @@ struct RootView: View {
             guard UUID(uuidString: token) != nil, !AppConfig.hasFamily else { return }
             AppConfig.storeFamilyToken(token)
             onboardingDone = true
+        }
+        // A family has just appeared on this phone, whether created, joined
+        // by link or restored. The screens pick it up first, and then comes
+        // the question about notifications; left to the next launch or
+        // language switch, that dialog turned up after some unrelated tap.
+        .onChange(of: familyToken) { _, token in
+            guard !token.isEmpty else { return }
             Task {
                 await FamilyAPI().joinFamily()
+                router.familyEpoch += 1
+                router.liveTick += 1
                 await PushRegistrar.requestAndRegister()
             }
         }
