@@ -100,29 +100,47 @@ final class PushAppDelegate: NSObject, UIApplicationDelegate {
 }
 
 
-// MARK: - Foreground Notifications
+// MARK: - Notification Delegate
+
+// The system hands over its completion blocks without a Sendable mark; this
+// carries one onto the main actor, the only place UIKit accepts it.
+private struct NotificationCompletion: @unchecked Sendable {
+    let run: () -> Void
+}
 
 extension PushAppDelegate: UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .list, .sound]
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .list, .sound])
     }
 
+    // UIKit finishes a notification response by refreshing the app snapshot
+    // and asserts that this happens on the main thread. The async form of
+    // this method returned its completion from a background executor, which
+    // aborted the app whenever the response was handled before the scene was
+    // active: a cold start from a tap, or the wave action.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         let content = response.notification.request.content
         let category = content.categoryIdentifier
         let parentId = content.userInfo["parent_id"] as? String
-        if response.actionIdentifier == "WAVE" {
-            if let parentId, let id = UUID(uuidString: parentId) {
-                _ = try? await FamilyAPI().wave(parentId: id)
+        let isWave = response.actionIdentifier == "WAVE"
+        let completion = NotificationCompletion(run: completionHandler)
+        Task { @MainActor in
+            if isWave {
+                if let parentId, let id = UUID(uuidString: parentId) {
+                    _ = try? await FamilyAPI().wave(parentId: id)
+                }
+            } else {
+                Self.open(category, parentId: parentId)
             }
-            return
+            completion.run()
         }
-        await MainActor.run { Self.open(category, parentId: parentId) }
     }
 }
