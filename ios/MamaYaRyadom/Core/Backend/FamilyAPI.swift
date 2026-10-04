@@ -162,6 +162,15 @@ struct FamilyAPI: Sendable {
         return (try? JSONDecoder().decode(Reply.self, from: body).ok) ?? false
     }
 
+    // Without permission there is no token to send, and the server would go
+    // on trusting the last one it had. Telling it is what keeps an alarm
+    // from being counted as delivered to a phone that will not show it.
+    func setPushDenied() async {
+        guard AppConfig.hasFamily else { return }
+        await ensureSession()
+        let _: Bool? = try? await call("app_set_push_denied", params: ["p_app_token": AppConfig.familyToken])
+    }
+
     func setPushToken(
         _ token: String,
         environment: String,

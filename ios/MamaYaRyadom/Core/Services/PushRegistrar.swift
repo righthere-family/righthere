@@ -14,8 +14,12 @@ enum PushRegistrar {
         switch settings.authorizationStatus {
         case .notDetermined:
             let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
-            guard granted else { return }
+            guard granted else {
+                await FamilyAPI().setPushDenied()
+                return
+            }
         case .denied:
+            await FamilyAPI().setPushDenied()
             return
         default:
             break

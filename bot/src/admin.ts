@@ -928,6 +928,18 @@ function renderFamilyDetail(f) {
         '<span class="saveflag"></span>' +
       '</div></div>';
   }).join('');
+  const pushLabel = m => m.push_state === 'granted' ? ['active', 'уведомления включены']
+    : m.push_state === 'denied' ? ['blocked', 'уведомления выключены']
+    : m.push_state === 'gone' ? ['blocked', 'приложение удалено']
+    : m.has_token ? ['paused', 'токен есть, статус неизвестен']
+    : ['off', 'нет токена'];
+  const members = (f.members || []).map(m => {
+    const push = pushLabel(m);
+    return '<div>' + esc(m.display_name || '—') + ' · ' + esc(m.role) +
+      ' <span class="pill ' + push[0] + '">' + push[1] + '</span>' +
+      (m.push_seen ? ' · на связи ' + esc(m.push_seen) + ' UTC' : ' · на связь не выходило') +
+      ' · ' + esc(m.timezone) + '</div>';
+  }).join('') || '<span class="muted">никого</span>';
   const stories = (f.stories || []).map(s =>
     '<div style="margin-bottom:8px"><span class="muted">' + esc(s.question) + '</span><br>' +
     (s.answer ? '«' + esc(s.answer) + '»' : '') + (s.has_voice ? ' 🎙' : '') +
@@ -946,6 +958,7 @@ function renderFamilyDetail(f) {
     '<input type="text" placeholder="Text in English" style="max-width:200px">' +
     '<button class="ghost" onclick="familyPush(\\'' + f.id + '\\', this)">отправить пуш</button>' +
     '<span class="saveflag"></span></div>' +
+    '<div style="margin:6px 0 10px"><span class="muted">Устройства:</span><div style="margin-top:6px">' + members + '</div></div>' +
     parents +
     '<div style="margin-top:10px"><span class="muted">Истории:</span><div style="margin-top:6px">' + stories + '</div></div>' +
     '</div>';

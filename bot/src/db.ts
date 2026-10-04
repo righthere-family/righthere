@@ -948,7 +948,7 @@ export function db(env: Env) {
     async clearPushToken(userId: string, familyId: string): Promise<void> {
       await sb
         .from('family_members')
-        .update({ apns_token: null })
+        .update({ apns_token: null, push_state: 'gone' })
         .eq('family_id', familyId)
         .eq('user_id', userId);
     },

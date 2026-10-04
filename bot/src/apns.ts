@@ -134,6 +134,10 @@ export async function pushToFamily(
       delivered += 1;
     }
   }
+  if (targets.length === 0 && (push.category === 'ESCALATION' || push.category === 'NOT_OK')) {
+    await d.logEvent('warn', 'unreachable', `family ${familyId}: ${push.category} had no device to notify`);
+    spent += 1;
+  }
   if (reached >= MAX_PUSH_DEVICES && targets.length > MAX_PUSH_DEVICES) {
     await d.logEvent('warn', 'apns', `family ${familyId}: ${targets.length} devices, capped at ${MAX_PUSH_DEVICES}`);
     spent += 1;
